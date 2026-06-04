@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  --fn-bg: #f8fafc;
+  --fn-surface: #ffffff;
+  --fn-surface-muted: #f1f5f9;
+  --fn-text: #0f172a;
+  --fn-text-secondary: #334155;
+  --fn-text-muted: #64748b;
+  --fn-border: #e2e8f0;
+  --fn-primary: #0d9488;
+  --fn-primary-muted: #ccfbf1;
+  --fn-primary-text: #0f766e;
+  --fn-accent: #f97316;
+  --fn-success: #22c55e;
+  --fn-success-muted: #dcfce7;
+  --fn-warning: #eab308;
+  --fn-error: #ef4444;
+}
+
+.dark {
+  --fn-bg: #0f172a;
+  --fn-surface: #1e293b;
+  --fn-surface-muted: #334155;
+  --fn-text: #f8fafc;
+  --fn-text-secondary: #cbd5e1;
+  --fn-text-muted: #94a3b8;
+  --fn-border: #475569;
+  --fn-primary: #2dd4bf;
+  --fn-primary-muted: #134e4a;
+  --fn-primary-text: #5eead4;
+  --fn-accent: #fb923c;
+  --fn-success: #4ade80;
+  --fn-success-muted: #14532d;
+  --fn-warning: #facc15;
+  --fn-error: #f87171;
+}
+
+body {
+  background: var(--fn-bg);
+  color: var(--fn-text);
+  min-height: 100vh;
+}
+
+@theme inline {
+  --color-fn-bg: var(--fn-bg);
+  --color-fn-surface: var(--fn-surface);
+  --color-fn-surface-muted: var(--fn-surface-muted);
+  --color-fn-text: var(--fn-text);
+  --color-fn-text-muted: var(--fn-text-muted);
+  --color-fn-border: var(--fn-border);
+  --color-fn-primary: var(--fn-primary);
+  --color-fn-primary-muted: var(--fn-primary-muted);
+}
