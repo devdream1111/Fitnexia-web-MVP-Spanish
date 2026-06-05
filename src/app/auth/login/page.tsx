@@ -67,7 +67,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-[var(--fn-border)]" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[var(--fn-surface)] text-[var(--fn-text-muted)]">or continue with</span>
+                <span className="px-2 text-[var(--fn-text-muted)]">or continue with</span>
               </div>
             </div>
             <Button

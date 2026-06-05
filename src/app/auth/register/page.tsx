@@ -70,7 +70,7 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto flex min-h-screen flex-col justify-center px-6 py-12">
-      <div className="mx-auto w-full max-w-4xl">
+      <div className="mx-auto w-full max-w-7xl">
         <button
           type="button"
           onClick={() => (step === 1 ? router.back() : setStep(1))}

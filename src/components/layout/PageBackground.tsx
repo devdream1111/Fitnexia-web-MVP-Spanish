@@ -1,7 +1,6 @@
 'use client';
 
 import { useAppTheme } from '@/contexts/theme-context';
-import { MouseFollower } from './MouseFollower';
 
 export function PageBackground({ children }: { children: React.ReactNode }) {
   const { isDark } = useAppTheme();
@@ -12,10 +11,9 @@ export function PageBackground({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen">
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-10 animate-bg-float"
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-10"
         style={{ backgroundImage: `url(${isDark ? darkBg : lightBg})` }}
       />
-      <MouseFollower />
       <div className="relative z-10">
         {children}
       </div>
