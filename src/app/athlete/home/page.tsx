@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
 import { useClasses } from '@/contexts/classes-context';
@@ -18,12 +18,6 @@ export default function AthleteHomePage() {
           <p className="text-sm font-medium text-[var(--fn-text-muted)]">Good morning!</p>
           <h1 className="text-3xl font-extrabold md:text-4xl">Find your next class</h1>
         </div>
-        <button
-          type="button"
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--fn-surface)] text-[var(--fn-text-muted)] shadow-sm transition-all hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]"
-        >
-          <Bell size={22} />
-        </button>
       </div>
 
       <Link

@@ -13,11 +13,11 @@ export function Logo({ className = '', size = 'md' }: { className?: string; size
   };
 
   return (
-    <div className={`${sizeClasses[size]} ${className}`}>
+    <div className={`${sizeClasses[size]} flex items-center justify-center ${className}`}>
       <img
         src="/fitnexia-logo.svg"
         alt="Fitnexia Logo"
-        className={`w-auto h-full animate-logo-float animate-logo-pulse ${isDark ? 'invert brightness-125' : ''}`}
+        className={`w-auto h-full ${isDark ? 'invert brightness-125' : ''}`}
       />
     </div>
   );

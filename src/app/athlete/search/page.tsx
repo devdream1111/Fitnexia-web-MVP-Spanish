@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Search as SearchIcon, MapPin, X, ChevronDown } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
+import { ClassMap } from '@/components/map/Map';
 import { FilterChip } from '@/components/ui/filter-chip';
 import {
   DISCIPLINES,
@@ -269,6 +270,9 @@ export default function SearchPage() {
           </button>
         </div>
       )}
+
+      {/* Map */}
+      <ClassMap classes={results} />
 
       {/* Results */}
       <div className="space-y-4">
