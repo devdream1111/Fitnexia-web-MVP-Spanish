@@ -2,7 +2,11 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import type { StaffReview } from '@/types/api';
+import type { Review, StaffReview } from '@/types/api';
+import { 
+  addReview as addReviewMock,
+  MOCK_REVIEWS 
+} from '@/data/mock';
 
 const INITIAL_STAFF_REVIEWS: StaffReview[] = [
   {
@@ -18,7 +22,11 @@ const INITIAL_STAFF_REVIEWS: StaffReview[] = [
 ];
 
 interface ReviewsContextValue {
+  reviews: Review[];
   staffReviews: StaffReview[];
+  getReviewsForClass: (classId: string) => Review[];
+  getReviewsForInstructor: (instructorId: string) => Review[];
+  addReview: (review: Omit<Review, 'id' | 'createdAt' | 'verified'>) => Review;
   getStaffReviewsForInstructor: (instructorId: string) => StaffReview[];
   getGymReviewForInstructor: (institutionId: string, instructorId: string) => StaffReview | undefined;
   canGymReviewInstructor: (
@@ -32,7 +40,27 @@ interface ReviewsContextValue {
 const ReviewsContext = createContext<ReviewsContextValue | null>(null);
 
 export function ReviewsProvider({ children }: { children: React.ReactNode }) {
+  const [reviews, setReviews] = useState<Review[]>(MOCK_REVIEWS);
   const [staffReviews, setStaffReviews] = useState<StaffReview[]>(INITIAL_STAFF_REVIEWS);
+
+  const getReviewsForClass = useCallback(
+    (classId: string) => reviews.filter((r) => r.classId === classId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [reviews],
+  );
+
+  const getReviewsForInstructor = useCallback(
+    (instructorId: string) => reviews.filter((r) => r.instructorId === instructorId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [reviews],
+  );
+
+  const addReview = useCallback(
+    (input: Omit<Review, 'id' | 'createdAt' | 'verified'>) => {
+      const created = addReviewMock(input);
+      setReviews([...reviews, created]);
+      return created;
+    },
+    [reviews],
+  );
 
   const getStaffReviewsForInstructor = useCallback(
     (instructorId: string) =>
@@ -76,14 +104,22 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({
+      reviews,
       staffReviews,
+      getReviewsForClass,
+      getReviewsForInstructor,
+      addReview,
       getStaffReviewsForInstructor,
       getGymReviewForInstructor,
       canGymReviewInstructor,
       addStaffReview,
     }),
     [
+      reviews,
       staffReviews,
+      getReviewsForClass,
+      getReviewsForInstructor,
+      addReview,
       getStaffReviewsForInstructor,
       getGymReviewForInstructor,
       canGymReviewInstructor,

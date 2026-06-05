@@ -20,9 +20,9 @@ export const FEATURES = {
   profileEditing: true,
   passwordRecovery: true,
   notificationPreferences: true,
+  googleSignIn: true,
 
   // --- Post-MVP (disabled for v1) ---
-  googleSignIn: false,
   advancedSearch: false,
   recurringClasses: false,
   liveStreaming: false,

@@ -1,45 +1,71 @@
 'use client';
 
 import Link from 'next/link';
+import { Dumbbell, Video, MapPin, Edit3 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel } from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/data/mock';
 import type { ClassListItem } from '@/types/api';
 
-export function ClassCard({ item, compact }: { item: ClassListItem; compact?: boolean }) {
+export function ClassCard({ item, compact, showEdit, editHref }: { 
+  item: ClassListItem; 
+  compact?: boolean;
+  showEdit?: boolean;
+  editHref?: string;
+}) {
   const full = item.spotsLeft === 0;
-  return (
-    <Link
-      href={`/class/${item.id}`}
-      className={`flex gap-4 rounded-2xl bg-[var(--fn-surface)] p-4 shadow-sm transition hover:shadow-md ${compact ? 'mb-2' : 'mb-4'}`}>
-      <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-[var(--fn-primary-muted)] text-2xl">
-        🏋️
+  const CardContent = () => (
+    <div className="flex flex-col gap-4 rounded-2xl bg-[var(--fn-surface)] p-6 shadow-sm transition-all md:flex-row">
+      <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] md:w-28">
+        <Dumbbell size={36} className="text-[var(--fn-primary)]" />
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="truncate font-bold text-[var(--fn-text)]">{item.title}</h3>
-          {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
+          <h3 className="text-lg font-bold text-[var(--fn-text)]">{item.title}</h3>
+          <div className="flex items-center gap-2">
+            {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
+            {showEdit && editHref ? (
+              <Link href={editHref} onClick={(e) => e.stopPropagation()}>
+                <Button variant="outline" size="sm" title="Edit">
+                  <Edit3 size={16} className="mr-1" /> Edit
+                </Button>
+              </Link>
+            ) : null}
+          </div>
         </div>
         <p className="text-sm text-[var(--fn-text-muted)]">
           {item.discipline} · {formatClassDate(item.startAt)}
         </p>
-        <div className="mt-1 flex justify-between text-sm">
-          <span className="text-[var(--fn-text-secondary)]">{item.instructor.displayName}</span>
-          <span className="font-semibold text-[var(--fn-primary)]">{formatMoney(item.price)}</span>
-        </div>
-        <div className="mt-2 flex items-center justify-between text-xs text-[var(--fn-text-muted)]">
-          <span>
-            {item.modality === 'online' ? '📹' : '📍'}{' '}
+        <p className="text-sm text-[var(--fn-text-secondary)]">{item.instructor.displayName}</p>
+        <div className="flex items-center justify-between pt-2">
+          <span className="flex items-center gap-2 text-sm text-[var(--fn-text-muted)]">
+            {item.modality === 'online' ? <Video size={16} /> : <MapPin size={16} />}
             {modalityLocationLabel(item.modality, item.location?.label)}
           </span>
-          {item.spotsLeft != null && !full ? (
-            <span className="text-[var(--fn-primary)]">
-              {CLASS_CARD_LABELS.spotsLeft(item.spotsLeft)}
-            </span>
-          ) : null}
+          <div className="flex items-center gap-3">
+            {item.spotsLeft != null && !full ? (
+              <span className="text-sm font-semibold text-[var(--fn-primary)]">
+                {CLASS_CARD_LABELS.spotsLeft(item.spotsLeft)}
+              </span>
+            ) : null}
+            <span className="text-xl font-bold text-[var(--fn-primary)]">{formatMoney(item.price)}</span>
+          </div>
         </div>
       </div>
+    </div>
+  );
+
+  if (showEdit) {
+    return <CardContent />;
+  }
+
+  return (
+    <Link
+      href={`/class/${item.id}`}
+      className={`transition-all hover:-translate-y-1 hover:shadow-xl ${compact ? 'mb-2' : ''}`}>
+      <CardContent />
     </Link>
   );
 }

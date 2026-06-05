@@ -8,8 +8,8 @@ export function DarkModeToggle() {
     <button
       type="button"
       onClick={toggleDarkMode}
-      className="mb-4 flex w-full items-center justify-between rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3.5">
-      <span className="font-medium">Dark mode</span>
+      className="flex w-full items-center justify-between px-6 py-4 transition hover:bg-[var(--fn-surface-muted)]">
+      <span className="font-medium text-[var(--fn-text)]">Dark mode</span>
       <span
         className={`relative h-7 w-12 rounded-full transition ${isDark ? 'bg-[var(--fn-primary)]' : 'bg-[var(--fn-border)]'}`}>
         <span

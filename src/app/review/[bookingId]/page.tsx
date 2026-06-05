@@ -7,19 +7,40 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/page-header';
 import { getBookingById } from '@/data/mock';
 import { useClasses } from '@/contexts/classes-context';
+import { useReviews } from '@/contexts/reviews-context';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function ReviewPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const router = useRouter();
   const { getClassById } = useClasses();
+  const { addReview } = useReviews();
+  const { user } = useAuth();
   const booking = getBookingById(bookingId ?? '');
   const cls = booking ? getClassById(booking.classId) : undefined;
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const submit = () => {
-    alert('Review submitted (mock)');
-    router.push('/athlete/bookings');
+    if (!booking || !cls || !user) return;
+    
+    setSubmitting(true);
+    addReview({
+      classId: cls.id,
+      instructorId: cls.instructor.id,
+      userId: user.id,
+      authorName: `${user.firstName} ${user.lastName}`,
+      rating,
+      comment: comment || undefined,
+      response: null,
+    });
+    
+    setTimeout(() => {
+      setSubmitting(false);
+      alert('Review submitted!');
+      router.push('/athlete/bookings');
+    }, 500);
   };
 
   if (!booking || !cls) {
@@ -43,7 +64,7 @@ export default function ReviewPage() {
             key={n}
             type="button"
             onClick={() => setRating(n)}
-            className={`text-2xl ${n <= rating ? 'opacity-100' : 'opacity-30'}`}>
+            className={`text-2xl cursor-pointer transition-transform hover:scale-110 ${n <= rating ? 'opacity-100 text-yellow-500' : 'opacity-30'}`}>
             ★
           </button>
         ))}
@@ -55,7 +76,7 @@ export default function ReviewPage() {
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
-      <Button title="Submit review" onClick={submit} />
+      <Button title="Submit review" onClick={submit} loading={submitting} />
     </div>
   );
 }

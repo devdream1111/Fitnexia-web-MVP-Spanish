@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/page-header';
 import { useClasses } from '@/contexts/classes-context';
+import { useReviews } from '@/contexts/reviews-context';
 import { formatClassDate, formatMoney, getInstructorById } from '@/data/mock';
 import {
   BADGE_LABELS,
@@ -22,9 +23,11 @@ export default function ClassDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { getClassById } = useClasses();
+  const { getReviewsForClass } = useReviews();
   const waitlistEnabled = useFeature('waitlist');
   const cls = getClassById(id ?? '');
   const instructor = cls ? getInstructorById(cls.instructor.id) : undefined;
+  const reviews = cls ? getReviewsForClass(cls.id) : [];
 
   if (!cls) {
     return (
@@ -98,6 +101,31 @@ export default function ClassDetailPage() {
           <Button title={BUTTON_LABELS.bookNow} onClick={() => router.push(`/book/${cls.id}`)} />
         )}
       </div>
+
+      {reviews.length > 0 ? (
+        <div className="mt-12">
+          <h3 className="mb-6 text-xl font-bold">Reviews ({reviews.length})</h3>
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <div key={review.id} className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-bold">{review.authorName}</p>
+                  {review.verified && <Badge label="Verified" variant="success" size="sm" />}
+                </div>
+                <div className="text-lg mb-2">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</div>
+                {review.comment && <p className="text-[var(--fn-text-muted)]">{review.comment}</p>}
+                <p className="text-xs text-[var(--fn-text-muted)] mt-3">
+                  {new Date(review.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

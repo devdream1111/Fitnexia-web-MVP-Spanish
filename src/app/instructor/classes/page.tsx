@@ -14,7 +14,7 @@ export default function InstructorClassesPage() {
   const mine = getClassesByInstructor(getLinkedInstructorId(user));
 
   return (
-    <div>
+    <div className="space-y-4">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-extrabold">My classes</h1>
         <Link href="/create-class">
@@ -25,12 +25,7 @@ export default function InstructorClassesPage() {
         <p className="text-[var(--fn-text-muted)]">No classes yet. Create your first class.</p>
       ) : (
         mine.map((c) => (
-          <div key={c.id} className="mb-2">
-            <ClassCard item={c} />
-            <Link href={`/edit-class/${c.id}`} className="mt-2 inline-block">
-              <Button title="Edit" size="sm" variant="outline" />
-            </Link>
-          </div>
+          <ClassCard key={c.id} item={c} showEdit editHref={`/edit-class/${c.id}`} />
         ))
       )}
     </div>

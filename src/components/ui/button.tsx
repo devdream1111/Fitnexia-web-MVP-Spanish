@@ -38,7 +38,7 @@ export function Button({
     <button
       type="button"
       disabled={isDisabled}
-      className={`inline-flex w-full items-center justify-center rounded-xl font-semibold transition disabled:opacity-50 ${variantClass[variant]} ${sizeClass[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-xl font-semibold transition disabled:opacity-50 ${variantClass[variant]} ${sizeClass[size]} ${className}`}
       {...rest}>
       {loading ? (
         <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />

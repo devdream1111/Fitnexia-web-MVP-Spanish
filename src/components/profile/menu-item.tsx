@@ -20,7 +20,7 @@ export function ProfileMenuItem({
     </>
   );
   const className =
-    'mb-2 flex w-full items-center justify-between rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3.5 text-left transition hover:bg-[var(--fn-surface-muted)]';
+    'flex w-full items-center justify-between border-b border-[var(--fn-border)] last:border-b-0 bg-[var(--fn-surface)] px-6 py-4 text-left transition hover:bg-[var(--fn-surface-muted)]';
 
   if (href) {
     return (

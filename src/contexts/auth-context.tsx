@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 
 import type { Certification, UserRole, WeeklySchedule } from '@/types/api';
 import { defaultWeeklySchedule } from '@/utils/schedule';
@@ -75,6 +75,11 @@ const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
   marketing: false,
 };
 
+const STORAGE_KEYS = {
+  USER: 'fitnexia_user',
+  HAS_SEEN_ONBOARDING: 'fitnexia_has_seen_onboarding',
+};
+
 export function defaultInstructorProfile(firstName: string, lastName: string, disciplines: string[] = []): InstructorProfileData {
   return {
     displayName: `${firstName} ${lastName}`.trim(),
@@ -131,6 +136,7 @@ interface AuthContextValue {
   login: (email: string, password: string, role?: UserRole) => Promise<void>;
   register: (params: RegisterParams) => Promise<void>;
   updateProfile: (updates: UpdateProfileParams) => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -154,7 +160,37 @@ function createUser(partial: UserSeed): AuthUser {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+    const storedOnboarding = localStorage.getItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING);
+    
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    if (storedOnboarding) {
+      setHasSeenOnboarding(true);
+    }
+    setIsLoading(false);
+  }, []);
+
+  // Persist user to localStorage whenever it changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.USER);
+    }
+  }, [user]);
+
+  // Persist onboarding state
+  useEffect(() => {
+    if (hasSeenOnboarding) {
+      localStorage.setItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING, 'true');
+    }
+  }, [hasSeenOnboarding]);
 
   const completeOnboarding = useCallback(() => {
     setHasSeenOnboarding(true);
@@ -162,7 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, _password: string, role: UserRole = 'athlete') => {
     const base = {
-      id: 'mock-user',
       email,
       role,
       firstName: 'Demo',
@@ -174,6 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(
         createUser({
           ...base,
+          id: 'inst-1',
           instructorId: 'inst-1',
           instructorProfile: {
             ...defaultInstructorProfile('Demo', 'User', ['Tennis', 'Padel']),
@@ -196,6 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(
         createUser({
           ...base,
+          id: 'gym-1',
           institutionId: 'gym-1',
           institutionProfile: {
             ...defaultInstitutionProfile('FitHub Downtown'),
@@ -211,7 +248,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    setUser(createUser(base));
+    setUser(createUser({ ...base, id: 'mock-user' }));
   }, []);
 
   const register = useCallback(async (params: RegisterParams) => {
@@ -290,8 +327,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    // Mock password change - in a real app, you'd verify the current password and update it
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // For this mock, we just "succeed" if newPassword is at least 6 characters
+    if (newPassword.length < 6) {
+      throw new Error('New password must be at least 6 characters');
+    }
+  }, []);
+
   const logout = useCallback(() => {
     setUser(null);
+    localStorage.removeItem(STORAGE_KEYS.USER);
   }, []);
 
   const value = useMemo(
@@ -303,9 +350,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       updateProfile,
+      changePassword,
       logout,
     }),
-    [user, hasSeenOnboarding, isLoading, completeOnboarding, login, register, updateProfile, logout],
+    [user, hasSeenOnboarding, isLoading, completeOnboarding, login, register, updateProfile, changePassword, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -102,6 +102,34 @@ export interface InstitutionLocation {
   lng: number;
 }
 
+export interface GeocodeResult {
+  lat: number;
+  lng: number;
+  address: string;
+  city: string;
+  country: string;
+}
+
+export interface Payment {
+  id: string;
+  bookingId: string;
+  userId: string;
+  amount: Money;
+  status: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentMethod: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+}
+
 export interface Institution {
   id: string;
   name: string;
@@ -183,11 +211,15 @@ export interface CreateBookingResponse {
 
 export interface Review {
   id: string;
+  classId: string;
+  instructorId: string;
+  userId: string;
   rating: number;
   comment?: string;
   authorName: string;
   response?: string | null;
   createdAt: string;
+  verified: boolean;
 }
 
 /** Verified review from a gym that employs the instructor */

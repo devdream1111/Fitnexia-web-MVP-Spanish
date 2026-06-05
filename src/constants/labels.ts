@@ -80,6 +80,7 @@ export const SCREEN_TITLES = {
   class: 'Class',
   classDetails: 'Class details',
   classNotFound: 'Class not found',
+  paymentHistory: 'Payment History',
 } as const;
 
 export const BUTTON_LABELS = {

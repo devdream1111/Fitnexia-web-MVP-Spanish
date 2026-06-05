@@ -4,6 +4,11 @@ import type {
   CreditBalance,
   Instructor,
   Institution,
+  Review,
+  Payment,
+  Notification,
+  GeocodeResult,
+  Money,
 } from '@/types/api';
 
 export const MOCK_INSTRUCTORS: Instructor[] = [
@@ -181,6 +186,31 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
 ];
 
+export const MOCK_REVIEWS: Review[] = [
+  {
+    id: 'review-1',
+    classId: 'class-2',
+    instructorId: 'inst-1',
+    userId: 'u-4',
+    authorName: 'Sarah Johnson',
+    rating: 5,
+    comment: 'Amazing tennis lesson! Carlos is very patient and knowledgeable.',
+    createdAt: '2026-05-15T14:30:00Z',
+    verified: true,
+  },
+  {
+    id: 'review-2',
+    classId: 'class-1',
+    instructorId: 'inst-2',
+    userId: 'u-5',
+    authorName: 'Michael Brown',
+    rating: 4,
+    comment: 'Great yoga flow, perfect way to start the morning.',
+    createdAt: '2026-05-20T09:15:00Z',
+    verified: true,
+  },
+];
+
 export const MOCK_CREDITS: CreditBalance = {
   balance: 7,
   creditsUntilReward: 3,
@@ -271,4 +301,288 @@ export function updateMockInstructor(id: string, patch: Partial<Instructor>): vo
 
 export function getBookingById(id: string): Booking | undefined {
   return MOCK_BOOKINGS.find((b) => b.id === id);
+}
+
+export function getReviewsForClass(classId: string): Review[] {
+  return MOCK_REVIEWS.filter((r) => r.classId === classId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export function getReviewsForInstructor(instructorId: string): Review[] {
+  return MOCK_REVIEWS.filter((r) => r.instructorId === instructorId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export function addReview(review: Omit<Review, 'id' | 'createdAt' | 'verified'>): Review {
+  const newReview: Review = {
+    ...review,
+    id: `review-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    verified: true,
+  };
+  MOCK_REVIEWS.push(newReview);
+  
+  // Update instructor's average rating and review count
+  const instructor = getInstructorById(review.instructorId);
+  if (instructor) {
+    const instructorReviews = getReviewsForInstructor(review.instructorId);
+    const totalRating = instructorReviews.reduce((sum, r) => sum + r.rating, 0);
+    instructor.averageRating = totalRating / instructorReviews.length;
+    instructor.reviewCount = instructorReviews.length;
+  }
+  
+  return newReview;
+}
+
+export function addBooking(booking: Omit<Booking, 'id' | 'createdAt'>): Booking {
+  const newBooking: Booking = {
+    ...booking,
+    id: `book-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  MOCK_BOOKINGS.push(newBooking);
+  
+  // Update class spots left
+  const cls = getClassById(booking.classId);
+  if (cls && cls.spotsLeft !== undefined) {
+    cls.spotsLeft = Math.max(0, cls.spotsLeft - 1);
+  }
+  
+  return newBooking;
+}
+
+export function cancelBooking(bookingId: string): Booking | undefined {
+  const index = MOCK_BOOKINGS.findIndex((b) => b.id === bookingId);
+  if (index >= 0) {
+    const booking: Booking = { ...MOCK_BOOKINGS[index], status: 'cancelled' as const };
+    MOCK_BOOKINGS[index] = booking;
+    
+    // Restore class spots left
+    const cls = getClassById(booking.classId);
+    if (cls && cls.capacity !== undefined) {
+      const bookedCount = MOCK_BOOKINGS.filter(b => b.classId === booking.classId && b.status === 'confirmed').length;
+      cls.spotsLeft = cls.capacity - bookedCount;
+    }
+    
+    return booking;
+  }
+  return undefined;
+}
+
+// --- Payment Data ---
+export const MOCK_PAYMENTS: Payment[] = [
+  {
+    id: 'pay-1',
+    bookingId: 'book-1',
+    userId: 'me',
+    amount: { amount: 2500, currency: 'USD' },
+    status: 'paid',
+    paymentMethod: 'Credit Card (Visa)',
+    createdAt: '2026-05-28T10:00:00Z',
+    updatedAt: '2026-05-28T10:05:00Z',
+  },
+  {
+    id: 'pay-2',
+    bookingId: 'book-2',
+    userId: 'me',
+    amount: { amount: 4500, currency: 'USD' },
+    status: 'paid',
+    paymentMethod: 'Mercado Pago',
+    createdAt: '2026-05-01T10:00:00Z',
+    updatedAt: '2026-05-01T10:05:00Z',
+  },
+];
+
+// --- Notification Data ---
+export const MOCK_NOTIFICATIONS_BY_USER: Record<string, Notification[]> = {
+  'mock-user': [ // Athlete
+    {
+      id: 'notif-1',
+      type: 'booking_confirmed',
+      title: 'Booking Confirmed!',
+      body: 'Your class booking for Morning Flow Yoga has been confirmed.',
+      read: false,
+      createdAt: '2026-05-28T10:05:00Z',
+    },
+    {
+      id: 'notif-2',
+      type: 'class_reminder',
+      title: 'Class Tomorrow!',
+      body: 'Reminder: You have a Tennis Fundamentals class tomorrow at 10:00 AM.',
+      read: true,
+      createdAt: '2026-06-03T09:00:00Z',
+    },
+  ],
+  'inst-1': [ // Instructor
+    {
+      id: 'inst-notif-1',
+      type: 'new_booking',
+      title: 'New Booking!',
+      body: 'Someone just booked your Morning Flow Yoga class!',
+      read: false,
+      createdAt: '2026-05-28T10:00:00Z',
+    },
+    {
+      id: 'inst-notif-2',
+      type: 'review',
+      title: 'New Review!',
+      body: 'You received a 5-star review for your Tennis Fundamentals class.',
+      read: true,
+      createdAt: '2026-06-02T14:30:00Z',
+    },
+  ],
+  'gym-1': [ // Gym
+    {
+      id: 'gym-notif-1',
+      type: 'new_instructor',
+      title: 'New Instructor Joined!',
+      body: 'A new instructor has joined your gym and is ready to teach classes.',
+      read: false,
+      createdAt: '2026-05-25T09:00:00Z',
+    },
+    {
+      id: 'gym-notif-2',
+      type: 'booking_update',
+      title: 'Booking Peak Today!',
+      body: 'Today is your busiest day this week with 15 bookings.',
+      read: true,
+      createdAt: '2026-06-04T08:00:00Z',
+    },
+  ],
+};
+
+// --- Geolocation Service ---
+export function geocodeAddress(address: string): GeocodeResult {
+  // Mock geocoding - in real life, use Google Maps or Mapbox API
+  const mockLocations: Record<string, GeocodeResult> = {
+    '123 Main St': {
+      lat: -34.6037,
+      lng: -58.3816,
+      address: '123 Main St',
+      city: 'Buenos Aires',
+      country: 'AR',
+    },
+    'Central Courts': {
+      lat: -34.61,
+      lng: -58.39,
+      address: 'Central Courts',
+      city: 'Buenos Aires',
+      country: 'AR',
+    },
+    'Wellness Loft': {
+      lat: -34.59,
+      lng: -58.37,
+      address: 'Wellness Loft',
+      city: 'Buenos Aires',
+      country: 'AR',
+    },
+  };
+  
+  return mockLocations[address] || {
+    lat: -34.6037,
+    lng: -58.3816,
+    address: address,
+    city: 'Buenos Aires',
+    country: 'AR',
+  };
+}
+
+export function getCurrentLocation(): Promise<GeocodeResult> {
+  // Mock getting user's current location
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        lat: -34.6037,
+        lng: -58.3816,
+        address: 'Your Location',
+        city: 'Buenos Aires',
+        country: 'AR',
+      });
+    }, 1000);
+  });
+}
+
+export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLng = deg2rad(lng2 - lng1);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLng / 2) * Math.sin(dLng / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return R * c; // Distance in km
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180);
+}
+
+// --- Payment Service ---
+export function createMercadoPagoPreference(bookingId: string, amount: Money): { id: string; url: string } {
+  // Mock Mercado Pago preference creation
+  return {
+    id: `pref-${Date.now()}`,
+    url: `https://www.mercadopago.com.ar/checkout/v1/redirect?pref-id=pref-${Date.now()}`,
+  };
+}
+
+export function addPayment(payment: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>): Payment {
+  const newPayment: Payment = {
+    ...payment,
+    id: `pay-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  MOCK_PAYMENTS.push(newPayment);
+  return newPayment;
+}
+
+export function getPaymentsForUser(userId: string): Payment[] {
+  return MOCK_PAYMENTS.filter(p => p.userId === userId).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+// --- Notification Service ---
+export function addNotification(userId: string, notification: Omit<Notification, 'id' | 'createdAt'>): Notification {
+  const newNotification: Notification = {
+    ...notification,
+    id: `notif-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  if (!MOCK_NOTIFICATIONS_BY_USER[userId]) {
+    MOCK_NOTIFICATIONS_BY_USER[userId] = [];
+  }
+  MOCK_NOTIFICATIONS_BY_USER[userId].push(newNotification);
+  return newNotification;
+}
+
+export function getNotificationsForUser(userId: string): Notification[] {
+  return (MOCK_NOTIFICATIONS_BY_USER[userId] || []).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+export function markNotificationAsRead(userId: string, notificationId: string): void {
+  const notifications = MOCK_NOTIFICATIONS_BY_USER[userId];
+  if (notifications) {
+    const notification = notifications.find(n => n.id === notificationId);
+    if (notification) {
+      notification.read = true;
+    }
+  }
+}
+
+// --- Booking Policies ---
+export function canCancelBooking(classStartAt: string): boolean {
+  const classStart = new Date(classStartAt);
+  const now = new Date();
+  const hoursUntilClass = (classStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+  return hoursUntilClass >= 24; // Can cancel up to 24 hours before
+}
+
+export function getRefundAmount(booking: Booking): Money {
+  if (canCancelBooking(getClassById(booking.classId)?.startAt || '')) {
+    return booking.price; // Full refund
+  }
+  return { amount: Math.floor(booking.price.amount * 0.5), currency: booking.price.currency }; // 50% refund
 }

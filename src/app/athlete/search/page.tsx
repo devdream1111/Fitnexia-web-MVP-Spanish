@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Search as SearchIcon, MapPin, X, ChevronDown } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
 import { FilterChip } from '@/components/ui/filter-chip';
@@ -11,10 +12,73 @@ import {
   SCHEDULE_FILTERS,
   type ScheduleFilter,
 } from '@/constants/fitnexia';
-import { MODALITY_LABELS } from '@/constants/labels';
+import { MODALITY_LABELS, modalityBadgeLabel } from '@/constants/labels';
 import { useClasses } from '@/contexts/classes-context';
 import { filterClasses, sortClassesByDate } from '@/utils/class-filters';
 import type { Modality } from '@/types/api';
+
+// Custom Dropdown Component
+const CustomDropdown = ({ 
+  value, 
+  onChange, 
+  options, 
+  placeholder 
+}: { 
+  value: string; 
+  onChange: (val: string) => void; 
+  options: { value: string; label: string }[];
+  placeholder: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const selectedOption = options.find(opt => opt.value === value);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 text-sm transition hover:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
+      >
+        <span className={selectedOption ? 'text-[var(--fn-text)]' : 'text-[var(--fn-text-muted)]'}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-[var(--fn-text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute top-full left-0 right-0 z-20 mt-2 max-h-60 overflow-auto rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-lg">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full px-4 py-2 text-left text-sm transition ${
+                  option.value === value
+                    ? 'bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]'
+                    : 'text-[var(--fn-text)] hover:bg-[var(--fn-surface-muted)]'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export default function SearchPage() {
   const { classes } = useClasses();
@@ -24,7 +88,6 @@ export default function SearchPage() {
   const [location, setLocation] = useState('');
   const [schedule, setSchedule] = useState<ScheduleFilter>('any');
   const [priceRangeId, setPriceRangeId] = useState('any');
-  const [showFilters, setShowFilters] = useState(true);
 
   const priceRange = PRICE_RANGES.find((p) => p.id === priceRangeId) ?? PRICE_RANGES[0];
 
@@ -41,86 +104,183 @@ export default function SearchPage() {
     return sortClassesByDate(filtered);
   }, [classes, query, discipline, modality, location, schedule, priceRange]);
 
+  const clearFilters = () => {
+    setQuery('');
+    setDiscipline(null);
+    setModality(null);
+    setLocation('');
+    setSchedule('any');
+    setPriceRangeId('any');
+  };
+
+  const activeFilters = useMemo(() => {
+    const filters = [];
+    if (discipline) filters.push({ type: 'discipline', value: discipline, label: discipline });
+    if (modality) filters.push({ type: 'modality', value: modality, label: modalityBadgeLabel(modality) });
+    if (location) filters.push({ type: 'location', value: location, label: location });
+    if (schedule !== 'any') {
+      const sched = SCHEDULE_FILTERS.find(s => s.id === schedule);
+      if (sched) filters.push({ type: 'schedule', value: schedule, label: sched.label });
+    }
+    if (priceRangeId !== 'any') {
+      const price = PRICE_RANGES.find(p => p.id === priceRangeId);
+      if (price) filters.push({ type: 'price', value: priceRangeId, label: price.label });
+    }
+    return filters;
+  }, [discipline, modality, location, schedule, priceRangeId]);
+
+  const removeFilter = (type: string, value: any) => {
+    switch (type) {
+      case 'discipline':
+        setDiscipline(null);
+        break;
+      case 'modality':
+        setModality(null);
+        break;
+      case 'location':
+        setLocation('');
+        break;
+      case 'schedule':
+        setSchedule('any');
+        break;
+      case 'price':
+        setPriceRangeId('any');
+        break;
+    }
+  };
+
+  // Prepare options for custom dropdowns
+  const disciplineOptions = [
+    { value: '', label: 'Discipline' },
+    ...DISCIPLINES.map(d => ({ value: d, label: d })),
+  ];
+  
+  const modalityOptions = [
+    { value: '', label: 'Modality' },
+    { value: 'in_person', label: MODALITY_LABELS.inPerson },
+    { value: 'online', label: MODALITY_LABELS.online },
+  ];
+  
+  const scheduleOptions = SCHEDULE_FILTERS.map(s => ({ value: s.id, label: s.label }));
+  
+  const priceOptions = PRICE_RANGES.map(p => ({ value: p.id, label: p.label }));
+
   return (
-    <div>
-      <h1 className="mb-4 text-3xl font-extrabold">Search</h1>
-      <input
-        className="mb-4 w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3"
-        placeholder="Class, instructor, or gym..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
+    <div className="space-y-6">
+      <h1 className="text-3xl font-extrabold">Search</h1>
 
-      <button
-        type="button"
-        onClick={() => setShowFilters(!showFilters)}
-        className="mb-4 text-sm font-semibold text-[var(--fn-primary)]">
-        {showFilters ? 'Hide filters' : 'Show filters'}
-      </button>
-
-      {showFilters ? (
-        <div className="mb-6 space-y-4">
+      {/* Search and Location Inputs */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="relative">
+          <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]" />
           <input
-            className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-2 text-sm"
+            className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 pl-12 text-sm transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
+            placeholder="Class, instructor, or gym..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--fn-text-muted)] hover:text-[var(--fn-text)] transition"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="relative">
+          <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]" />
+          <input
+            className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 pl-12 text-sm transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
             placeholder="City, neighborhood, or venue..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
-          <div className="flex flex-wrap gap-1">
-            {MOCK_LOCATION_AREAS.map((area) => (
-              <FilterChip key={area} label={area} active={location === area} onPress={() => setLocation(area)} />
-            ))}
-          </div>
-          <p className="text-sm font-semibold">Discipline</p>
-          <div className="flex flex-wrap">
-            <FilterChip label="All" active={!discipline} onPress={() => setDiscipline(null)} />
-            {DISCIPLINES.map((d) => (
-              <FilterChip key={d} label={d} active={discipline === d} onPress={() => setDiscipline(d)} />
-            ))}
-          </div>
-          <p className="text-sm font-semibold">Modality</p>
-          <div className="flex flex-wrap">
-            <FilterChip label="All" active={!modality} onPress={() => setModality(null)} />
-            <FilterChip
-              label={MODALITY_LABELS.inPerson}
-              active={modality === 'in_person'}
-              onPress={() => setModality('in_person')}
-            />
-            <FilterChip
-              label={MODALITY_LABELS.online}
-              active={modality === 'online'}
-              onPress={() => setModality('online')}
-            />
-          </div>
-          <p className="text-sm font-semibold">Schedule</p>
-          <div className="flex flex-wrap">
-            {SCHEDULE_FILTERS.map((s) => (
-              <FilterChip
-                key={s.id}
-                label={s.label}
-                active={schedule === s.id}
-                onPress={() => setSchedule(s.id)}
-              />
-            ))}
-          </div>
-          <p className="text-sm font-semibold">Price</p>
-          <div className="flex flex-wrap">
-            {PRICE_RANGES.map((p) => (
-              <FilterChip
-                key={p.id}
-                label={p.label}
-                active={priceRangeId === p.id}
-                onPress={() => setPriceRangeId(p.id)}
-              />
-            ))}
-          </div>
+          {location && (
+            <button
+              type="button"
+              onClick={() => setLocation('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--fn-text-muted)] hover:text-[var(--fn-text)] transition"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
-      ) : null}
+      </div>
 
-      <p className="mb-3 text-sm text-[var(--fn-text-muted)]">{results.length} classes</p>
-      {results.map((c) => (
-        <ClassCard key={c.id} item={c} />
-      ))}
+      {/* Custom Dropdown Filters */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <CustomDropdown
+          value={discipline || ''}
+          onChange={(val) => setDiscipline(val || null)}
+          options={disciplineOptions}
+          placeholder="Discipline"
+        />
+        
+        <CustomDropdown
+          value={modality || ''}
+          onChange={(val) => setModality((val as Modality) || null)}
+          options={modalityOptions}
+          placeholder="Modality"
+        />
+        
+        <CustomDropdown
+          value={schedule}
+          onChange={(val) => setSchedule(val as ScheduleFilter)}
+          options={scheduleOptions}
+          placeholder="Schedule"
+        />
+        
+        <CustomDropdown
+          value={priceRangeId}
+          onChange={setPriceRangeId}
+          options={priceOptions}
+          placeholder="Price"
+        />
+      </div>
+
+      {/* Active Filters */}
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          {activeFilters.map((filter) => (
+            <span
+              key={`${filter.type}-${filter.value}`}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--fn-surface-muted)] px-3 py-1 text-sm text-[var(--fn-text)] transition hover:bg-[var(--fn-border)]"
+            >
+              {filter.label}
+              <button
+                type="button"
+                onClick={() => removeFilter(filter.type, filter.value)}
+                className="text-[var(--fn-text-muted)] hover:text-[var(--fn-text)] transition"
+              >
+                <X size={14} />
+              </button>
+            </span>
+          ))}
+          <div className="h-6 w-px bg-[var(--fn-border)]" />
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-sm font-medium text-[var(--fn-primary)] hover:opacity-80 transition"
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
+
+      {/* Results */}
+      <div className="space-y-4">
+        <p className="text-sm font-semibold text-[var(--fn-text-muted)]">
+          {results.length} {results.length === 1 ? 'class' : 'classes'}
+        </p>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {results.map((c) => (
+            <ClassCard key={c.id} item={c} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
