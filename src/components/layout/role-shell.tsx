@@ -57,7 +57,7 @@ function getNotificationsLink(role: UserRole): string {
 export function RoleShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const { isDark, toggleDarkMode } = useAppTheme();
   const { unreadCount } = useNotifications();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -73,7 +73,21 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!user) return <>{children}</>;
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/auth/login');
+    }
+  }, [isLoading, user, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--fn-primary)] border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   const handleLogout = () => {
     setDropdownOpen(false);

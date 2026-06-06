@@ -45,7 +45,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
 
     const days = [];
     for (let i = 0; i < startPadding; i++) {
-      days.push(<div key={`pad-${i}`} className="aspect-[1] rounded-sm" />);
+      days.push(<div key={`pad-${i}`} className="h-20 rounded-sm" />);
     }
     for (let i = 1; i <= daysInMonth; i++) {
       const date = new Date(year, month, i);
@@ -58,23 +58,23 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
           type="button"
           key={i}
           onClick={() => handleDateClick(date)}
-          className={`relative aspect-[1] flex flex-col border border-transparent p-1 text-left transition-all hover:bg-[var(--fn-surface-muted)] ${
+          className={`relative h-20 flex flex-col border border-transparent p-1 text-left transition-all hover:bg-[var(--fn-surface-muted)] ${
             isSelected ? 'bg-[var(--fn-primary-muted)]' : ''
           }`}
         >
-          <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium transition-all ${
+          <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-all ${
             isToday ? 'bg-[var(--fn-primary)] text-white' : isSelected ? 'font-bold text-[var(--fn-primary)]' : 'text-[var(--fn-text)]'
           }`}>{i}</span>
           <div className="mt-1 flex-1 overflow-hidden">
-            {dayClasses.slice(0, 3).map((c) => (
+            {dayClasses.slice(0, 2).map((c) => (
               <div
                 key={c.id}
-                className="mb-1 truncate rounded-sm bg-[var(--fn-primary)] px-1.5 py-0.5 text-[10px] text-white"
+                className="mb-0.5 truncate rounded-sm bg-[var(--fn-primary)] px-1 py-0.5 text-[9px] text-white"
               >
                 {c.title}
               </div>
             ))}
-            {dayClasses.length > 3 && <div className="text-[10px] text-[var(--fn-text-muted)]">+{dayClasses.length - 3} more</div>}
+            {dayClasses.length > 2 && <div className="text-[9px] text-[var(--fn-text-muted)]">+{dayClasses.length - 2} more</div>}
           </div>
         </button>
       );
@@ -87,16 +87,16 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
     const month = currentDate.getMonth();
     const day = currentDate.getDate();
     const startOfWeek = new Date(year, month, day - currentDate.getDay());
-    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const hours = Array.from({ length: 12 }, (_, i) => i + 8); // Show 8 AM - 8 PM instead of full 24h
 
     return (
       <div className="overflow-x-auto">
         <div className="flex min-w-[900px]">
           <div className="w-24 flex-shrink-0">
-            <div className="h-12"></div>
+            <div className="h-10"></div>
             {hours.map((hour) => (
-              <div key={hour} className="h-16 border-b border-[var(--fn-border)] px-2 text-right text-[11px] text-[var(--fn-text-muted)]">
-                {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+              <div key={hour} className="h-12 border-b border-[var(--fn-border)] px-2 text-right text-[10px] text-[var(--fn-text-muted)]">
+                {hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
               </div>
             ))}
           </div>
@@ -105,37 +105,41 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
             date.setDate(startOfWeek.getDate() + idx);
             const isToday = new Date().toDateString() === date.toDateString();
             const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
-            const dayClasses = getClassesForDate(date);
+            const dayClasses = getClassesForDate(date).filter(c => {
+              const h = new Date(c.startAt).getHours();
+              return h >= 8 && h < 20; // Only show classes 8 AM - 8 PM
+            });
 
             return (
               <div key={idx} className="flex-1 border-l border-[var(--fn-border)]">
                 <button
                   type="button"
                   onClick={() => handleDateClick(date)}
-                  className={`flex h-12 w-full flex-col items-center justify-center border-b border-[var(--fn-border)] text-center transition-all hover:bg-[var(--fn-surface-muted)] ${
+                  className={`flex h-10 w-full flex-col items-center justify-center border-b border-[var(--fn-border)] text-center transition-all hover:bg-[var(--fn-surface-muted)] ${
                     isSelected ? 'bg-[var(--fn-primary-muted)]' : ''
                   }`}
                 >
-                  <div className="text-[11px] text-[var(--fn-text-muted)]">{FULL_DAYS[idx]}</div>
-                  <div className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium ${
+                  <div className="text-[10px] text-[var(--fn-text-muted)]">{FULL_DAYS[idx]}</div>
+                  <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                     isToday ? 'bg-[var(--fn-primary)] text-white' : isSelected ? 'font-bold text-[var(--fn-primary)]' : ''
                   }`}>{date.getDate()}</div>
                 </button>
                 <div className="relative">
                   {hours.map((hour) => (
-                    <div key={hour} className="h-16 border-b border-[var(--fn-border)]"></div>
+                    <div key={hour} className="h-12 border-b border-[var(--fn-border)]"></div>
                   ))}
                   {dayClasses.map((c) => {
                     const start = new Date(c.startAt);
-                    const top = start.getHours() * 64 + (start.getMinutes() * (64 / 60));
+                    const hourOffset = start.getHours() - 8;
+                    const top = hourOffset * 48 + (start.getMinutes() * (48 / 60));
                     const duration = 60; // Assume 1 hour for now
-                    const height = duration * (64 / 60);
+                    const height = duration * (48 / 60);
                     return (
                       <button
                         type="button"
                         key={c.id}
-                        className="absolute left-1 right-1 z-10 overflow-hidden rounded-md border-l-4 border-[var(--fn-primary)] bg-[var(--fn-primary-muted)] px-2 py-1 text-left text-[11px] shadow-sm transition-all hover:shadow-md"
-                        style={{ top, height: Math.max(height, 48) }}
+                        className="absolute left-1 right-1 z-10 overflow-hidden rounded-md border-l-4 border-[var(--fn-primary)] bg-[var(--fn-primary-muted)] px-1.5 py-0.5 text-left text-[10px] shadow-sm transition-all hover:shadow-md"
+                        style={{ top, height: Math.max(height, 36) }}
                       >
                         <div className="font-semibold text-[var(--fn-primary)]">{c.title}</div>
                         <div className="text-[var(--fn-primary-text)]">{formatClassDate(c.startAt)}</div>
@@ -205,7 +209,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
             type="button"
             onClick={() => setView('month')}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-              view === 'month' ? 'bg-white text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
+              view === 'month' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
             }`}
           >
             <CalendarIcon size={16} />
@@ -215,7 +219,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
             type="button"
             onClick={() => setView('week')}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-              view === 'week' ? 'bg-white text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
+              view === 'week' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
             }`}
           >
             <Clock size={16} />
