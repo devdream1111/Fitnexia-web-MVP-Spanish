@@ -20,6 +20,7 @@ export default function AthleteProfilePage() {
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(user?.avatarUri || null);
   const [editingSports, setEditingSports] = useState(false);
   const [favoriteSports, setFavoriteSports] = useState<string[]>(user?.favoriteSports ?? []);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -30,7 +31,7 @@ export default function AthleteProfilePage() {
   const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const handleSave = () => {
-    updateProfile({ firstName, lastName, email });
+    updateProfile({ firstName, lastName, email, avatarUri: tempAvatarUri });
     setIsEditing(false);
   };
 
@@ -38,6 +39,7 @@ export default function AthleteProfilePage() {
     setFirstName(user?.firstName || '');
     setLastName(user?.lastName || '');
     setEmail(user?.email || '');
+    setTempAvatarUri(user?.avatarUri || null);
     setIsEditing(false);
   };
 
@@ -92,8 +94,8 @@ export default function AthleteProfilePage() {
       <div className="w-full max-w-3xl rounded-2xl bg-[var(--fn-surface)] p-8 shadow-lg">
         <div className="flex flex-col items-start gap-6 md:flex-row md:items-center mb-8 pb-6 border-b border-[var(--fn-border)]" style={{justifyContent:"center"}}>
           <ProfilePictureUpload
-            currentAvatar={user?.avatarUri}
-            onUpload={(uri) => updateProfile({ avatarUri: uri })}
+            currentAvatar={isEditing ? tempAvatarUri : user?.avatarUri}
+            onUpload={(uri) => setTempAvatarUri(uri)}
             role="athlete"
             size="lg"
             editable={isEditing}

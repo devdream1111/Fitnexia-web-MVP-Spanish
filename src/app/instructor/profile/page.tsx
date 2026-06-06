@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Circle, CircleCheck } from 'lucide-react';
 import type { Certification } from '@/types/api';
 
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
@@ -15,6 +16,7 @@ export default function InstructorProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(user?.instructorProfile?.displayName || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(user?.avatarUri || null);
   const [editingCertifications, setEditingCertifications] = useState(false);
   const [certifications, setCertifications] = useState<Certification[]>(
     user?.instructorProfile?.certifications ?? []
@@ -28,15 +30,21 @@ export default function InstructorProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const profile = user?.instructorProfile;
 
   const handleSave = () => {
-    updateProfile({ email, instructorProfile: { ...user?.instructorProfile, displayName } });
+    updateProfile({ 
+      email, 
+      avatarUri: tempAvatarUri,
+      instructorProfile: { ...user?.instructorProfile, displayName } 
+    });
     setIsEditing(false);
   };
 
   const handleCancel = () => {
     setDisplayName(user?.instructorProfile?.displayName || '');
     setEmail(user?.email || '');
+    setTempAvatarUri(user?.avatarUri || null);
     setIsEditing(false);
   };
 
@@ -104,8 +112,8 @@ export default function InstructorProfilePage() {
       <div className="w-full max-w-3xl rounded-2xl bg-[var(--fn-surface)] p-8 shadow-lg">
         <div className="flex flex-col items-start gap-6 md:flex-row md:items-center mb-8 pb-6 border-b border-[var(--fn-border)]" style={{justifyContent:"center"}}>
           <ProfilePictureUpload
-            currentAvatar={user?.avatarUri}
-            onUpload={(uri) => updateProfile({ avatarUri: uri })}
+            currentAvatar={isEditing ? tempAvatarUri : user?.avatarUri}
+            onUpload={(uri) => setTempAvatarUri(uri)}
             role="instructor"
             size="lg"
             editable={isEditing}
@@ -124,6 +132,27 @@ export default function InstructorProfilePage() {
         </div>
 
         <div className="space-y-6 mb-8">
+          {/* Available Now Button */}
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={() =>
+                updateProfile({ instructorProfile: { availableNow: !profile?.availableNow } })
+              }
+              className={`w-full rounded-xl border p-5 text-left transition hover:opacity-90 ${
+                profile?.availableNow ? 'border-[var(--fn-success)] bg-[var(--fn-success-muted)]' : 'border-[var(--fn-border)]'
+              }`}>
+              <span className="flex items-center gap-2 font-semibold text-lg">
+                {profile?.availableNow ? (
+                  <CircleCheck size={20} className="text-[var(--fn-success)]" />
+                ) : (
+                  <Circle size={20} className="text-[var(--fn-text-muted)]" />
+                )}
+                {profile?.availableNow ? 'Available now' : 'Not available'}
+              </span>
+            </button>
+          )}
+
           {!isEditing && (
             <div className="rounded-2xl border border-[var(--fn-border)] overflow-hidden">
               <ProfileMenuItem href="/instructor/profile/availability" label={PROFILE_MENU_LABELS.scheduleAvailability} />

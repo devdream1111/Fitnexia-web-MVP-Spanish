@@ -15,6 +15,8 @@ export default function GymProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.institutionProfile?.name || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(user?.avatarUri || null);
+  const [tempGallery, setTempGallery] = useState<string[]>(user?.institutionProfile?.gallery ?? []);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -23,13 +25,23 @@ export default function GymProfilePage() {
   const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const handleSave = () => {
-    updateProfile({ email, institutionProfile: { ...user?.institutionProfile, name } });
+    updateProfile({ 
+      email, 
+      avatarUri: tempAvatarUri,
+      institutionProfile: { 
+        ...user?.institutionProfile, 
+        name,
+        gallery: tempGallery
+      } 
+    });
     setIsEditing(false);
   };
 
   const handleCancel = () => {
     setName(user?.institutionProfile?.name || '');
     setEmail(user?.email || '');
+    setTempAvatarUri(user?.avatarUri || null);
+    setTempGallery(user?.institutionProfile?.gallery ?? []);
     setIsEditing(false);
   };
 
@@ -68,8 +80,8 @@ export default function GymProfilePage() {
       <div className="w-full max-w-3xl rounded-2xl bg-[var(--fn-surface)] p-8 shadow-lg">
         <div className="flex flex-col items-start gap-6 md:flex-row md:items-center mb-8 pb-6 border-b border-[var(--fn-border)]" style={{justifyContent:"center"}}>
           <ProfilePictureUpload
-            currentAvatar={user?.avatarUri}
-            onUpload={(uri) => updateProfile({ avatarUri: uri })}
+            currentAvatar={isEditing ? tempAvatarUri : user?.avatarUri}
+            onUpload={(uri) => setTempAvatarUri(uri)}
             role="institution"
             size="lg"
             editable={isEditing}
@@ -92,21 +104,13 @@ export default function GymProfilePage() {
           <div className="rounded-2xl border border-[var(--fn-border)] p-6">
             <h2 className="mb-4 text-lg font-bold">{PROFILE_MENU_LABELS.photoGallery}</h2>
             <PhotoGallery
-              images={user?.institutionProfile?.gallery ?? []}
+              images={isEditing ? tempGallery : (user?.institutionProfile?.gallery ?? [])}
               editable={isEditing}
               onAddImage={(uri) =>
-                updateProfile({
-                  institutionProfile: {
-                    gallery: [...(user?.institutionProfile?.gallery ?? []), uri],
-                  },
-                })
+                setTempGallery([...tempGallery, uri])
               }
               onRemoveImage={(idx) =>
-                updateProfile({
-                  institutionProfile: {
-                    gallery: (user?.institutionProfile?.gallery ?? []).filter((_, i) => i !== idx),
-                  },
-                })
+                setTempGallery(tempGallery.filter((_, i) => i !== idx))
               }
             />
           </div>

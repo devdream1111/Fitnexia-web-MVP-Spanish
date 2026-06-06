@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Circle, CircleCheck } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
 import { Button } from '@/components/ui/button';
@@ -11,9 +10,8 @@ import { getLinkedInstructorId } from '@/utils/instructor';
 import { isSameCalendarDay } from '@/utils/schedule';
 
 export default function InstructorDashboardPage() {
-  const { user, updateProfile } = useAuth();
+  const { user } = useAuth();
   const { getClassesByInstructor } = useClasses();
-  const profile = user?.instructorProfile;
   const instructorId = getLinkedInstructorId(user);
   const allClasses = getClassesByInstructor(instructorId);
   const today = new Date();
@@ -36,24 +34,6 @@ export default function InstructorDashboardPage() {
         <Stat label="Revenue" value="$127" />
         <Stat label="Classes" value={String(todayClasses.length)} />
       </div>
-
-      <button
-        type="button"
-        onClick={() =>
-          updateProfile({ instructorProfile: { availableNow: !profile?.availableNow } })
-        }
-        className={`mt-6 w-full rounded-xl border p-5 text-left transition hover:opacity-90 ${
-          profile?.availableNow ? 'border-[var(--fn-success)] bg-[var(--fn-success-muted)]' : 'border-[var(--fn-border)]'
-        }`}>
-        <span className="flex items-center gap-2 font-semibold text-lg">
-          {profile?.availableNow ? (
-            <CircleCheck size={20} className="text-[var(--fn-success)]" />
-          ) : (
-            <Circle size={20} className="text-[var(--fn-text-muted)]" />
-          )}
-          {profile?.availableNow ? 'Available now' : 'Not available'}
-        </span>
-      </button>
       
       <h2 className="mt-10 mb-4 text-lg font-bold md:text-xl">Today&apos;s classes</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

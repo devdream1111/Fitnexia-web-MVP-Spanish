@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { 
-  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, TrendingUp, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell
+  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell
 } from 'lucide-react';
 
 import { Logo } from './Logo';
@@ -33,7 +33,6 @@ const GYM_NAV: NavItem[] = [
   { href: '/gym/dashboard', label: TAB_LABELS.gym.dashboard, icon: <BarChart3 size={18} /> },
   { href: '/gym/instructors', label: TAB_LABELS.gym.staff, icon: <Users size={18} /> },
   { href: '/gym/classes', label: TAB_LABELS.gym.classes, icon: <BookOpen size={18} /> },
-  { href: '/gym/metrics', label: TAB_LABELS.gym.metrics, icon: <TrendingUp size={18} /> },
 ];
 
 function navForRole(role: UserRole): NavItem[] {

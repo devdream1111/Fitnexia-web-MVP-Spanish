@@ -64,10 +64,10 @@ export default function LoginPage() {
           <div className="mt-6 animate-slide-up stagger-2">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[var(--fn-border)]" />
+                {/* <div className="w-full border-t border-[var(--fn-border)]" /> */}
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 text-[var(--fn-text-muted)]">or continue with</span>
+                <span className="px-4 text-[var(--fn-text-muted)]">or continue with</span>
               </div>
             </div>
             <Button

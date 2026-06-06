@@ -46,7 +46,6 @@ export const TAB_LABELS = {
     dashboard: 'Dashboard',
     staff: 'Staff',
     classes: 'Classes',
-    metrics: 'Metrics',
     profile: 'Gym',
   },
 } as const;

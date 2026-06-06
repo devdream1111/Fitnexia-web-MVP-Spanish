@@ -63,91 +63,89 @@ body {
   --color-fn-primary-muted: var(--fn-primary-muted);
 }
 
-/* Sports-themed animations */
+/* Sports-themed animations - disabled */
 @keyframes bounce-in {
-  0% { transform: scale(0.3); opacity: 0; }
-  50% { transform: scale(1.05); }
-  70% { transform: scale(0.9); }
-  100% { transform: scale(1); opacity: 1; }
+  0% { opacity: 1; }
+  100% { opacity: 1; }
 }
 
 @keyframes slide-up {
-  0% { transform: translateY(30px); opacity: 0; }
+  0% { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba(13, 148, 136, 0); }
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: none; }
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(0); }
 }
 
 @keyframes fade-in {
-  0% { opacity: 0; }
+  0% { opacity: 1; }
   100% { opacity: 1; }
 }
 
 .animate-bounce-in {
-  animation: bounce-in 0.6s ease-out;
+  animation: none;
 }
 
 .animate-slide-up {
-  animation: slide-up 0.5s ease-out forwards;
+  animation: none;
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 2s infinite;
+  animation: none;
 }
 
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: none;
 }
 
 .animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
+  animation: none;
 }
 
-/* Logo Animations */
+/* Logo Animations - disabled */
 @keyframes logo-pulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+  50% { transform: scale(1); }
 }
 
 @keyframes logo-path {
-  0% { stroke-dashoffset: 280; }
+  0% { stroke-dashoffset: 0; }
   100% { stroke-dashoffset: 0; }
 }
 
 @keyframes logo-bounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(0); }
 }
 
 .animate-logo-pulse {
-  animation: logo-pulse 4s ease-in-out infinite;
+  animation: none;
 }
 
 .animate-logo-path {
   stroke-dasharray: 280;
-  animation: logo-path 2s ease-out forwards;
+  animation: none;
 }
 
 .animate-logo-bounce {
-  animation: logo-bounce 2s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes checkmark {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.2); }
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
 
 .animate-checkmark {
-  animation: checkmark 0.3s ease-out forwards;
+  animation: none;
 }
 
 /* Stagger animations for lists */
