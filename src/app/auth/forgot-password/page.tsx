@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/layout/page-header';
+import { GENERAL_LABELS, AUTH_LABELS } from '@/constants/labels';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -22,31 +23,31 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-md px-6 py-12">
-      <PageHeader title="Reset password" showBack backHref="/auth/login" />
+      <PageHeader title={GENERAL_LABELS.resetPassword} showBack backHref="/auth/login" />
       {sent ? (
         <div className="mt-8">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mx-auto mb-6">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mx-auto mb-6">
+            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-center mb-2">Check your email</h2>
+          <h2 className="text-2xl font-bold text-center mb-2">{GENERAL_LABELS.checkYourEmail}</h2>
           <p className="text-[var(--fn-text-muted)] text-center">
-            If an account exists for <span className="font-semibold">{email}</span>, you will receive reset instructions (mock).
+            {GENERAL_LABELS.ifAccountExists} <span className="font-semibold">{email}</span>, {GENERAL_LABELS.willReceiveResetInstructions}
           </p>
         </div>
       ) : (
         <>
-          <p className="mt-4 mb-6 text-[var(--fn-text-muted)]">Enter your email and we will send a reset link.</p>
+          <p className="mt-4 mb-6 text-[var(--fn-text-muted)]">{GENERAL_LABELS.enterYourEmail}</p>
           <Input 
-            label="Email" 
+            label={AUTH_LABELS.email} 
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
             type="email" 
-            placeholder="you@example.com"
+            placeholder="tu@ejemplo.com"
           />
           <Button 
-            title="Send reset link" 
+            title={GENERAL_LABELS.sendResetLink} 
             onClick={handleSubmit} 
             loading={loading}
             className="mt-6 w-full"
@@ -54,7 +55,7 @@ export default function ForgotPasswordPage() {
         </>
       )}
       <Link href="/auth/login" className="mt-8 block text-center text-sm text-[var(--fn-primary)] font-medium">
-        Back to sign in
+        {GENERAL_LABELS.backToSignIn}
       </Link>
     </div>
   );

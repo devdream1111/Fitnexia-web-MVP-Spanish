@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
-import { SCREEN_TITLES } from '@/constants/labels';
+import { SCREEN_TITLES, GYM_LABELS } from '@/constants/labels';
 
 export default function InviteInstructorPage() {
   const { user, updateProfile } = useAuth();
@@ -23,15 +23,15 @@ export default function InviteInstructorPage() {
         ],
       },
     });
-    alert('Invite sent (mock)');
+    alert(GYM_LABELS.instructors.inviteSent);
     setEmail('');
   };
 
   return (
     <div>
       <PageHeader title={SCREEN_TITLES.inviteInstructor} showBack />
-      <Input label="Instructor email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <Button title="Send invite" onClick={send} />
+      <Input label={GYM_LABELS.instructors.email} value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Button title={GYM_LABELS.instructors.sendInvite} onClick={send} />
     </div>
   );
 }

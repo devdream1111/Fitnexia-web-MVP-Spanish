@@ -26,24 +26,26 @@ export function Button({
   loading,
   className = '',
   disabled,
+  children,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  title: string;
+  title?: string;
   variant?: Variant;
   size?: Size;
   loading?: boolean;
+  children?: React.ReactNode;
 }) {
   const isDisabled = disabled || loading;
   return (
     <button
       type="button"
       disabled={isDisabled}
-      className={`inline-flex items-center justify-center rounded-xl font-semibold transition disabled:opacity-50 ${variantClass[variant]} ${sizeClass[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:opacity-50 ${variantClass[variant]} ${sizeClass[size]} ${className}`}
       {...rest}>
       {loading ? (
         <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : (
-        title
+        children || title
       )}
     </button>
   );

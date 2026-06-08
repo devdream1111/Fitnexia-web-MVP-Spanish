@@ -9,6 +9,7 @@ import { getBookingById } from '@/data/mock';
 import { useClasses } from '@/contexts/classes-context';
 import { useReviews } from '@/contexts/reviews-context';
 import { useAuth } from '@/contexts/auth-context';
+import { GENERAL_LABELS } from '@/constants/labels';
 
 export default function ReviewPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
@@ -38,7 +39,7 @@ export default function ReviewPage() {
     
     setTimeout(() => {
       setSubmitting(false);
-      alert('Review submitted!');
+      alert(GENERAL_LABELS.reviewSubmittedAlert);
       router.push('/athlete/bookings');
     }, 500);
   };
@@ -46,18 +47,18 @@ export default function ReviewPage() {
   if (!booking || !cls) {
     return (
       <div className="mx-auto max-w-lg px-6 py-12">
-        <PageHeader title="Review" showBack />
-        <p>Booking not found.</p>
+        <PageHeader title={GENERAL_LABELS.review} showBack />
+        <p>{GENERAL_LABELS.bookingNotFound}</p>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
-      <PageHeader title="Leave a review" showBack />
+      <PageHeader title={GENERAL_LABELS.leaveAReview} showBack />
       <p className="font-bold">{cls.title}</p>
       <p className="mb-6 text-sm text-[var(--fn-text-muted)]">{cls.instructor.displayName}</p>
-      <p className="mb-2 text-sm font-medium">Rating</p>
+      <p className="mb-2 text-sm font-medium">{GENERAL_LABELS.rating}</p>
       <div className="mb-4 flex gap-2">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -72,11 +73,11 @@ export default function ReviewPage() {
       <textarea
         className="mb-4 w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4"
         rows={4}
-        placeholder="Share your experience..."
+        placeholder={GENERAL_LABELS.shareYourExperience}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
-      <Button title="Submit review" onClick={submit} loading={submitting} />
+      <Button title={GENERAL_LABELS.submitReview} onClick={submit} loading={submitting} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { PageHeader } from '@/components/layout/page-header';
 import { useNotifications } from '@/contexts/notifications-context';
 import { useAuth } from '@/contexts/auth-context';
-import { SCREEN_TITLES } from '@/constants/labels';
+import { SCREEN_TITLES, NOTIFICATIONS_LABELS } from '@/constants/labels';
 
 export default function NotificationsPage() {
   const { notifications, markNotificationAsRead } = useNotifications();
@@ -21,7 +21,7 @@ export default function NotificationsPage() {
 
       <div className="mt-6">
         {notifications.length === 0 ? (
-          <p className="text-[var(--fn-text-muted)]">No notifications yet.</p>
+          <p className="text-[var(--fn-text-muted)]">{NOTIFICATIONS_LABELS.noNotificationsYet}</p>
         ) : (
           notifications.map((notification) => (
             <div
@@ -36,7 +36,7 @@ export default function NotificationsPage() {
                   <p className="font-bold text-lg">{notification.title}</p>
                   <p className="text-sm text-[var(--fn-text-muted)] mt-1">{notification.body}</p>
                   <p className="text-xs text-[var(--fn-text-muted)] mt-2">
-                    {new Date(notification.createdAt).toLocaleDateString('en-US', {
+                    {new Date(notification.createdAt).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',

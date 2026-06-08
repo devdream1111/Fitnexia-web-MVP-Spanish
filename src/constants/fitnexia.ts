@@ -33,12 +33,12 @@ export const LightThemeColors: AppThemeColors = {
   textSecondary: '#334155',
   textMuted: '#64748B',
   border: '#E2E8F0',
-  primary: '#0D9488',
-  primaryMuted: '#CCFBF1',
-  primaryText: '#0F766E',
-  accent: '#F97316',
-  success: '#22C55E',
-  successMuted: '#DCFCE7',
+  primary: '#2563EB',
+  primaryMuted: '#DBEAFE',
+  primaryText: '#1E40AF',
+  accent: '#3B82F6',
+  success: '#22c55e',
+  successMuted: '#dcfce7',
   warning: '#EAB308',
   warningMuted: '#FEF9C3',
   error: '#EF4444',
@@ -57,12 +57,12 @@ export const DarkThemeColors: AppThemeColors = {
   textSecondary: '#CBD5E1',
   textMuted: '#94A3B8',
   border: '#334155',
-  primary: '#2DD4BF',
-  primaryMuted: '#134E4A',
-  primaryText: '#5EEAD4',
-  accent: '#FB923C',
-  success: '#4ADE80',
-  successMuted: '#14532D',
+  primary: '#3B82F6',
+  primaryMuted: '#1E3A8A',
+  primaryText: '#60A5FA',
+  accent: '#60A5FA',
+  success: '#4ade80',
+  successMuted: '#14532d',
   warning: '#FACC15',
   warningMuted: '#713F12',
   error: '#F87171',
@@ -76,7 +76,7 @@ export const DarkThemeColors: AppThemeColors = {
 /** @deprecated Use useAppTheme() instead */
 export const FitnexiaColors = {
   primary: LightThemeColors.primary,
-  primaryDark: '#0F766E',
+  primaryDark: LightThemeColors.primaryText,
   primaryLight: LightThemeColors.primaryMuted,
   accent: LightThemeColors.accent,
   success: LightThemeColors.success,
@@ -136,8 +136,8 @@ export const MOCK_LOCATION_AREAS = [
 ] as const;
 
 export const PRICE_RANGES = [
-  { id: 'any', label: 'Any price', min: 0, max: Infinity },
-  { id: 'budget', label: 'Under $20', min: 0, max: 2000 },
+  { id: 'any', label: 'Cualquier precio', min: 0, max: Infinity },
+  { id: 'budget', label: 'Menos de $20', min: 0, max: 2000 },
   { id: 'mid', label: '$20 – $35', min: 2000, max: 3500 },
   { id: 'premium', label: '$35+', min: 3500, max: Infinity },
 ] as const;
@@ -151,10 +151,10 @@ export type ScheduleFilter =
   | 'evening';
 
 export const SCHEDULE_FILTERS: { id: ScheduleFilter; label: string }[] = [
-  { id: 'any', label: 'Any time' },
-  { id: 'week', label: 'Next 7 days' },
-  { id: 'month', label: 'Next 30 days' },
-  { id: 'morning', label: 'Morning' },
-  { id: 'afternoon', label: 'Afternoon' },
-  { id: 'evening', label: 'Evening' },
+  { id: 'any', label: 'Cualquier horario' },
+  { id: 'week', label: 'Próximos 7 días' },
+  { id: 'month', label: 'Próximos 30 días' },
+  { id: 'morning', label: 'Mañana' },
+  { id: 'afternoon', label: 'Tarde' },
+  { id: 'evening', label: 'Noche' },
 ];

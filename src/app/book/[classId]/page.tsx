@@ -11,12 +11,12 @@ import { useAuth } from '@/contexts/auth-context';
 import { usePayments } from '@/contexts/payments-context';
 import { useNotifications } from '@/contexts/notifications-context';
 import { formatMoney, createMercadoPagoPreference } from '@/data/mock';
-import { BUTTON_LABELS, SCREEN_TITLES } from '@/constants/labels';
+import { BUTTON_LABELS, SCREEN_TITLES, GENERAL_LABELS } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
 
 export default function BookPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center">Loading…</div>}>
+    <Suspense fallback={<div className="p-12 text-center">{GENERAL_LABELS.loading}</div>}>
       <BookContent />
     </Suspense>
   );
@@ -47,7 +47,7 @@ function BookContent() {
   if (!cls) {
     return (
       <div className="mx-auto max-w-lg px-6 py-12">
-        <PageHeader title="Book" showBack />
+        <PageHeader title={GENERAL_LABELS.book} showBack />
         <p>{SCREEN_TITLES.classNotFound}</p>
       </div>
     );
@@ -64,12 +64,12 @@ function BookContent() {
         setTimeout(() => {
           addNotificationContext({
             type: 'booking_confirmed',
-            title: 'Joined Waitlist!',
-            body: `You've joined the waitlist for ${cls.title}. We'll notify you if a spot opens up.`,
+            title: GENERAL_LABELS.joinedWaitlistTitle,
+            body: GENERAL_LABELS.joinedWaitlistBody.replace('{classTitle}', cls.title),
             read: false,
           });
           setLoading(false);
-          alert('On waitlist — we will notify you when a spot opens.');
+          alert(GENERAL_LABELS.onWaitlistAlert);
           router.push('/athlete/bookings');
         }, 1000);
       }
@@ -100,13 +100,13 @@ function BookContent() {
       // Send confirmation notification
       addNotificationContext({
         type: 'booking_confirmed',
-        title: 'Booking Confirmed!',
-        body: `Your class booking for ${cls.title} has been confirmed.`,
+        title: GENERAL_LABELS.bookingConfirmedTitle,
+        body: GENERAL_LABELS.bookingConfirmedBody.replace('{classTitle}', cls.title),
         read: false,
       });
       
       setLoading(false);
-      alert('Payment successful! Check your bookings.');
+      alert(GENERAL_LABELS.paymentSuccessfulAlert);
       router.push('/athlete/bookings');
     }, 2000);
   };
@@ -122,7 +122,7 @@ function BookContent() {
         <p className="text-sm text-[var(--fn-text-muted)]">{cls.instructor.displayName}</p>
         {!isWaitlist ? (
           <div className="mt-4">
-            <p className="text-xs text-[var(--fn-text-muted)]">Total</p>
+            <p className="text-xs text-[var(--fn-text-muted)]">{GENERAL_LABELS.total}</p>
             <p className="text-3xl font-extrabold text-[var(--fn-primary)]">{formatMoney(cls.price)}</p>
           </div>
         ) : null}
@@ -133,7 +133,7 @@ function BookContent() {
           {!integratedPayments && !isWaitlist ? (
             <div className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200">
               <p className="text-sm text-blue-800">
-                Payment integration demo: We'll simulate a Mercado Pago checkout.
+                {GENERAL_LABELS.paymentIntegrationDemo}
               </p>
             </div>
           ) : null}
@@ -152,28 +152,28 @@ function BookContent() {
         </>
       ) : (
         <div className="mt-6 space-y-4">
-          <p className="text-lg font-bold">Select Payment Method</p>
+          <p className="text-lg font-bold">{GENERAL_LABELS.selectPaymentMethod}</p>
           
           <Button
-            title="Mercado Pago"
+            title={GENERAL_LABELS.mercadoPago}
             className="w-full"
-            onClick={() => completePayment('Mercado Pago')}
+            onClick={() => completePayment(GENERAL_LABELS.mercadoPago)}
             loading={loading}
           />
           
           <Button
-            title="Credit Card"
+            title={GENERAL_LABELS.creditCard}
             variant="outline"
             className="w-full"
-            onClick={() => completePayment('Credit Card')}
+            onClick={() => completePayment(GENERAL_LABELS.creditCard)}
             loading={loading}
           />
           
           <Button
-            title="Debit Card"
+            title={GENERAL_LABELS.debitCard}
             variant="outline"
             className="w-full"
-            onClick={() => completePayment('Debit Card')}
+            onClick={() => completePayment(GENERAL_LABELS.debitCard)}
             loading={loading}
           />
         </div>

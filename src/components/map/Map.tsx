@@ -17,7 +17,7 @@ export function ClassMap({ classes, center = [-34.6037, -58.3816], zoom = 13 }: 
   
   return (
     <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-[var(--fn-border)] shadow-sm">
-      <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
+      <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%', zIndex: '-1' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

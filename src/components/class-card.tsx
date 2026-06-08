@@ -5,7 +5,7 @@ import { Dumbbell, Video, MapPin, Edit3 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel } from '@/constants/labels';
+import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel, BUTTON_LABELS } from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/data/mock';
 import type { ClassListItem } from '@/types/api';
 
@@ -28,8 +28,8 @@ export function ClassCard({ item, compact, showEdit, editHref }: {
             {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
             {showEdit && editHref ? (
               <Link href={editHref} onClick={(e) => e.stopPropagation()}>
-                <Button variant="outline" size="sm" title="Edit" className="hover:animate-pulse-glow">
-                  <Edit3 size={16} className="mr-1" /> Edit
+                <Button variant="outline" size="sm" title={BUTTON_LABELS.edit} className="hover:animate-pulse-glow">
+                  <Edit3 size={16} className="mr-1" /> {BUTTON_LABELS.edit}
                 </Button>
               </Link>
             ) : null}

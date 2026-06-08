@@ -10,7 +10,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { DISCIPLINES } from '@/constants/fitnexia';
-import { MODALITY_LABELS } from '@/constants/labels';
+import { MODALITY_LABELS, INSTRUCTOR_LABELS, DISCIPLINE_LABELS } from '@/constants/labels';
 import { getLinkedInstructorId } from '@/utils/instructor';
 import { combineDateAndTime, dateToTimeString, defaultClassStart, timeStringToDate } from '@/utils/schedule';
 import type { Modality } from '@/types/api';
@@ -33,7 +33,7 @@ export default function CreateClassPage() {
 
   const publish = () => {
     if (!title.trim()) {
-      alert('Class name is required.');
+      alert(INSTRUCTOR_LABELS.classForm.classNameRequired);
       return;
     }
     const durationMinutes = parseInt(duration, 10);
@@ -58,21 +58,21 @@ export default function CreateClassPage() {
           ? { lat: -34.6, lng: -58.38, label: 'Studio' }
           : undefined,
     });
-    alert('Class published (mock)');
+    alert(INSTRUCTOR_LABELS.classForm.classPublished);
     router.back();
   };
 
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
-      <PageHeader title="New class" showBack />
-      <Input label="Class name" value={title} onChange={(e) => setTitle(e.target.value)} />
-      <p className="mb-2 text-sm font-medium">Discipline</p>
+      <PageHeader title={INSTRUCTOR_LABELS.classForm.newClass} showBack />
+      <Input label={INSTRUCTOR_LABELS.classForm.className} value={title} onChange={(e) => setTitle(e.target.value)} />
+      <p className="mb-2 text-sm font-medium">{INSTRUCTOR_LABELS.classForm.discipline}</p>
       <div className="mb-4 flex flex-wrap">
         {DISCIPLINES.map((d) => (
-          <FilterChip key={d} label={d} active={discipline === d} onPress={() => setDiscipline(d)} />
+          <FilterChip key={d} label={DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS]} active={discipline === d} onPress={() => setDiscipline(d)} />
         ))}
       </div>
-      <p className="mb-2 text-sm font-medium">Modality</p>
+      <p className="mb-2 text-sm font-medium">{INSTRUCTOR_LABELS.classForm.modality}</p>
       <div className="mb-4 flex flex-wrap">
         <FilterChip
           label={MODALITY_LABELS.inPerson}
@@ -85,12 +85,12 @@ export default function CreateClassPage() {
           onPress={() => setModality('online')}
         />
       </div>
-      <Input label="Date (YYYY-MM-DD)" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-      <Input label="Time (HH:MM)" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-      <Input label="Duration (min)" value={duration} onChange={(e) => setDuration(e.target.value)} />
-      <Input label="Price (USD)" value={price} onChange={(e) => setPrice(e.target.value)} />
-      <Input label="Capacity" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
-      <Button title="Publish class" className="mt-4" onClick={publish} />
+      <Input label={INSTRUCTOR_LABELS.classForm.date} value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+      <Input label={INSTRUCTOR_LABELS.classForm.time} value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+      <Input label={INSTRUCTOR_LABELS.classForm.duration} value={duration} onChange={(e) => setDuration(e.target.value)} />
+      <Input label={INSTRUCTOR_LABELS.classForm.price} value={price} onChange={(e) => setPrice(e.target.value)} />
+      <Input label={INSTRUCTOR_LABELS.classForm.capacity} value={capacity} onChange={(e) => setCapacity(e.target.value)} />
+      <Button title={INSTRUCTOR_LABELS.classForm.publishClass} className="mt-4" onClick={publish} />
     </div>
   );
 }

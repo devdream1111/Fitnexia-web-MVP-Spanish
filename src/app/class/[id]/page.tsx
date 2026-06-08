@@ -16,6 +16,7 @@ import {
   SCREEN_TITLES,
   classSpotsLabel,
   modalityBadgeLabel,
+  GENERAL_LABELS,
 } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
 
@@ -51,7 +52,7 @@ export default function ClassDetailPage() {
 
       <div className="mt-6 space-y-3 rounded-2xl bg-[var(--fn-surface)] p-4">
         <Row label={CLASS_DETAIL_LABELS.when} value={formatClassDate(cls.startAt)} />
-        <Row label={CLASS_DETAIL_LABELS.duration} value={`${cls.durationMinutes} min`} />
+        <Row label={CLASS_DETAIL_LABELS.duration} value={`${cls.durationMinutes} ${GENERAL_LABELS.min}`} />
         <Row
           label={CLASS_DETAIL_LABELS.where}
           value={
@@ -83,7 +84,7 @@ export default function ClassDetailPage() {
 
       <h3 className="mt-6 font-bold">{CLASS_DETAIL_LABELS.about}</h3>
       <p className="text-[var(--fn-text-muted)]">
-        Join {cls.instructor.displayName} for an engaging {cls.discipline.toLowerCase()} session.
+        Únete a {cls.instructor.displayName} para una sesión atractiva de {cls.discipline.toLowerCase()}.
       </p>
 
       <div className="mt-8">
@@ -104,18 +105,18 @@ export default function ClassDetailPage() {
 
       {reviews.length > 0 ? (
         <div className="mt-12">
-          <h3 className="mb-6 text-xl font-bold">Reviews ({reviews.length})</h3>
+          <h3 className="mb-6 text-xl font-bold">{GENERAL_LABELS.reviews} ({reviews.length})</h3>
           <div className="space-y-6">
             {reviews.map((review) => (
               <div key={review.id} className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-bold">{review.authorName}</p>
-                  {review.verified && <Badge label="Verified" variant="success" size="sm" />}
+                  {review.verified && <Badge label={BADGE_LABELS.verified} variant="success" size="sm" />}
                 </div>
                 <div className="text-lg mb-2">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</div>
                 {review.comment && <p className="text-[var(--fn-text-muted)]">{review.comment}</p>}
                 <p className="text-xs text-[var(--fn-text-muted)] mt-3">
-                  {new Date(review.createdAt).toLocaleDateString('en-US', {
+                  {new Date(review.createdAt).toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

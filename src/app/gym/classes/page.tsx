@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { resolveInstitutionId } from '@/utils/gym-classes';
+import { GYM_LABELS, INSTRUCTOR_LABELS, BUTTON_LABELS } from '@/constants/labels';
 
 export default function GymClassesPage() {
   const { user } = useAuth();
@@ -17,9 +18,9 @@ export default function GymClassesPage() {
   return (
     <div>
       <div className="mb-6 flex justify-between">
-        <h1 className="text-3xl font-extrabold">Classes</h1>
+        <h1 className="text-3xl font-extrabold">{GYM_LABELS.classes.yourClasses}</h1>
         <Link href="/create-class">
-          <Button title="Add class" size="sm" />
+          <Button title={GYM_LABELS.classes.addClass} size="sm" />
         </Link>
       </div>
       {gymClasses.map((c) => (

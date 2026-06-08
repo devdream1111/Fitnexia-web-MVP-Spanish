@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/layout/page-header';
 import { useClasses } from '@/contexts/classes-context';
+import { INSTRUCTOR_LABELS, GENERAL_LABELS, BUTTON_LABELS } from '@/constants/labels';
 
 export default function EditClassPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,8 +20,8 @@ export default function EditClassPage() {
   if (!cls) {
     return (
       <div className="mx-auto max-w-lg px-6 py-12">
-        <PageHeader title="Edit class" showBack />
-        <p>Class not found.</p>
+        <PageHeader title={INSTRUCTOR_LABELS.classForm.editClass} showBack />
+        <p>Clase no encontrada.</p>
       </div>
     );
   }
@@ -28,16 +29,16 @@ export default function EditClassPage() {
   const save = () => {
     const cap = parseInt(capacity, 10);
     updateClass(cls.id, { title: title.trim(), capacity: cap, spotsLeft: Math.min(cls.spotsLeft ?? cap, cap) });
-    alert('Class updated (mock)');
+    alert(INSTRUCTOR_LABELS.classForm.classUpdated);
     router.back();
   };
 
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
-      <PageHeader title="Edit class" showBack />
-      <Input label="Class name" value={title} onChange={(e) => setTitle(e.target.value)} />
-      <Input label="Capacity" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
-      <Button title="Save changes" className="mt-4" onClick={save} />
+      <PageHeader title={INSTRUCTOR_LABELS.classForm.editClass} showBack />
+      <Input label={INSTRUCTOR_LABELS.classForm.className} value={title} onChange={(e) => setTitle(e.target.value)} />
+      <Input label={INSTRUCTOR_LABELS.classForm.capacity} value={capacity} onChange={(e) => setCapacity(e.target.value)} />
+      <Button title={BUTTON_LABELS.saveChanges} className="mt-4" onClick={save} />
     </div>
   );
 }

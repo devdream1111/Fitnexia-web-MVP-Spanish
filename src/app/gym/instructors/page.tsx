@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
-import { BADGE_LABELS } from '@/constants/labels';
+import { BADGE_LABELS, GYM_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import { MOCK_INSTRUCTORS } from '@/data/mock';
 import { resolveInstitutionId } from '@/utils/gym-classes';
 
@@ -17,9 +17,9 @@ export default function GymInstructorsPage() {
   return (
     <div>
       <div className="mb-6 flex justify-between">
-        <h1 className="text-3xl font-extrabold">Staff</h1>
+        <h1 className="text-3xl font-extrabold">{GYM_LABELS.instructors.yourInstructors}</h1>
         <Link href="/gym/profile/invite-instructor" className="text-sm font-semibold text-[var(--fn-primary)]">
-          Invite +
+          {GYM_LABELS.instructors.inviteInstructor} +
         </Link>
       </div>
       {staff.map((i) => (
@@ -32,11 +32,11 @@ export default function GymInstructorsPage() {
             {i.verified ? <Badge label={BADGE_LABELS.verified} /> : null}
           </div>
           <Link href={`/gym/review-instructor/${i.id}`} className="text-sm text-[var(--fn-primary)]">
-            Review
+            {GENERAL_LABELS.reviews}
           </Link>
         </div>
       ))}
-      <p className="mt-4 text-xs text-[var(--fn-text-muted)]">Institution: {institutionId}</p>
+      <p className="mt-4 text-xs text-[var(--fn-text-muted)]">Institución: {institutionId}</p>
     </div>
   );
 }

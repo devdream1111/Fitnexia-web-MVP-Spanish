@@ -13,7 +13,7 @@ import { FilterChip } from '@/components/ui/filter-chip';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import { DISCIPLINES } from '@/constants/fitnexia';
-import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS } from '@/constants/labels';
+import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import type { UserRole } from '@/types/api';
 
 export default function RegisterPage() {
@@ -76,7 +76,7 @@ export default function RegisterPage() {
           onClick={() => (step === 1 ? router.back() : setStep(1))}
           className="text-sm text-[var(--fn-text-muted)]"
         >
-          ← Back
+          ← {GENERAL_LABELS.back}
         </button>
 
         {step === 1 ? (
@@ -119,7 +119,7 @@ export default function RegisterPage() {
                     placeholder={AUTH_LABELS.gymSchoolPlaceholder}
                   />
                   <div className="mt-6">
-                    <p className="mb-3 text-base font-medium">Photo Gallery</p>
+                    <p className="mb-3 text-base font-medium">{GENERAL_LABELS.photoGallery}</p>
                     <PhotoGallery
                       images={gallery}
                       onAddImage={(uri) => setGallery([...gallery, uri])}
@@ -139,9 +139,9 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              {role === 'athlete' ? (
+              {/* {role === 'athlete' ? (
                 <div className="mb-6">
-                  <p className="mb-3 text-base font-medium">Favorite sports</p>
+                  <p className="mb-3 text-base font-medium">{GENERAL_LABELS.favoriteSports}</p>
                   <div className="flex flex-wrap gap-2">
                     {DISCIPLINES.map((s) => (
                       <FilterChip
@@ -153,10 +153,10 @@ export default function RegisterPage() {
                     ))}
                   </div>
                 </div>
-              ) : null}
-              {role === 'instructor' ? (
+              ) : null} */}
+              {/* {role === 'instructor' ? (
                 <div className="mb-6">
-                  <p className="mb-3 text-base font-medium">Disciplines</p>
+                  <p className="mb-3 text-base font-medium">{GENERAL_LABELS.disciplines}</p>
                   <div className="flex flex-wrap gap-2">
                     {DISCIPLINES.map((s) => (
                       <FilterChip
@@ -168,16 +168,16 @@ export default function RegisterPage() {
                     ))}
                   </div>
                 </div>
-              ) : null}
+              ) : null} */}
               <Button title={BUTTON_LABELS.createAccount} loading={loading} onClick={submit} className="hover:animate-pulse-glow" />
             </div>
           </div>
         )}
 
         <p className="mt-10 text-center text-base animate-slide-up stagger-4">
-          Already have an account?{' '}
+          {GENERAL_LABELS.alreadyHaveAccount}{' '}
           <Link href="/auth/login" className="font-semibold text-[var(--fn-primary)]">
-            Sign in
+            {BUTTON_LABELS.signIn}
           </Link>
         </p>
       </div>

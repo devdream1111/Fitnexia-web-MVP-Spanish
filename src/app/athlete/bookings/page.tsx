@@ -11,6 +11,7 @@ import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useNotifications } from '@/contexts/notifications-context';
 import { formatClassDate, formatMoney, canCancelBooking, getRefundAmount } from '@/data/mock';
+import { GENERAL_LABELS } from '@/constants/labels';
 import type { Booking, ClassListItem } from '@/types/api';
 
 export default function BookingsPage() {
@@ -61,15 +62,15 @@ export default function BookingsPage() {
       if (user && booking && cls) {
         addNotification({
           type: 'booking_cancelled',
-          title: 'Booking Cancelled',
-          body: `Your booking for ${cls.title} has been cancelled. Refund: ${formatMoney(getRefundAmount(booking))}`,
+          title: GENERAL_LABELS.bookingCancelledTitle,
+          body: GENERAL_LABELS.bookingCancelledBody.replace('{classTitle}', cls.title).replace('{amount}', formatMoney(getRefundAmount(booking))),
           read: false,
         });
       }
       
       setCancellingId(null);
       setShowCancelConfirm(null);
-      alert('Booking cancelled!');
+      alert(GENERAL_LABELS.bookingCancelledAlert);
     }, 500);
   };
 
@@ -83,7 +84,7 @@ export default function BookingsPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold">My Bookings</h1>
+        <h1 className="text-3xl font-extrabold">{GENERAL_LABELS.myBookings}</h1>
         <button
           type="button"
           onClick={() => setShowCalendar(!showCalendar)}
@@ -94,7 +95,7 @@ export default function BookingsPage() {
           }`}
         >
           <CalendarIcon size={16} />
-          {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+          {showCalendar ? GENERAL_LABELS.hideCalendar : GENERAL_LABELS.showCalendar}
         </button>
       </div>
 
@@ -114,7 +115,7 @@ export default function BookingsPage() {
           <div className="max-w-lg w-full rounded-2xl bg-[var(--fn-surface)] p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
-                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </h2>
               <button
                 type="button"
@@ -126,14 +127,14 @@ export default function BookingsPage() {
             </div>
             <div className="space-y-3">
               {getBookingsForDate(selectedDate).length === 0 ? (
-                <p className="text-sm text-[var(--fn-text-muted)]">No bookings for this day.</p>
+                <p className="text-sm text-[var(--fn-text-muted)]">{GENERAL_LABELS.noBookingsForDay}</p>
               ) : (
                 getBookingsForDate(selectedDate).map(({ booking, cls }) => (
                   <div key={booking.id} className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-4">
                     <p className="font-semibold text-[var(--fn-text)]">{cls.title}</p>
                     <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
                     <p className="text-sm text-[var(--fn-primary)]">{formatMoney(booking.price)}</p>
-                    <p className="text-xs text-[var(--fn-text-muted)] mt-1">Status: {booking.status}</p>
+                    <p className="text-xs text-[var(--fn-text-muted)] mt-1">{GENERAL_LABELS.status}: {booking.status}</p>
                   </div>
                 ))
               )}
@@ -152,12 +153,12 @@ export default function BookingsPage() {
               tab === t ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)]'
             }`}
           >
-            {t === 'upcoming' ? 'Upcoming' : 'History'}
+            {t === 'upcoming' ? GENERAL_LABELS.upcoming : GENERAL_LABELS.history}
           </button>
         ))}
       </div>
       {entries.length === 0 ? (
-        <p className="text-[var(--fn-text-muted)]">No bookings in this tab.</p>
+        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noBookingsInTab}</p>
       ) : (
         entries.map(({ booking, cls }) => {
           const canCancel = canCancelBooking(cls.startAt);
@@ -176,7 +177,7 @@ export default function BookingsPage() {
                 </div>
                 {booking.status === 'confirmed' && tab === 'upcoming' ? (
                   <Button
-                    title="Cancel"
+                    title={GENERAL_LABELS.cancel}
                     variant="outline"
                     size="sm"
                     onClick={() => handleCancel(booking.id)}
@@ -188,23 +189,23 @@ export default function BookingsPage() {
               
               {showCancelConfirm === booking.id && (
                 <div className="mt-4 p-4 rounded-xl border border-red-200 bg-red-50">
-                  <p className="font-bold mb-2">Cancel Booking?</p>
+                  <p className="font-bold mb-2">{GENERAL_LABELS.cancelBooking}</p>
                   <p className="text-sm mb-4">
                     {canCancel
-                      ? `You'll receive a full refund of ${formatMoney(refundAmount)}.`
-                      : `You're within 24 hours of the class. You'll receive a 50% refund of ${formatMoney(refundAmount)}.`
+                      ? GENERAL_LABELS.fullRefund.replace('{amount}', formatMoney(refundAmount))
+                      : GENERAL_LABELS.partialRefund.replace('{amount}', formatMoney(refundAmount))
                     }
                   </p>
                   <div className="flex gap-3">
                     <Button
-                      title="Confirm Cancel"
+                      title={GENERAL_LABELS.confirmCancel}
                       variant="danger"
                       size="sm"
                       onClick={() => confirmCancel(booking.id)}
                       loading={cancellingId === booking.id}
                     />
                     <Button
-                      title="Keep Booking"
+                      title={GENERAL_LABELS.keepBooking}
                       variant="outline"
                       size="sm"
                       onClick={() => setShowCancelConfirm(null)}
@@ -216,7 +217,7 @@ export default function BookingsPage() {
               {booking.status === 'completed' ? (
                 <div className="mt-4">
                   <Link href={`/review/${booking.id}`} className="inline-block">
-                    <Button title="Leave review" size="sm" variant="outline" />
+                    <Button title={GENERAL_LABELS.leaveReview} size="sm" variant="outline" />
                   </Link>
                 </div>
               ) : null}

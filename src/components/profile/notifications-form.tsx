@@ -4,14 +4,14 @@ import { useAuth, DEFAULT_NOTIFICATIONS } from '@/contexts/auth-context';
 import { isNotificationPrefVisible } from '@/constants/features';
 import { Button } from '@/components/ui/button';
 import { ToggleButton } from '@/components/ui/toggle-button';
-import { BUTTON_LABELS } from '@/constants/labels';
+import { BUTTON_LABELS, NOTIFICATIONS_LABELS } from '@/constants/labels';
 
 const PREFS: { key: keyof typeof DEFAULT_NOTIFICATIONS; label: string }[] = [
-  { key: 'bookingConfirmed', label: 'Booking confirmed' },
-  { key: 'classReminders', label: 'Class reminders' },
-  { key: 'paymentUpdates', label: 'Payment updates' },
-  { key: 'creditsExpiring', label: 'Credits expiring' },
-  { key: 'marketing', label: 'Marketing & tips' },
+  { key: 'bookingConfirmed', label: NOTIFICATIONS_LABELS.preferences.bookingConfirmed },
+  { key: 'classReminders', label: NOTIFICATIONS_LABELS.preferences.classReminders },
+  { key: 'paymentUpdates', label: NOTIFICATIONS_LABELS.preferences.paymentUpdates },
+  { key: 'creditsExpiring', label: NOTIFICATIONS_LABELS.preferences.creditsExpiring },
+  { key: 'marketing', label: NOTIFICATIONS_LABELS.preferences.marketing },
 ];
 
 export function NotificationsForm() {
@@ -34,7 +34,7 @@ export function NotificationsForm() {
           onChange={() => toggle(p.key)}
         />
       ))}
-      <Button title={BUTTON_LABELS.save} className="mt-4" onClick={() => alert('Preferences saved (mock)')} />
+      <Button title={BUTTON_LABELS.save} className="mt-4" onClick={() => alert('Preferencias guardadas (simulado)')} />
     </div>
   );
 }

@@ -1,16 +1,16 @@
 'use client';
 
 import { User, Dumbbell, Building2 } from 'lucide-react';
-import { ROLE_DESCRIPTIONS } from '@/constants/labels';
+import { ROLE_DESCRIPTIONS, ROLE_TITLES } from '@/constants/labels';
 import type { UserRole } from '@/types/api';
 
 const ROLE_META: Record<
   Exclude<UserRole, 'admin'>,
   { title: string; icon: React.ReactNode }
 > = {
-  athlete: { title: 'Athlete', icon: <User size={36} /> },
-  instructor: { title: 'Instructor', icon: <Dumbbell size={36} /> },
-  institution: { title: 'Gym / School', icon: <Building2 size={36} /> },
+  athlete: { title: ROLE_TITLES.athlete, icon: <User size={36} /> },
+  instructor: { title: ROLE_TITLES.instructor, icon: <Dumbbell size={36} /> },
+  institution: { title: ROLE_TITLES.institution, icon: <Building2 size={36} /> },
 };
 
 export function RoleCard({

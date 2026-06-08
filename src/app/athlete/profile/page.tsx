@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FilterChip } from '@/components/ui/filter-chip';
 import { useAuth } from '@/contexts/auth-context';
-import { BUTTON_LABELS, PROFILE_MENU_LABELS, SCREEN_TITLES } from '@/constants/labels';
+import { BUTTON_LABELS, PROFILE_MENU_LABELS, SCREEN_TITLES, GENERAL_LABELS, AUTH_LABELS } from '@/constants/labels';
 import { DISCIPLINES } from '@/constants/fitnexia';
 import { useFeature } from '@/hooks/use-feature';
 
@@ -64,19 +64,19 @@ export default function AthleteProfilePage() {
     setPasswordSuccess('');
 
     if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match');
+      setPasswordError(GENERAL_LABELS.newPasswordsDoNotMatch);
       return;
     }
 
     try {
       await changePassword(currentPassword, newPassword);
-      setPasswordSuccess('Password changed successfully!');
+      setPasswordSuccess(GENERAL_LABELS.passwordChangedSuccessfully);
       setIsChangingPassword(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : 'Failed to change password');
+      setPasswordError(err instanceof Error ? err.message : GENERAL_LABELS.failedToChangePassword);
     }
   };
 
@@ -103,10 +103,10 @@ export default function AthleteProfilePage() {
           {isEditing ? (
             <div className="space-y-4 w-full md:w-auto">
               <div className="grid gap-4 md:grid-cols-2">
-                <Input label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                <Input label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                <Input label={GENERAL_LABELS.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <Input label={GENERAL_LABELS.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </div>
-              <Input label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input label={GENERAL_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
           ) : (
             <div className="space-y-1">
@@ -134,8 +134,8 @@ export default function AthleteProfilePage() {
                     ))}
                   </div>
                   <div className="flex gap-3">
-                    <Button title="Cancel" variant="outline" onClick={handleCancelSports} />
-                    <Button title="Save" onClick={handleSaveSports} />
+                    <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancelSports} />
+                    <Button title={BUTTON_LABELS.save} onClick={handleSaveSports} />
                   </div>
                 </div>
               ) : (
@@ -143,7 +143,7 @@ export default function AthleteProfilePage() {
                   <div>
                     <p className="font-medium">{PROFILE_MENU_LABELS.favoriteSports}</p>
                     <p className="text-sm text-[var(--fn-text-muted)]">
-                      {user?.favoriteSports.length ? user.favoriteSports.join(', ') : 'None'}
+                      {user?.favoriteSports.length ? user.favoriteSports.join(', ') : GENERAL_LABELS.none}
                     </p>
                   </div>
                   <button
@@ -156,7 +156,7 @@ export default function AthleteProfilePage() {
                 </div>
               )}
               
-              <ProfileMenuItem href="/athlete/payment-history" label="Payment History" />
+              <ProfileMenuItem href="/athlete/payment-history" label={GENERAL_LABELS.paymentHistory} />
               {showPaymentMethods ? (
                 <ProfileMenuItem href="/athlete/profile/payment-methods" label={PROFILE_MENU_LABELS.paymentMethods} />
               ) : null}
@@ -171,24 +171,24 @@ export default function AthleteProfilePage() {
                     onClick={() => setIsChangingPassword(true)}
                     className="font-semibold text-[var(--fn-primary)] transition hover:opacity-80"
                   >
-                    Change Password
+                    {GENERAL_LABELS.changePassword}
                   </button>
                 ) : (
                   <div className="space-y-4">
                     <Input 
-                      label="Current Password" 
+                      label={GENERAL_LABELS.currentPassword} 
                       type="password" 
                       value={currentPassword} 
                       onChange={(e) => setCurrentPassword(e.target.value)} 
                     />
                     <Input 
-                      label="New Password" 
+                      label={GENERAL_LABELS.newPassword} 
                       type="password" 
                       value={newPassword} 
                       onChange={(e) => setNewPassword(e.target.value)} 
                     />
                     <Input 
-                      label="Confirm New Password" 
+                      label={GENERAL_LABELS.confirmNewPassword} 
                       type="password" 
                       value={confirmPassword} 
                       onChange={(e) => setConfirmPassword(e.target.value)} 
@@ -197,11 +197,11 @@ export default function AthleteProfilePage() {
                       <p className="text-sm text-red-500">{passwordError}</p>
                     )}
                     {passwordSuccess && (
-                      <p className="text-sm text-green-500">{passwordSuccess}</p>
+                      <p className="text-sm text-blue-500">{passwordSuccess}</p>
                     )}
                     <div className="flex gap-3">
-                      <Button title="Cancel" variant="outline" onClick={handleCancelPasswordChange} />
-                      <Button title="Change Password" onClick={handleChangePassword} />
+                      <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancelPasswordChange} />
+                      <Button title={GENERAL_LABELS.changePassword} onClick={handleChangePassword} />
                     </div>
                   </div>
                 )}
@@ -213,15 +213,15 @@ export default function AthleteProfilePage() {
         <div className="flex gap-3">
           {!isEditing ? (
             <Button
-              title="Change"
+              title={GENERAL_LABELS.change}
               onClick={() => setIsEditing(true)}
               className="flex-1 bg-[var(--fn-primary)] text-white py-3 text-lg"
             />
           ) : (
             <>
-              <Button title="Cancel" variant="outline" onClick={handleCancel} className="flex-1 py-3 text-lg" />
+              <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancel} className="flex-1 py-3 text-lg" />
               <Button
-                title="Save Change"
+                title={GENERAL_LABELS.saveChange}
                 onClick={handleSave}
                 className="flex-1 bg-[var(--fn-primary)] text-white py-3 text-lg"
               />

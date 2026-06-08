@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { getLinkedInstructorId } from '@/utils/instructor';
 import { isSameCalendarDay } from '@/utils/schedule';
+import { INSTRUCTOR_LABELS } from '@/constants/labels';
 
 export default function InstructorDashboardPage() {
   const { user } = useAuth();
@@ -21,21 +22,21 @@ export default function InstructorDashboardPage() {
     <div>
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <p className="text-sm text-[var(--fn-text-muted)]">Hi, {user?.firstName}!</p>
-          <h1 className="text-3xl font-extrabold md:text-4xl">Today&apos;s overview</h1>
+          <p className="text-sm text-[var(--fn-text-muted)]">{INSTRUCTOR_LABELS.dashboard.hi} {user?.firstName}!</p>
+          <h1 className="text-3xl font-extrabold md:text-4xl">{INSTRUCTOR_LABELS.dashboard.todayOverview}</h1>
         </div>
         <Link href="/create-class">
-          <Button title="New class" />
+          <Button title={INSTRUCTOR_LABELS.dashboard.newClass} />
         </Link>
       </div>
       
       <div className="grid gap-4 md:grid-cols-3">
-        <Stat label="Bookings" value="3" />
-        <Stat label="Revenue" value="$127" />
-        <Stat label="Classes" value={String(todayClasses.length)} />
+        <Stat label={INSTRUCTOR_LABELS.dashboard.bookings} value="3" />
+        <Stat label={INSTRUCTOR_LABELS.dashboard.revenue} value="$127" />
+        <Stat label={INSTRUCTOR_LABELS.dashboard.classes} value={String(todayClasses.length)} />
       </div>
       
-      <h2 className="mt-10 mb-4 text-lg font-bold md:text-xl">Today&apos;s classes</h2>
+      <h2 className="mt-10 mb-4 text-lg font-bold md:text-xl">{INSTRUCTOR_LABELS.dashboard.todayClasses}</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {todayClasses.map((c) => (
           <ClassCard key={c.id} item={c} />

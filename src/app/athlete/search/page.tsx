@@ -13,7 +13,7 @@ import {
   SCHEDULE_FILTERS,
   type ScheduleFilter,
 } from '@/constants/fitnexia';
-import { MODALITY_LABELS, modalityBadgeLabel } from '@/constants/labels';
+import { MODALITY_LABELS, modalityBadgeLabel, GENERAL_LABELS, DISCIPLINE_LABELS } from '@/constants/labels';
 import { useClasses } from '@/contexts/classes-context';
 import { filterClasses, sortClassesByDate } from '@/utils/class-filters';
 import type { Modality } from '@/types/api';
@@ -116,7 +116,7 @@ export default function SearchPage() {
 
   const activeFilters = useMemo(() => {
     const filters = [];
-    if (discipline) filters.push({ type: 'discipline', value: discipline, label: discipline });
+    if (discipline) filters.push({ type: 'discipline', value: discipline, label: DISCIPLINE_LABELS[discipline as keyof typeof DISCIPLINE_LABELS] || discipline });
     if (modality) filters.push({ type: 'modality', value: modality, label: modalityBadgeLabel(modality) });
     if (location) filters.push({ type: 'location', value: location, label: location });
     if (schedule !== 'any') {
@@ -152,12 +152,12 @@ export default function SearchPage() {
 
   // Prepare options for custom dropdowns
   const disciplineOptions = [
-    { value: '', label: 'Discipline' },
-    ...DISCIPLINES.map(d => ({ value: d, label: d })),
+    { value: '', label: GENERAL_LABELS.discipline },
+    ...DISCIPLINES.map(d => ({ value: d, label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] || d })),
   ];
   
   const modalityOptions = [
-    { value: '', label: 'Modality' },
+    { value: '', label: GENERAL_LABELS.modality },
     { value: 'in_person', label: MODALITY_LABELS.inPerson },
     { value: 'online', label: MODALITY_LABELS.online },
   ];
@@ -168,7 +168,7 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-extrabold">Search</h1>
+      <h1 className="text-3xl font-extrabold">{GENERAL_LABELS.search}</h1>
 
       {/* Search and Location Inputs */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -176,7 +176,7 @@ export default function SearchPage() {
           <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]" />
           <input
             className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 pl-12 text-sm transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
-            placeholder="Class, instructor, or gym..."
+            placeholder={GENERAL_LABELS.classInstructorGym}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -195,7 +195,7 @@ export default function SearchPage() {
           <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]" />
           <input
             className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 pl-12 text-sm transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
-            placeholder="City, neighborhood, or venue..."
+            placeholder={GENERAL_LABELS.cityNeighborhoodVenue}
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
@@ -212,33 +212,33 @@ export default function SearchPage() {
       </div>
 
       {/* Custom Dropdown Filters */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-4 z-index-5">
         <CustomDropdown
           value={discipline || ''}
           onChange={(val) => setDiscipline(val || null)}
           options={disciplineOptions}
-          placeholder="Discipline"
+          placeholder={GENERAL_LABELS.discipline}
         />
         
         <CustomDropdown
           value={modality || ''}
           onChange={(val) => setModality((val as Modality) || null)}
           options={modalityOptions}
-          placeholder="Modality"
+          placeholder={GENERAL_LABELS.modality}
         />
         
         <CustomDropdown
           value={schedule}
           onChange={(val) => setSchedule(val as ScheduleFilter)}
           options={scheduleOptions}
-          placeholder="Schedule"
+          placeholder={GENERAL_LABELS.schedule}
         />
         
         <CustomDropdown
           value={priceRangeId}
           onChange={setPriceRangeId}
           options={priceOptions}
-          placeholder="Price"
+          placeholder={GENERAL_LABELS.price}
         />
       </div>
 
@@ -266,7 +266,7 @@ export default function SearchPage() {
             onClick={clearFilters}
             className="text-sm font-medium text-[var(--fn-primary)] hover:opacity-80 transition"
           >
-            Clear filters
+            {GENERAL_LABELS.clearFilters}
           </button>
         </div>
       )}
@@ -277,7 +277,7 @@ export default function SearchPage() {
       {/* Results */}
       <div className="space-y-4">
         <p className="text-sm font-semibold text-[var(--fn-text-muted)]">
-          {results.length} {results.length === 1 ? 'class' : 'classes'}
+          {results.length} {results.length === 1 ? GENERAL_LABELS.class : GENERAL_LABELS.classes}
         </p>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {results.map((c) => (

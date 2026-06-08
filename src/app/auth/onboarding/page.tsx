@@ -5,21 +5,22 @@ import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
+import { ONBOARDING_LABELS } from '@/constants/labels';
 
 const SLIDES = [
   {
-    title: 'Find your next class',
-    body: 'Discover sports and fitness classes from top instructors and gyms near you.',
+    title: ONBOARDING_LABELS.slides[0].title,
+    body: ONBOARDING_LABELS.slides[0].body,
     image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop',
   },
   {
-    title: 'Book in one tap',
-    body: 'Reserve in-person or online sessions. Get reminders before every class.',
+    title: ONBOARDING_LABELS.slides[1].title,
+    body: ONBOARDING_LABELS.slides[1].body,
     image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=600&fit=crop',
   },
   {
-    title: 'Train with the best',
-    body: 'Verified instructors, real reviews, and a loyalty program that rewards you.',
+    title: ONBOARDING_LABELS.slides[2].title,
+    body: ONBOARDING_LABELS.slides[2].body,
     image: 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=800&h=600&fit=crop',
   },
 ];
@@ -72,13 +73,13 @@ export default function OnboardingPage() {
         </div>
         <div className="mt-12 flex flex-col items-center gap-4 animate-slide-up stagger-4">
           <Button 
-            title={index < SLIDES.length - 1 ? 'Next' : 'Get started'} 
+            title={index < SLIDES.length - 1 ? ONBOARDING_LABELS.next : ONBOARDING_LABELS.getStarted} 
             className="w-full max-w-md hover:animate-pulse-glow" 
             onClick={next} 
           />
           {index < SLIDES.length - 1 ? (
             <button type="button" onClick={finish} className="text-sm text-[var(--fn-text-muted)]">
-              Skip
+              {ONBOARDING_LABELS.skip}
             </button>
           ) : null}
         </div>

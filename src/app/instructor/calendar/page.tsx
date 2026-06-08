@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { getLinkedInstructorId } from '@/utils/instructor';
 import { formatClassDate, formatMoney } from '@/data/mock';
+import { INSTRUCTOR_LABELS } from '@/constants/labels';
 
 export default function InstructorCalendarPage() {
   const { user } = useAuth();
@@ -23,7 +24,7 @@ export default function InstructorCalendarPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-extrabold">My Calendar</h1>
+      <h1 className="text-3xl font-extrabold">{INSTRUCTOR_LABELS.calendar.yourCalendar}</h1>
       <Calendar 
         classes={mine} 
         onDateClick={(date) => setSelectedDate(date)}
@@ -35,7 +36,7 @@ export default function InstructorCalendarPage() {
           <div className="max-w-lg w-full rounded-2xl bg-[var(--fn-surface)] p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
-                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </h2>
               <button
                 type="button"
@@ -47,7 +48,7 @@ export default function InstructorCalendarPage() {
             </div>
             <div className="space-y-3">
               {getClassesForDate(selectedDate).length === 0 ? (
-                <p className="text-sm text-[var(--fn-text-muted)]">No classes scheduled for this day.</p>
+                <p className="text-sm text-[var(--fn-text-muted)]">No hay clases programadas para este día.</p>
               ) : (
                 getClassesForDate(selectedDate).map(c => (
                   <div key={c.id} className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-3">

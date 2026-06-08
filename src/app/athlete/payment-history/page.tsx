@@ -7,7 +7,7 @@ import { usePayments } from '@/contexts/payments-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { formatMoney, formatClassDate } from '@/data/mock';
-import { SCREEN_TITLES } from '@/constants/labels';
+import { SCREEN_TITLES, GENERAL_LABELS } from '@/constants/labels';
 import type { Payment, ClassListItem } from '@/types/api';
 
 export default function PaymentHistoryPage() {
@@ -31,7 +31,7 @@ export default function PaymentHistoryPage() {
       
       <div className="mt-6">
         {entries.length === 0 ? (
-          <p className="text-[var(--fn-text-muted)]">No payment history yet.</p>
+          <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noPaymentHistoryYet}</p>
         ) : (
           entries.map(({ payment, cls }) => (
             <div
@@ -39,9 +39,9 @@ export default function PaymentHistoryPage() {
               className="mb-4 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-bold text-lg">{cls?.title || 'Class Booking'}</p>
+                  <p className="font-bold text-lg">{cls?.title || GENERAL_LABELS.classBooking}</p>
                   <p className="text-sm text-[var(--fn-text-muted)] mt-1">
-                    {new Date(payment.createdAt).toLocaleDateString('en-US', {
+                    {new Date(payment.createdAt).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
@@ -55,12 +55,16 @@ export default function PaymentHistoryPage() {
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   payment.status === 'paid' 
-                    ? 'bg-green-100 text-green-800' 
+                    ? 'bg-blue-100 text-blue-800' 
                     : payment.status === 'refunded'
                     ? 'bg-yellow-100 text-yellow-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {payment.status}
+                  {payment.status === 'paid' 
+                    ? GENERAL_LABELS.paid 
+                    : payment.status === 'refunded' 
+                    ? GENERAL_LABELS.refunded 
+                    : payment.status}
                 </span>
               </div>
             </div>
