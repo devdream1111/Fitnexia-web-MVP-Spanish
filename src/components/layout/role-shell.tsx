@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 import { Logo } from './Logo';
-import { TAB_LABELS } from '@/constants/labels';
+import { TAB_LABELS, DROPDOWN_LABELS, ROLE_TITLES } from '@/constants/labels';
 import { useAuth } from '@/contexts/auth-context';
 import { useAppTheme } from '@/contexts/theme-context';
 import { useNotifications } from '@/contexts/notifications-context';
@@ -172,7 +172,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
                 )}
                 <div className="hidden text-left md:block">
                   <p className="text-sm font-semibold text-[var(--fn-text)]">{user.firstName} {user.lastName}</p>
-                  <p className="text-xs text-[var(--fn-text-muted)]">{user.role}</p>
+                  <p className="text-xs text-[var(--fn-text-muted)]">{ROLE_TITLES[user.role as keyof typeof ROLE_TITLES]}</p>
                 </div>
                 <ChevronDown size={16} className="text-[var(--fn-text-muted)]" />
               </button>
@@ -185,7 +185,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setDropdownOpen(false)}
                   >
                     <UserCircle size={18} />
-                    My Profile
+                    {DROPDOWN_LABELS.myProfile}
                   </Link>
                   <Link
                     href={`${profileLink}/notifications`}
@@ -193,7 +193,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setDropdownOpen(false)}
                   >
                     <Settings size={18} />
-                    Settings
+                    {DROPDOWN_LABELS.settings}
                   </Link>
                   <div className="my-1 h-px bg-[var(--fn-border)]" />
                   <button
@@ -202,7 +202,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--fn-error)] hover:bg-red-50 dark:hover:bg-red-900/20 transition"
                   >
                     <LogOut size={18} />
-                    Log out
+                    {DROPDOWN_LABELS.logOut}
                   </button>
                 </div>
               )}
@@ -218,7 +218,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Bottom Navigation (add profile back here) */}
       <nav className="fixed bottom-0 left-0 right-0 flex border-t border-[var(--fn-border)] bg-[var(--fn-surface)] md:hidden">
-        {[...nav, { href: profileLink, label: 'Profile', icon: <User size={18} /> }].map((item) => {
+        {[...nav, { href: profileLink, label: DROPDOWN_LABELS.myProfile, icon: <User size={18} /> }].map((item) => {
           const active = pathname === item.href;
           return (
             <Link

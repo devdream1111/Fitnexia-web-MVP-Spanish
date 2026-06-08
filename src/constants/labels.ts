@@ -10,6 +10,12 @@ export const BADGE_LABELS = {
   full: 'Lleno',
 } as const;
 
+export const DROPDOWN_LABELS = {
+  myProfile: 'Mi Perfil',
+  settings: 'Configuración',
+  logOut: 'Cerrar Sesión',
+} as const;
+
 export const CLASS_CARD_LABELS = {
   spotsLeft: (count: number) => `${count} lugares disponibles`,
 } as const;

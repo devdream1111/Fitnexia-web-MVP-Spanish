@@ -103,6 +103,7 @@ function BookContent() {
         title: GENERAL_LABELS.bookingConfirmedTitle,
         body: GENERAL_LABELS.bookingConfirmedBody.replace('{classTitle}', cls.title),
         read: false,
+        
       });
       
       setLoading(false);
