@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { ONBOARDING_LABELS } from '@/constants/labels';
@@ -47,7 +48,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-6 py-12">
+    <div className="mx-auto flex max-w-2xl flex-col px-6 py-12 md:py-16 mt-20">
       <div key={key} className="animate-bounce-in">
         <div className="flex justify-center">
           <img 

@@ -114,13 +114,15 @@ export const DISCIPLINES = [
   'Yoga',
   'CrossFit',
   'Tennis',
-  'Tenis',
   'Padel',
   'Swimming',
   'HIIT',
   'Pilates',
   'Boxing',
   'Running',
+  'Entrenamiento personal',
+  'Fuerza',
+  'Other',
 ] as const;
 
 export const ROLE_LABELS = {

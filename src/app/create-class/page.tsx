@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { FilterChip } from '@/components/ui/filter-chip';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { PageHeader } from '@/components/layout/page-header';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
@@ -62,29 +62,32 @@ export default function CreateClassPage() {
     router.back();
   };
 
+  const disciplineOptions = DISCIPLINES.map((d) => ({
+    value: d,
+    label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
+  }));
+
+  const modalityOptions = [
+    { value: 'in_person', label: MODALITY_LABELS.inPerson },
+    { value: 'online', label: MODALITY_LABELS.online },
+  ];
+
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
       <PageHeader title={INSTRUCTOR_LABELS.classForm.newClass} showBack />
       <Input label={INSTRUCTOR_LABELS.classForm.className} value={title} onChange={(e) => setTitle(e.target.value)} />
-      <p className="mb-2 text-sm font-medium">{INSTRUCTOR_LABELS.classForm.discipline}</p>
-      <div className="mb-4 flex flex-wrap">
-        {DISCIPLINES.map((d) => (
-          <FilterChip key={d} label={DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS]} active={discipline === d} onPress={() => setDiscipline(d)} />
-        ))}
-      </div>
-      <p className="mb-2 text-sm font-medium">{INSTRUCTOR_LABELS.classForm.modality}</p>
-      <div className="mb-4 flex flex-wrap">
-        <FilterChip
-          label={MODALITY_LABELS.inPerson}
-          active={modality === 'in_person'}
-          onPress={() => setModality('in_person')}
-        />
-        <FilterChip
-          label={MODALITY_LABELS.online}
-          active={modality === 'online'}
-          onPress={() => setModality('online')}
-        />
-      </div>
+      <Select
+        label={INSTRUCTOR_LABELS.classForm.discipline}
+        value={discipline}
+        onChange={setDiscipline}
+        options={disciplineOptions}
+      />
+      <Select
+        label={INSTRUCTOR_LABELS.classForm.modality}
+        value={modality}
+        onChange={(val) => setModality(val as Modality)}
+        options={modalityOptions}
+      />
       <Input label={INSTRUCTOR_LABELS.classForm.date} value={startDate} onChange={(e) => setStartDate(e.target.value)} />
       <Input label={INSTRUCTOR_LABELS.classForm.time} value={startTime} onChange={(e) => setStartTime(e.target.value)} />
       <Input label={INSTRUCTOR_LABELS.classForm.duration} value={duration} onChange={(e) => setDuration(e.target.value)} />

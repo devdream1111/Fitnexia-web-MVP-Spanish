@@ -269,8 +269,10 @@ export const DISCIPLINE_LABELS = {
   'Pilates': 'Pilates',
   'Boxing': 'Boxeo',
   'Running': 'Correr',
-  'Tenis': 'Tenis',
   'Padel': 'Padel',
+  'Entrenamiento personal': 'Entrenamiento personal',
+  'Fuerza': 'Fuerza',
+  'Other': 'Otro',
 } as const;
 
 export const SCHEDULE_FILTER_LABELS = {

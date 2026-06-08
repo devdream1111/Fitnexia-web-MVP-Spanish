@@ -6,9 +6,9 @@ import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload'
 import { ProfileMenuItem } from '@/components/profile/menu-item';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FilterChip } from '@/components/ui/filter-chip';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { useAuth } from '@/contexts/auth-context';
-import { BUTTON_LABELS, PROFILE_MENU_LABELS, SCREEN_TITLES, GENERAL_LABELS, AUTH_LABELS } from '@/constants/labels';
+import { BUTTON_LABELS, PROFILE_MENU_LABELS, SCREEN_TITLES, GENERAL_LABELS, AUTH_LABELS, DISCIPLINE_LABELS } from '@/constants/labels';
 import { DISCIPLINES } from '@/constants/fitnexia';
 import { useFeature } from '@/hooks/use-feature';
 
@@ -51,12 +51,6 @@ export default function AthleteProfilePage() {
   const handleCancelSports = () => {
     setFavoriteSports(user?.favoriteSports ?? []);
     setEditingSports(false);
-  };
-
-  const toggleSport = (sport: string) => {
-    setFavoriteSports(prev => 
-      prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]
-    );
   };
 
   const handleChangePassword = async () => {
@@ -122,17 +116,15 @@ export default function AthleteProfilePage() {
               {/* Favorite Sports */}
               {editingSports ? (
                 <div className="p-6 border-b border-[var(--fn-border)]">
-                  <p className="font-medium mb-4">{PROFILE_MENU_LABELS.favoriteSports}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {DISCIPLINES.map((s) => (
-                      <FilterChip
-                        key={s}
-                        label={s}
-                        active={favoriteSports.includes(s)}
-                        onPress={() => toggleSport(s)}
-                      />
-                    ))}
-                  </div>
+                  <MultiSelect
+                    label={PROFILE_MENU_LABELS.favoriteSports}
+                    value={favoriteSports}
+                    onChange={setFavoriteSports}
+                    options={DISCIPLINES.map((d) => ({
+                      value: d,
+                      label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
+                    }))}
+                  />
                   <div className="flex gap-3">
                     <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancelSports} />
                     <Button title={BUTTON_LABELS.save} onClick={handleSaveSports} />

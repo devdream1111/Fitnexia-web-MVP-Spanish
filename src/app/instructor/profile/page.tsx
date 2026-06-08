@@ -8,8 +8,10 @@ import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload'
 import { ProfileMenuItem } from '@/components/profile/menu-item';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { useAuth } from '@/contexts/auth-context';
-import { BUTTON_LABELS, PROFILE_MENU_LABELS, SCREEN_TITLES, GENERAL_LABELS } from '@/constants/labels';
+import { BUTTON_LABELS, PROFILE_MENU_LABELS, SCREEN_TITLES, GENERAL_LABELS, DISCIPLINE_LABELS } from '@/constants/labels';
+import { DISCIPLINES } from '@/constants/fitnexia';
 
 export default function InstructorProfilePage() {
   const { user, updateProfile, changePassword } = useAuth();
@@ -18,9 +20,11 @@ export default function InstructorProfilePage() {
   const [email, setEmail] = useState(user?.email || '');
   const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(user?.avatarUri || null);
   const [editingCertifications, setEditingCertifications] = useState(false);
+  const [editingFavoriteSports, setEditingFavoriteSports] = useState(false);
   const [certifications, setCertifications] = useState<Certification[]>(
     user?.instructorProfile?.certifications ?? []
   );
+  const [favoriteSports, setFavoriteSports] = useState<string[]>(user?.favoriteSports ?? []);
   const [newCertName, setNewCertName] = useState('');
   const [newCertIssuer, setNewCertIssuer] = useState('');
   const [newCertYear, setNewCertYear] = useState('');
@@ -46,6 +50,16 @@ export default function InstructorProfilePage() {
     setEmail(user?.email || '');
     setTempAvatarUri(user?.avatarUri || null);
     setIsEditing(false);
+  };
+
+  const handleSaveFavoriteSports = () => {
+    updateProfile({ favoriteSports });
+    setEditingFavoriteSports(false);
+  };
+
+  const handleCancelFavoriteSports = () => {
+    setFavoriteSports(user?.favoriteSports ?? []);
+    setEditingFavoriteSports(false);
   };
 
   const handleSaveCertifications = () => {
@@ -156,6 +170,41 @@ export default function InstructorProfilePage() {
           {!isEditing && (
             <div className="rounded-2xl border border-[var(--fn-border)] overflow-hidden">
               <ProfileMenuItem href="/instructor/profile/availability" label={PROFILE_MENU_LABELS.scheduleAvailability} />
+
+              {/* Favorite Sports */}
+              {editingFavoriteSports ? (
+                <div className="p-6 border-b border-[var(--fn-border)]">
+                  <MultiSelect
+                    label={PROFILE_MENU_LABELS.favoriteSports}
+                    value={favoriteSports}
+                    onChange={setFavoriteSports}
+                    options={DISCIPLINES.map((d) => ({
+                      value: d,
+                      label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
+                    }))}
+                  />
+                  <div className="flex gap-3">
+                    <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancelFavoriteSports} />
+                    <Button title={BUTTON_LABELS.save} onClick={handleSaveFavoriteSports} />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 border-b border-[var(--fn-border)] flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">{PROFILE_MENU_LABELS.favoriteSports}</p>
+                    <p className="text-sm text-[var(--fn-text-muted)]">
+                      {user?.favoriteSports.length ? user.favoriteSports.join(', ') : GENERAL_LABELS.none}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingFavoriteSports(true)}
+                    className="font-semibold text-[var(--fn-primary)] transition hover:opacity-80"
+                  >
+                    {BUTTON_LABELS.edit}
+                  </button>
+                </div>
+              )}
               
               {/* Certifications */}
               {editingCertifications ? (

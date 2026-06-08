@@ -23,7 +23,7 @@ export default function AthleteHomePage() {
 
       <Link
         href="/athlete/search"
-        className="flex items-center gap-3 rounded-2xl border-2 border-[var(--fn-border)] bg-[var(--fn-surface)] px-6 py-5 text-lg text-[var(--fn-text-muted)] shadow-sm transition-all hover:border-[var(--fn-primary)] hover:shadow-md animate-slide-up stagger-1"
+        className="flex items-center gap-3 rounded-2xl border-2 border-[var(--fn-border)] bg-[var(--fn-surface)] px-6 py-3 text-lg text-[var(--fn-text-muted)] shadow-sm transition-all hover:border-[var(--fn-primary)] hover:shadow-md animate-slide-up stagger-1"
       >
         <Search size={22} />
         {GENERAL_LABELS.searchClassesCoachesGyms}

@@ -118,7 +118,6 @@ export default function GymProfilePage() {
           {/* Menu Items */}
           {!isEditing && (
             <div className="rounded-2xl border border-[var(--fn-border)] overflow-hidden">
-              <ProfileMenuItem href="/gym/profile/instructors" label={PROFILE_MENU_LABELS.instructors} />
               <ProfileMenuItem href="/gym/profile/plan" label={PROFILE_MENU_LABELS.planCommission} />
               
               <div className="p-6 border-t border-[var(--fn-border)]">

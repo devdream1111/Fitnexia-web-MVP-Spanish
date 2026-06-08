@@ -40,13 +40,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen flex-col justify-center px-6 py-12">
+    <div className="mx-auto flex flex-col px-6 py-12 md:py-16">
       <div className="mx-auto w-full max-w-md">
         <div className="text-center animate-bounce-in">
-          <Link href="/" className="inline-block mb-1">
-            <Logo size="lg" className="mx-auto" />
-          </Link>
-          
+          <h1 className="text-3xl font-extrabold md:text-4xl">{BUTTON_LABELS.signIn}</h1>
+          <p className="mt-3 text-lg text-[var(--fn-text-muted)]">{AUTH_LABELS.welcomeBack}</p>
         </div>
 
         <div className="mt-10 space-y-4 animate-slide-up stagger-1">

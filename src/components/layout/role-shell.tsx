@@ -212,7 +212,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto flex-1 w-full max-w-7xl px-4 py-8 pb-24 md:pb-8">
+      <main className="mx-auto flex-1 w-full max-w-7xl px-4 py-5 pb-24 md:pb-5">
         {children}
       </main>
 

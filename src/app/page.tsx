@@ -12,7 +12,7 @@ export default function HomePage() {
   useEffect(() => {
     if (isLoading) return;
     if (!hasSeenOnboarding) {
-      router.replace('/auth/onboarding');
+      router.replace('/onboarding');
       return;
     }
     if (!user) {

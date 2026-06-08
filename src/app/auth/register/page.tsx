@@ -4,50 +4,46 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { Logo } from '@/components/layout/Logo';
-import { RoleCard } from '@/components/role-card';
-import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
-import { PhotoGallery } from '@/components/profile/PhotoGallery';
 import { Button } from '@/components/ui/button';
-import { FilterChip } from '@/components/ui/filter-chip';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { useAuth } from '@/contexts/auth-context';
-import { DISCIPLINES } from '@/constants/fitnexia';
-import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS } from '@/constants/labels';
+import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS, ROLE_TITLES } from '@/constants/labels';
+import { useFeature } from '@/hooks/use-feature';
 import type { UserRole } from '@/types/api';
+
+const GoogleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M47.5 24.5C47.5 22.9 47.3 21.3 47 19.8H24V29H38.3C37.8 31.6 36.4 33.9 34.2 35.6L42 41.6C45.3 38.6 47.5 32.1 47.5 24.5Z" fill="#4285F4"/>
+    <path d="M24 48C30.4 48 35.8 45.9 40 42.4L32.2 36.4C29.9 38.1 27.1 39.1 24 39.1C18.2 39.1 13.2 35.9 11.1 31.2L3.3 37.5C7.4 45.3 15.1 48 24 48Z" fill="#34A853"/>
+    <path d="M11.1 31.2C9.9 28.8 9.2 26.1 9.2 23.2C9.2 20.3 9.9 17.6 11.1 15.2L3.3 8.9C0.5 14.4 0 20.5 0 23.2C0 25.9 0.5 32 3.3 37.5L11.1 31.2Z" fill="#FBBC05"/>
+    <path d="M24 8.8C27.3 8.8 30.3 10 32.7 12.3L39.8 5.2C35.7 1.5 30.3 0 24 0C15.1 0 7.4 2.7 3.3 8.9L11.1 15.2C13.2 10.5 18.2 7.3 24 7.3C24 7.3 24 8.8 24 8.8Z" fill="#EA4335"/>
+  </svg>
+);
 
 export default function RegisterPage() {
   const router = useRouter();
+  const googleSignIn = useFeature('googleSignIn');
   const { register } = useAuth();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [role, setRole] = useState<Exclude<UserRole, 'admin'>>('athlete');
-  const selectRole = (newRole: Exclude<UserRole, 'admin'>) => {
-    setRole(newRole);
-    setStep(2);
-  };
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [favoriteSports, setFavoriteSports] = useState<string[]>([]);
-  const [disciplines, setDisciplines] = useState<string[]>([]);
+  const [role, setRole] = useState<Exclude<UserRole, 'admin'>>('athlete');
   const [institutionName, setInstitutionName] = useState('');
-  const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [gallery, setGallery] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const toggle = (list: string[], setList: (v: string[]) => void, item: string) => {
-    setList(list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
-  };
-
   const submit = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
-      alert(ALERT_LABELS.fillAllFields);
-      return;
-    }
-    if (role === 'institution' && !institutionName.trim()) {
-      alert(ALERT_LABELS.gymNameRequired);
-      return;
+    if (role === 'institution') {
+      if (!institutionName.trim() || !email.trim() || !password.trim()) {
+        alert(ALERT_LABELS.fillAllFields);
+        return;
+      }
+    } else {
+      if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+        alert(ALERT_LABELS.fillAllFields);
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -55,11 +51,11 @@ export default function RegisterPage() {
         email: email.trim(),
         password,
         role,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        avatarUri,
-        favoriteSports: role === 'athlete' ? favoriteSports : [],
-        disciplines: role === 'instructor' ? disciplines : [],
+        firstName: role === 'institution' ? institutionName.trim() : firstName.trim(),
+        lastName: role === 'institution' ? '' : lastName.trim(),
+        avatarUri: null,
+        favoriteSports: [],
+        disciplines: [],
         institutionName: role === 'institution' ? institutionName.trim() : undefined,
       });
       router.replace('/');
@@ -68,111 +64,75 @@ export default function RegisterPage() {
     }
   };
 
+  const roleOptions = [
+    { value: 'athlete', label: ROLE_TITLES.athlete },
+    { value: 'instructor', label: ROLE_TITLES.instructor },
+    { value: 'institution', label: ROLE_TITLES.institution },
+  ];
+
   return (
-    <div className="mx-auto flex min-h-screen flex-col justify-center px-6 py-12">
-      <div className="mx-auto w-full max-w-7xl">
-        <button
-          type="button"
-          onClick={() => (step === 1 ? router.back() : setStep(1))}
-          className="text-sm text-[var(--fn-text-muted)]"
-        >
-          ← {GENERAL_LABELS.back}
-        </button>
+    <div className="mx-auto flex flex-col px-6 py-12 md:py-16">
+      <div className="mx-auto w-full max-w-md">
+        <div className="text-center animate-bounce-in">
+          <h1 className="text-3xl font-extrabold md:text-4xl">{AUTH_LABELS.createAccount}</h1>
+          <p className="mt-3 text-lg text-[var(--fn-text-muted)]">{AUTH_LABELS.completeProfile}</p>
+        </div>
 
-        {step === 1 ? (
-          <div key="step1" className="mt-8 text-center animate-bounce-in">
-            <div className="mb-4">
-              <Logo size="lg" className="mx-auto" />
+        <div className="mt-10 space-y-4 animate-slide-up stagger-1">
+          {role === 'institution' ? (
+            <Input
+              label={AUTH_LABELS.gymSchoolName}
+              value={institutionName}
+              onChange={(e) => setInstitutionName(e.target.value)}
+              placeholder={AUTH_LABELS.gymSchoolPlaceholder}
+            />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input label={AUTH_LABELS.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              <Input label={AUTH_LABELS.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
-            <h1 className="text-3xl font-extrabold md:text-4xl animate-slide-up stagger-1">{AUTH_LABELS.chooseProfile}</h1>
-            <p className="mt-3 text-lg text-[var(--fn-text-muted)] animate-slide-up stagger-2">{AUTH_LABELS.howWillYouUse}</p>
+          )}
+          <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            label={AUTH_LABELS.password}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Select
+            label={AUTH_LABELS.chooseProfile}
+            value={role}
+            onChange={(val) => setRole(val as Exclude<UserRole, 'admin'>)}
+            options={roleOptions}
+          />
+          <Button
+            title={BUTTON_LABELS.createAccount}
+            loading={loading}
+            className="w-full hover:animate-pulse-glow"
+            onClick={submit}
+          />
+        </div>
 
-            {/* Horizontal role selection */}
-            <div className="mt-10 grid gap-4 md:grid-cols-3 animate-slide-up stagger-3">
-              <RoleCard role="athlete" selected={role === 'athlete'} onPress={() => selectRole('athlete')} />
-              <RoleCard role="instructor" selected={role === 'instructor'} onPress={() => selectRole('instructor')} />
-              <RoleCard role="institution" selected={role === 'institution'} onPress={() => selectRole('institution')} />
-            </div>
-          </div>
-        ) : (
-          <div key="step2" className="mt-8 animate-bounce-in">
-            <div className="text-center">
-              <h1 className="text-3xl font-extrabold md:text-4xl animate-slide-up stagger-1">{AUTH_LABELS.createAccount}</h1>
-              <p className="mt-3 text-lg text-[var(--fn-text-muted)] animate-slide-up stagger-2">{AUTH_LABELS.completeProfile}</p>
-            </div>
-
-            <div className="mt-10 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6 md:p-8 animate-slide-up stagger-3">
-              <div className="mb-6 flex justify-center">
-                <ProfilePictureUpload
-                  currentAvatar={avatarUri}
-                  onUpload={setAvatarUri}
-                  role={role}
-                  size="lg"
-                />
+        {googleSignIn ? (
+          <div className="mt-6 animate-slide-up stagger-2">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                {/* <div className="w-full border-t border-[var(--fn-border)]" /> */}
               </div>
-              {role === 'institution' ? (
-                <>
-                  <Input
-                    label={AUTH_LABELS.gymSchoolName}
-                    value={institutionName}
-                    onChange={(e) => setInstitutionName(e.target.value)}
-                    placeholder={AUTH_LABELS.gymSchoolPlaceholder}
-                  />
-                  <div className="mt-6">
-                    <p className="mb-3 text-base font-medium">{GENERAL_LABELS.photoGallery}</p>
-                    <PhotoGallery
-                      images={gallery}
-                      onAddImage={(uri) => setGallery([...gallery, uri])}
-                      onRemoveImage={(idx) => setGallery(gallery.filter((_, i) => i !== idx))}
-                    />
-                  </div>
-                </>
-              ) : null}
-              <div className="grid gap-4 md:grid-cols-2">
-                <Input label={AUTH_LABELS.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                <Input label={AUTH_LABELS.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 text-[var(--fn-text-muted)]">{GENERAL_LABELS.orContinueWith}</span>
               </div>
-              <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
-              <Input
-                label={AUTH_LABELS.password}
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              {/* {role === 'athlete' ? (
-                <div className="mb-6">
-                  <p className="mb-3 text-base font-medium">{GENERAL_LABELS.favoriteSports}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {DISCIPLINES.map((s) => (
-                      <FilterChip
-                        key={s}
-                        label={s}
-                        active={favoriteSports.includes(s)}
-                        onPress={() => toggle(favoriteSports, setFavoriteSports, s)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : null} */}
-              {/* {role === 'instructor' ? (
-                <div className="mb-6">
-                  <p className="mb-3 text-base font-medium">{GENERAL_LABELS.disciplines}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {DISCIPLINES.map((s) => (
-                      <FilterChip
-                        key={s}
-                        label={s}
-                        active={disciplines.includes(s)}
-                        onPress={() => toggle(disciplines, setDisciplines, s)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : null} */}
-              <Button title={BUTTON_LABELS.createAccount} loading={loading} onClick={submit} className="hover:animate-pulse-glow" />
             </div>
+            <Button
+              variant="outline"
+              className="mt-6 w-full"
+              onClick={() => alert('Registro con Google — conecta cuando el backend esté listo.')}
+            >
+              <GoogleIcon />
+              {GENERAL_LABELS.google}
+            </Button>
           </div>
-        )}
+        ) : null}
 
         <p className="mt-10 text-center text-base animate-slide-up stagger-4">
           {GENERAL_LABELS.alreadyHaveAccount}{' '}
