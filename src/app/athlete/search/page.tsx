@@ -212,7 +212,7 @@ export default function SearchPage() {
       </div>
 
       {/* Custom Dropdown Filters */}
-      <div className="grid gap-4 md:grid-cols-4 z-index-5">
+      <div className="grid gap-4 md:grid-cols-4 relative z-10">
         <CustomDropdown
           value={discipline || ''}
           onChange={(val) => setDiscipline(val || null)}

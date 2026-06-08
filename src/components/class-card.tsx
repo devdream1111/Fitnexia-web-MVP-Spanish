@@ -23,8 +23,8 @@ export function ClassCard({ item, compact, showEdit, editHref }: {
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-lg font-bold text-[var(--fn-text)]">{item.title}</h3>
-          <div className="flex items-center gap-2">
+          <h3 className="text-lg font-bold text-[var(--fn-text)] truncate">{item.title}</h3>
+          <div className="flex items-center gap-2 shrink-0">
             {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
             {showEdit && editHref ? (
               <Link href={editHref} onClick={(e) => e.stopPropagation()}>
@@ -35,16 +35,16 @@ export function ClassCard({ item, compact, showEdit, editHref }: {
             ) : null}
           </div>
         </div>
-        <p className="text-sm text-[var(--fn-text-muted)]">
+        <p className="text-sm text-[var(--fn-text-muted)] truncate">
           {item.discipline} · {formatClassDate(item.startAt)}
         </p>
-        <p className="text-sm text-[var(--fn-text-secondary)]">{item.instructor.displayName}</p>
-        <div className="flex items-center justify-between pt-2">
-          <span className="flex items-center gap-2 text-sm text-[var(--fn-text-muted)]">
-            {item.modality === 'online' ? <Video size={16} /> : <MapPin size={16} />}
-            {modalityLocationLabel(item.modality, item.location?.label)}
+        <p className="text-sm text-[var(--fn-text-secondary)] truncate">{item.instructor.displayName}</p>
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <span className="flex items-center gap-2 text-sm text-[var(--fn-text-muted)] min-w-0 flex-1">
+            {item.modality === 'online' ? <Video size={16} className="shrink-0" /> : <MapPin size={16} className="shrink-0" />}
+            <span className="truncate">{modalityLocationLabel(item.modality, item.location?.label)}</span>
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             {item.spotsLeft != null && !full ? (
               <span className="text-sm font-semibold text-[var(--fn-primary)]">
                 {CLASS_CARD_LABELS.spotsLeft(item.spotsLeft)}

@@ -201,8 +201,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       role,
       firstName: 'Demo',
-      lastName: 'User',
-      favoriteSports: role === 'athlete' ? ['Yoga', 'Tennis'] : [],
+      lastName: 'Usuario',
+      favoriteSports: role === 'athlete' ? ['Yoga', 'Tenis'] : [],
     };
 
     if (role === 'instructor') {
@@ -212,15 +212,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: 'inst-1',
           instructorId: 'inst-1',
           instructorProfile: {
-            ...defaultInstructorProfile('Demo', 'User', ['Tennis', 'Padel']),
-            bio: 'PTR certified tennis coach with 10+ years experience.',
+            ...defaultInstructorProfile('Demo', 'Usuario', ['Tenis', 'Padel']),
+            bio: 'Entrenador de tenis certificado por PTR con más de 10 años de experiencia.',
             availableNow: true,
             weeklySchedule: defaultWeeklySchedule(),
             hourlyRate: '50',
             verified: true,
             certifications: [
-              { name: 'PTR Certified', issuer: 'PTR', year: 2018 },
-              { name: 'Sports Psychology', issuer: 'ITF', year: 2020 },
+              { name: 'Certificado PTR', issuer: 'PTR', year: 2018 },
+              { name: 'Psicología del Deporte', issuer: 'ITF', year: 2020 },
             ],
           },
         }),
@@ -235,9 +235,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: 'gym-1',
           institutionId: 'gym-1',
           institutionProfile: {
-            ...defaultInstitutionProfile('FitHub Downtown'),
-            description: 'Premium fitness studio in the city center.',
-            address: '123 Main St',
+            ...defaultInstitutionProfile('FitHub Centro'),
+            description: 'Estudio de fitness premium en el centro de la ciudad.',
+            address: 'Calle Principal 123',
             city: 'Buenos Aires',
             country: 'AR',
             verified: true,

@@ -16,7 +16,7 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
     id: 'inst-1',
     userId: 'u-1',
     displayName: 'Carlos Ruiz',
-    bio: 'PTR certified tennis coach with 10+ years experience.',
+    bio: 'Entrenador de tenis certificado por PTR con más de 10 años de experiencia.',
     disciplines: ['Tennis', 'Padel'],
     verified: true,
     availableNow: true,
@@ -25,15 +25,15 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
     plan: 'pro',
     hourlyRate: { amount: 5000, currency: 'USD' },
     certifications: [
-      { name: 'PTR Certified', issuer: 'PTR', year: 2018 },
-      { name: 'Sports Psychology', issuer: 'ITF', year: 2020 },
+      { name: 'Certificado PTR', issuer: 'PTR', year: 2018 },
+      { name: 'Psicología del Deporte', issuer: 'ITF', year: 2020 },
     ],
   },
   {
     id: 'inst-2',
     userId: 'u-2',
     displayName: 'Mia Chen',
-    bio: 'Yoga & mindfulness instructor. RYT-500.',
+    bio: 'Instructora de yoga y mindfulness. RYT-500.',
     disciplines: ['Yoga', 'Pilates'],
     verified: true,
     availableNow: false,
@@ -47,7 +47,7 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
     id: 'inst-3',
     userId: 'u-3',
     displayName: 'James Okonkwo',
-    bio: 'HIIT & strength specialist.',
+    bio: 'Especialista en HIIT y fuerza.',
     disciplines: ['HIIT', 'CrossFit'],
     verified: false,
     availableNow: false,
@@ -60,12 +60,12 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
 export const MOCK_INSTITUTIONS: Institution[] = [
   {
     id: 'gym-1',
-    name: 'FitHub Downtown',
-    description: 'Premium fitness studio in the city center.',
+    name: 'FitHub Centro',
+    description: 'Estudio de fitness premium en el centro de la ciudad.',
     verified: true,
     plan: 'institutional',
     location: {
-      address: '123 Main St',
+      address: 'Calle Principal 123',
       city: 'Buenos Aires',
       country: 'AR',
       lat: -34.6037,
@@ -82,7 +82,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
 export const MOCK_CLASSES: ClassListItem[] = [
   {
     id: 'class-1',
-    title: 'Morning Flow Yoga',
+    title: 'Yoga Flow Matutino',
     discipline: 'Yoga',
     modality: 'in_person',
     startAt: '2026-06-10T08:00:00Z',
@@ -94,12 +94,12 @@ export const MOCK_CLASSES: ClassListItem[] = [
       id: 'inst-2',
       displayName: 'Mia Chen',
     },
-    location: { lat: -34.6, lng: -58.38, label: 'FitHub Studio A' },
+    location: { lat: -34.6, lng: -58.38, label: 'FitHub Estudio A' },
     averageRating: 4.8,
   },
   {
     id: 'class-2',
-    title: 'Tennis Fundamentals',
+    title: 'Fundamentos de Tenis',
     discipline: 'Tennis',
     modality: 'in_person',
     startAt: '2026-06-11T10:00:00Z',
@@ -111,12 +111,12 @@ export const MOCK_CLASSES: ClassListItem[] = [
       id: 'inst-1',
       displayName: 'Carlos Ruiz',
     },
-    location: { lat: -34.61, lng: -58.39, label: 'Central Courts' },
+    location: { lat: -34.61, lng: -58.39, label: 'Canchas Centrales' },
     averageRating: 4.9,
   },
   {
     id: 'class-3',
-    title: 'HIIT Burn (Online)',
+    title: 'HIIT Quemador (Online)',
     discipline: 'HIIT',
     modality: 'online',
     startAt: '2026-06-12T18:00:00Z',
@@ -132,7 +132,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
   },
   {
     id: 'class-4',
-    title: 'Group CrossFit',
+    title: 'CrossFit Grupal',
     discipline: 'CrossFit',
     modality: 'in_person',
     startAt: '2026-06-13T07:00:00Z',
@@ -144,13 +144,13 @@ export const MOCK_CLASSES: ClassListItem[] = [
       id: 'inst-3',
       displayName: 'James Okonkwo',
     },
-    institution: { id: 'gym-1', name: 'FitHub Downtown' },
-    location: { lat: -34.6037, lng: -58.3816, label: 'FitHub Downtown' },
+    institution: { id: 'gym-1', name: 'FitHub Centro' },
+    location: { lat: -34.6037, lng: -58.3816, label: 'FitHub Centro' },
     averageRating: 4.7,
   },
   {
     id: 'class-5',
-    title: 'Evening Pilates',
+    title: 'Pilates Vespertino',
     discipline: 'Pilates',
     modality: 'in_person',
     startAt: '2026-06-14T19:00:00Z',
@@ -162,7 +162,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
       id: 'inst-2',
       displayName: 'Mia Chen',
     },
-    location: { lat: -34.59, lng: -58.37, label: 'Wellness Loft' },
+    location: { lat: -34.59, lng: -58.37, label: 'Loft de Bienestar' },
     averageRating: 4.8,
   },
 ];
@@ -192,9 +192,9 @@ export const MOCK_REVIEWS: Review[] = [
     classId: 'class-2',
     instructorId: 'inst-1',
     userId: 'u-4',
-    authorName: 'Sarah Johnson',
+    authorName: 'Sofía Martínez',
     rating: 5,
-    comment: 'Amazing tennis lesson! Carlos is very patient and knowledgeable.',
+    comment: '¡Increíble clase de tenis! Carlos es muy paciente y conocedor.',
     createdAt: '2026-05-15T14:30:00Z',
     verified: true,
   },
@@ -203,9 +203,9 @@ export const MOCK_REVIEWS: Review[] = [
     classId: 'class-1',
     instructorId: 'inst-2',
     userId: 'u-5',
-    authorName: 'Michael Brown',
+    authorName: 'Miguel López',
     rating: 4,
-    comment: 'Great yoga flow, perfect way to start the morning.',
+    comment: 'Excelente flujo de yoga, la manera perfecta de empezar la mañana.',
     createdAt: '2026-05-20T09:15:00Z',
     verified: true,
   },
@@ -245,26 +245,28 @@ export const MOCK_GYM_WEEKLY_METRICS: GymWeeklyMetrics = {
   revenueChangePct: 0.08,
   attendanceChangePct: 0.05,
   daily: [
-    { label: 'Mon', bookings: 6, revenueCents: 36000, attendancePct: 0.65 },
-    { label: 'Tue', bookings: 8, revenueCents: 48000, attendancePct: 0.82 },
-    { label: 'Wed', bookings: 5, revenueCents: 30000, attendancePct: 0.45 },
-    { label: 'Thu', bookings: 9, revenueCents: 54000, attendancePct: 0.9 },
-    { label: 'Fri', bookings: 8, revenueCents: 48000, attendancePct: 0.78 },
-    { label: 'Sat', bookings: 7, revenueCents: 42000, attendancePct: 0.95 },
-    { label: 'Sun', bookings: 4, revenueCents: 26000, attendancePct: 0.55 },
+    { label: 'Lun', bookings: 6, revenueCents: 36000, attendancePct: 0.65 },
+    { label: 'Mar', bookings: 8, revenueCents: 48000, attendancePct: 0.82 },
+    { label: 'Mié', bookings: 5, revenueCents: 30000, attendancePct: 0.45 },
+    { label: 'Jue', bookings: 9, revenueCents: 54000, attendancePct: 0.9 },
+    { label: 'Vie', bookings: 8, revenueCents: 48000, attendancePct: 0.78 },
+    { label: 'Sáb', bookings: 7, revenueCents: 42000, attendancePct: 0.95 },
+    { label: 'Dom', bookings: 4, revenueCents: 26000, attendancePct: 0.55 },
   ],
 };
 
 export function formatMoney(m: { amount: number; currency: string }): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: m.currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(m.amount / 100);
 }
 
 export function formatClassDate(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString('en-US', {
+  return d.toLocaleDateString('es-AR', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -375,7 +377,7 @@ export const MOCK_PAYMENTS: Payment[] = [
     userId: 'me',
     amount: { amount: 2500, currency: 'USD' },
     status: 'paid',
-    paymentMethod: 'Credit Card (Visa)',
+    paymentMethod: 'Tarjeta de Crédito (Visa)',
     createdAt: '2026-05-28T10:00:00Z',
     updatedAt: '2026-05-28T10:05:00Z',
   },
@@ -397,16 +399,16 @@ export const MOCK_NOTIFICATIONS_BY_USER: Record<string, Notification[]> = {
     {
       id: 'notif-1',
       type: 'booking_confirmed',
-      title: 'Booking Confirmed!',
-      body: 'Your class booking for Morning Flow Yoga has been confirmed.',
+      title: '¡Reserva Confirmada!',
+      body: 'Tu reserva para la clase de Yoga Flow Matutino ha sido confirmada.',
       read: false,
       createdAt: '2026-05-28T10:05:00Z',
     },
     {
       id: 'notif-2',
       type: 'class_reminder',
-      title: 'Class Tomorrow!',
-      body: 'Reminder: You have a Tennis Fundamentals class tomorrow at 10:00 AM.',
+      title: '¡Clase Mañana!',
+      body: 'Recordatorio: Tienes una clase de Fundamentos de Tenis mañana a las 10:00 AM.',
       read: true,
       createdAt: '2026-06-03T09:00:00Z',
     },
@@ -415,16 +417,16 @@ export const MOCK_NOTIFICATIONS_BY_USER: Record<string, Notification[]> = {
     {
       id: 'inst-notif-1',
       type: 'new_booking',
-      title: 'New Booking!',
-      body: 'Someone just booked your Morning Flow Yoga class!',
+      title: '¡Nueva Reserva!',
+      body: 'Alguien acaba de reservar tu clase de Yoga Flow Matutino!',
       read: false,
       createdAt: '2026-05-28T10:00:00Z',
     },
     {
       id: 'inst-notif-2',
       type: 'review',
-      title: 'New Review!',
-      body: 'You received a 5-star review for your Tennis Fundamentals class.',
+      title: '¡Nueva Reseña!',
+      body: 'Recibiste una reseña de 5 estrellas para tu clase de Fundamentos de Tenis.',
       read: true,
       createdAt: '2026-06-02T14:30:00Z',
     },
@@ -433,16 +435,16 @@ export const MOCK_NOTIFICATIONS_BY_USER: Record<string, Notification[]> = {
     {
       id: 'gym-notif-1',
       type: 'new_instructor',
-      title: 'New Instructor Joined!',
-      body: 'A new instructor has joined your gym and is ready to teach classes.',
+      title: '¡Nuevo Instructor!',
+      body: 'Un nuevo instructor se ha unido a tu gimnasio y está listo para dar clases.',
       read: false,
       createdAt: '2026-05-25T09:00:00Z',
     },
     {
       id: 'gym-notif-2',
       type: 'booking_update',
-      title: 'Booking Peak Today!',
-      body: 'Today is your busiest day this week with 15 bookings.',
+      title: '¡Pico de Reservas Hoy!',
+      body: 'Hoy es tu día más ocupado de la semana con 15 reservas.',
       read: true,
       createdAt: '2026-06-04T08:00:00Z',
     },
@@ -453,24 +455,24 @@ export const MOCK_NOTIFICATIONS_BY_USER: Record<string, Notification[]> = {
 export function geocodeAddress(address: string): GeocodeResult {
   // Mock geocoding - in real life, use Google Maps or Mapbox API
   const mockLocations: Record<string, GeocodeResult> = {
-    '123 Main St': {
+    'Calle Principal 123': {
       lat: -34.6037,
       lng: -58.3816,
-      address: '123 Main St',
+      address: 'Calle Principal 123',
       city: 'Buenos Aires',
       country: 'AR',
     },
-    'Central Courts': {
+    'Canchas Centrales': {
       lat: -34.61,
       lng: -58.39,
-      address: 'Central Courts',
+      address: 'Canchas Centrales',
       city: 'Buenos Aires',
       country: 'AR',
     },
-    'Wellness Loft': {
+    'Loft de Bienestar': {
       lat: -34.59,
       lng: -58.37,
-      address: 'Wellness Loft',
+      address: 'Loft de Bienestar',
       city: 'Buenos Aires',
       country: 'AR',
     },
@@ -492,7 +494,7 @@ export function getCurrentLocation(): Promise<GeocodeResult> {
       resolve({
         lat: -34.6037,
         lng: -58.3816,
-        address: 'Your Location',
+        address: 'Tu Ubicación',
         city: 'Buenos Aires',
         country: 'AR',
       });

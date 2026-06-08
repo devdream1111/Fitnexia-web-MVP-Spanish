@@ -16,8 +16,8 @@ export function ClassMap({ classes, center = [-34.6037, -58.3816], zoom = 13 }: 
   const inPersonClasses = classes.filter(c => c.modality === 'in_person' && c.location?.lat != null && c.location?.lng != null);
   
   return (
-    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-[var(--fn-border)] shadow-sm">
-      <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%', zIndex: '-1' }}>
+    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-[var(--fn-border)] shadow-sm relative z-0">
+      <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -32,10 +32,10 @@ export function ClassMap({ classes, center = [-34.6037, -58.3816], zoom = 13 }: 
                   ${(c.price.amount / 100).toFixed(2)}
                 </p>
                 <Link
-                  href={`/athlete/class/${c.id}`}
+                  href={`/class/${c.id}`}
                   className="inline-block rounded-lg bg-[var(--fn-primary)] px-3 py-1.5 text-sm font-semibold text-white transition hover:opacity-90"
                 >
-                  View class
+                  Ver clase
                 </Link>
               </div>
             </Popup>

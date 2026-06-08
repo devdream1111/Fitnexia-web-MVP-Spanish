@@ -114,6 +114,8 @@ export const DISCIPLINES = [
   'Yoga',
   'CrossFit',
   'Tennis',
+  'Tenis',
+  'Padel',
   'Swimming',
   'HIIT',
   'Pilates',
@@ -122,16 +124,16 @@ export const DISCIPLINES = [
 ] as const;
 
 export const ROLE_LABELS = {
-  athlete: 'Athlete',
+  athlete: 'Atleta',
   instructor: 'Instructor',
-  institution: 'Gym / School',
+  institution: 'Gimnasio / Escuela',
 } as const;
 
 export const MOCK_LOCATION_AREAS = [
-  'Downtown',
+  'Centro',
   'FitHub',
-  'Wellness Loft',
-  'Central Courts',
+  'Loft de Bienestar',
+  'Canchas Centrales',
   'Online',
 ] as const;
 
