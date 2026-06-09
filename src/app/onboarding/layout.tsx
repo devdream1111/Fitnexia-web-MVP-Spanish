@@ -12,7 +12,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   return (
     <div className="flex flex-col min-h-screen">
       <header className="sticky top-0 z-50 border-b border-[var(--fn-border)] bg-[var(--fn-surface)]">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
+        <div className="fn-layout-shell flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center">
             <Logo size="md" />
           </Link>

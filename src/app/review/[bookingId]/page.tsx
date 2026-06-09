@@ -46,7 +46,7 @@ export default function ReviewPage() {
 
   if (!booking || !cls) {
     return (
-      <div className="mx-auto max-w-lg px-6 py-12">
+      <div className="fn-layout-narrow px-6 py-12">
         <PageHeader title={GENERAL_LABELS.review} showBack />
         <p>{GENERAL_LABELS.bookingNotFound}</p>
       </div>
@@ -54,7 +54,7 @@ export default function ReviewPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-6 py-12">
+    <div className="fn-layout-narrow px-6 py-12">
       <PageHeader title={GENERAL_LABELS.leaveAReview} showBack />
       <p className="font-bold">{cls.title}</p>
       <p className="mb-6 text-sm text-[var(--fn-text-muted)]">{cls.instructor.displayName}</p>

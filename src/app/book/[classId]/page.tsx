@@ -46,7 +46,7 @@ function BookContent() {
 
   if (!cls) {
     return (
-      <div className="mx-auto max-w-lg px-6 py-12">
+      <div className="fn-layout-narrow px-6 py-12">
         <PageHeader title={GENERAL_LABELS.book} showBack />
         <p>{SCREEN_TITLES.classNotFound}</p>
       </div>
@@ -113,7 +113,7 @@ function BookContent() {
   };
 
   return (
-    <div className="mx-auto max-w-lg px-6 py-12">
+    <div className="fn-layout-narrow px-6 py-12">
       <PageHeader
         title={isWaitlist ? BUTTON_LABELS.joinWaitlistShort : BUTTON_LABELS.confirmBooking}
         showBack

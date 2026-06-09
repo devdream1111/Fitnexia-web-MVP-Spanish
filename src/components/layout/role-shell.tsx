@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { 
-  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell
+  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, Star, Building, CreditCard
 } from 'lucide-react';
 
 import { Logo } from './Logo';
@@ -35,21 +35,34 @@ const GYM_NAV: NavItem[] = [
   { href: '/gym/classes', label: TAB_LABELS.gym.classes, icon: <BookOpen size={18} /> },
 ];
 
+const ADMIN_NAV: NavItem[] = [
+  { href: '/admin/dashboard', label: TAB_LABELS.admin.dashboard, icon: <BarChart3 size={18} /> },
+  { href: '/admin/users', label: TAB_LABELS.admin.users, icon: <Users size={18} /> },
+  { href: '/admin/classes', label: TAB_LABELS.admin.classes, icon: <BookOpen size={18} /> },
+  { href: '/admin/bookings', label: TAB_LABELS.admin.bookings, icon: <Calendar size={18} /> },
+  { href: '/admin/reviews', label: TAB_LABELS.admin.reviews, icon: <Star size={18} /> },
+  { href: '/admin/institutions', label: TAB_LABELS.admin.institutions, icon: <Building size={18} /> },
+  { href: '/admin/payments', label: TAB_LABELS.admin.payments, icon: <CreditCard size={18} /> },
+];
+
 function navForRole(role: UserRole): NavItem[] {
   if (role === 'instructor') return INSTRUCTOR_NAV;
   if (role === 'institution') return GYM_NAV;
+  if (role === 'admin') return ADMIN_NAV;
   return ATHLETE_NAV;
 }
 
 function getProfileLink(role: UserRole): string {
   if (role === 'instructor') return '/instructor/profile';
   if (role === 'institution') return '/gym/profile';
+  if (role === 'admin') return '/admin/profile'; // We'll create a placeholder
   return '/athlete/profile';
 }
 
 function getNotificationsLink(role: UserRole): string {
   if (role === 'instructor') return '/instructor/notifications';
   if (role === 'institution') return '/gym/notifications';
+  if (role === 'admin') return '/admin/notifications'; // Placeholder
   return '/athlete/notifications';
 }
 
@@ -94,8 +107,9 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     setDropdownOpen(false);
+    const isAdmin = user.role === 'admin';
     logout();
-    router.replace('/auth/login');
+    router.replace(isAdmin ? '/admin' : '/auth/login');
   };
 
   const nav = navForRole(user.role);
@@ -105,7 +119,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col">
       {/* Header (desktop & mobile) */}
       <header className="sticky top-0 z-50 border-b border-[var(--fn-border)] bg-[var(--fn-surface)]">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
+        <div className="fn-layout-shell flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center">
             <Logo size="md" className="ml-[-31px]" />
           </Link>
@@ -216,7 +230,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto flex-1 w-full max-w-7xl px-4 py-5 pb-24 md:pb-5">
+      <main className="fn-layout-shell flex-1 py-5 pb-24 md:pb-5">
         {children}
       </main>
 

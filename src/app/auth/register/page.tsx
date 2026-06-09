@@ -72,13 +72,26 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto flex flex-col px-6 py-12 md:py-16">
-      <div className="mx-auto w-full max-w-md">
+      <div className="fn-layout-form">
         <div className="text-center animate-bounce-in">
           <h1 className="text-3xl font-extrabold md:text-4xl">{AUTH_LABELS.createAccount}</h1>
           <p className="mt-3 text-lg text-[var(--fn-text-muted)]">{AUTH_LABELS.completeProfile}</p>
         </div>
 
-        <div className="mt-10 space-y-4 animate-slide-up stagger-1">
+        {googleSignIn ? (
+          <div className="mt-8 animate-slide-up stagger-1 mb-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => alert('Registro con Google — conecta cuando el backend esté listo.')}
+            >
+              <GoogleIcon />
+              {GENERAL_LABELS.continueWith}{' '}{GENERAL_LABELS.google}
+            </Button>
+          </div>
+        ) : null}
+
+        <div className={`space-y-4 animate-slide-up stagger-2 ${googleSignIn ? '' : 'mt-10'}`}>
           {role === 'institution' ? (
             <Input
               label={AUTH_LABELS.gymSchoolName}
@@ -112,27 +125,6 @@ export default function RegisterPage() {
             onClick={submit}
           />
         </div>
-
-        {googleSignIn ? (
-          <div className="mt-6 animate-slide-up stagger-2">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                {/* <div className="w-full border-t border-[var(--fn-border)]" /> */}
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 text-[var(--fn-text-muted)]">{GENERAL_LABELS.orContinueWith}</span>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              className="mt-6 w-full"
-              onClick={() => alert('Registro con Google — conecta cuando el backend esté listo.')}
-            >
-              <GoogleIcon />
-              {GENERAL_LABELS.google}
-            </Button>
-          </div>
-        ) : null}
 
         <p className="mt-10 text-center text-base animate-slide-up stagger-4">
           {GENERAL_LABELS.alreadyHaveAccount}{' '}

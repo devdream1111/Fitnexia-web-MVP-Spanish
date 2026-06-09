@@ -48,13 +48,13 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col px-6 py-12 md:py-16 mt-20">
+    <div className="fn-layout-content mx-auto flex flex-col px-6 py-12 md:py-16 mt-20">
       <div key={key} className="animate-bounce-in">
         <div className="flex justify-center">
           <img 
             src={slide.image} 
             alt={slide.title} 
-            className="h-64 w-full max-w-md rounded-2xl object-cover animate-float"
+            className="h-64 w-full max-w-lg rounded-2xl object-cover animate-float"
             loading="lazy"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -75,7 +75,7 @@ export default function OnboardingPage() {
         <div className="mt-12 flex flex-col items-center gap-4 animate-slide-up stagger-4">
           <Button 
             title={index < SLIDES.length - 1 ? ONBOARDING_LABELS.next : ONBOARDING_LABELS.getStarted} 
-            className="w-full max-w-md hover:animate-pulse-glow" 
+            className="w-full max-w-lg hover:animate-pulse-glow" 
             onClick={next} 
           />
           {index < SLIDES.length - 1 ? (

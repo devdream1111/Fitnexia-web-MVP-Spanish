@@ -32,7 +32,7 @@ export default function ClassDetailPage() {
 
   if (!cls) {
     return (
-      <div className="mx-auto max-w-2xl px-6 py-12">
+      <div className="fn-layout-content px-6 py-12">
         <PageHeader title={SCREEN_TITLES.class} showBack />
         <p>{SCREEN_TITLES.classNotFound}</p>
       </div>
@@ -42,7 +42,7 @@ export default function ClassDetailPage() {
   const full = cls.spotsLeft === 0;
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
+    <div className="fn-layout-content px-6 py-12">
       <PageHeader title={SCREEN_TITLES.classDetails} showBack />
       <h2 className="text-3xl font-extrabold">{cls.title}</h2>
       <div className="mt-2 flex gap-2">

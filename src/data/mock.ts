@@ -1,9 +1,12 @@
 import type {
+  AdminUser,
   Booking,
   ClassListItem,
   CreditBalance,
   Instructor,
   Institution,
+  PendingVerification,
+  ReportedReview,
   Review,
   Payment,
   Notification,
@@ -11,13 +14,22 @@ import type {
   Money,
 } from '@/types/api';
 
+// Mock Users
+export const MOCK_USERS: AdminUser[] = [
+  { id: '1', email: 'maria@example.com', role: 'athlete', firstName: 'Maria', lastName: 'Garcia', verified: true },
+  { id: '2', email: 'carlos@example.com', role: 'instructor', firstName: 'Carlos', lastName: 'Ruiz', verified: true, instructorId: 'inst-1' },
+  { id: '3', email: 'gym@example.com', role: 'institution', firstName: 'FitHub', lastName: 'Centro', verified: false, institutionId: 'gym-2' },
+  { id: '4', email: 'lucia@example.com', role: 'instructor', firstName: 'Lucia', lastName: 'Gomez', verified: false, instructorId: 'inst-4' },
+  { id: '5', email: 'miguel@example.com', role: 'athlete', firstName: 'Miguel', lastName: 'Lopez', verified: true },
+];
+
 export const MOCK_INSTRUCTORS: Instructor[] = [
   {
     id: 'inst-1',
     userId: 'u-1',
     displayName: 'Carlos Ruiz',
     bio: 'Entrenador de tenis certificado por PTR con más de 10 años de experiencia.',
-    disciplines: ['Tennis', 'Padel'],
+    disciplines: ['Tenis', 'Padel'],
     verified: true,
     availableNow: true,
     averageRating: 4.9,
@@ -55,6 +67,25 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
     reviewCount: 42,
     plan: 'basic',
   },
+  {
+    id: 'inst-4',
+    userId: 'u-4',
+    displayName: 'Lucia Gomez',
+    bio: 'Entrenadora de fitness funcional y pilates.',
+    disciplines: ['Fitness Funcional', 'Pilates'],
+    verified: false,
+    availableNow: true,
+    averageRating: 4.3,
+    reviewCount: 18,
+    plan: 'basic',
+  },
+];
+
+// Mock pending verifications
+export const MOCK_PENDING_VERIFICATIONS: PendingVerification[] = [
+  { type: 'instructor', id: 'inst-3', name: 'James Okonkwo', submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), reason: 'Nuevo instructor' },
+  { type: 'instructor', id: 'inst-4', name: 'Lucia Gomez', submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), reason: 'Solicitud de verificación' },
+  { type: 'institution', id: 'gym-2', name: 'Studio Wellness', submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), reason: 'Nueva institución' },
 ];
 
 export const MOCK_INSTITUTIONS: Institution[] = [
@@ -75,6 +106,23 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       { id: 'inst-1', displayName: 'Carlos Ruiz' },
       { id: 'inst-2', displayName: 'Mia Chen' },
       { id: 'inst-3', displayName: 'James Okonkwo' },
+    ],
+  },
+  {
+    id: 'gym-2',
+    name: 'Studio Wellness',
+    description: 'Espacio dedicado al bienestar y la salud.',
+    verified: false,
+    plan: 'institutional',
+    location: {
+      address: 'Avenida del Sol 456',
+      city: 'Buenos Aires',
+      country: 'AR',
+      lat: -34.595,
+      lng: -58.375,
+    },
+    instructors: [
+      { id: 'inst-4', displayName: 'Lucia Gomez' },
     ],
   },
 ];
@@ -100,7 +148,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
   {
     id: 'class-2',
     title: 'Fundamentos de Tenis',
-    discipline: 'Tennis',
+    discipline: 'Tenis',
     modality: 'in_person',
     startAt: '2026-06-11T10:00:00Z',
     durationMinutes: 90,
@@ -192,7 +240,7 @@ export const MOCK_REVIEWS: Review[] = [
     classId: 'class-2',
     instructorId: 'inst-1',
     userId: 'u-4',
-    authorName: 'Sofía Martínez',
+    authorName: 'Sofia Martinez',
     rating: 5,
     comment: '¡Increíble clase de tenis! Carlos es muy paciente y conocedor.',
     createdAt: '2026-05-15T14:30:00Z',
@@ -203,11 +251,41 @@ export const MOCK_REVIEWS: Review[] = [
     classId: 'class-1',
     instructorId: 'inst-2',
     userId: 'u-5',
-    authorName: 'Miguel López',
+    authorName: 'Miguel Lopez',
     rating: 4,
     comment: 'Excelente flujo de yoga, la manera perfecta de empezar la mañana.',
     createdAt: '2026-05-20T09:15:00Z',
     verified: true,
+  },
+];
+
+// Mock reported reviews for moderation
+export const MOCK_REPORTED_REVIEWS: ReportedReview[] = [
+  { 
+    id: 'review-3', 
+    classId: 'class-4', 
+    instructorId: 'inst-3', 
+    userId: 'u-6', 
+    authorName: 'Usuario Anonimo', 
+    rating: 1, 
+    comment: 'Este instructor es terrible, no recomiendo para nada.',
+    createdAt: '2026-06-08T10:15:00Z',
+    verified: false,
+    reportCount: 3,
+    reportReasons: ['Contenido inapropiado', 'Spam'],
+  },
+  { 
+    id: 'review-4', 
+    classId: 'class-1', 
+    instructorId: 'inst-2', 
+    userId: 'u-7', 
+    authorName: 'Juan Perez', 
+    rating: 2, 
+    comment: 'La clase no cumplió con las expectativas.',
+    createdAt: '2026-06-07T15:45:00Z',
+    verified: true,
+    reportCount: 1,
+    reportReasons: ['Queja no justificada'],
   },
 ];
 
@@ -256,12 +334,12 @@ export const MOCK_GYM_WEEKLY_METRICS: GymWeeklyMetrics = {
 };
 
 export function formatMoney(m: { amount: number; currency: string }): string {
-  return new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: m.currency,
+  const amount = new Intl.NumberFormat('es-AR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(m.amount / 100);
+  const symbol = m.currency === 'USD' || m.currency === 'ARS' ? '$' : m.currency;
+  return `${amount}${symbol}`;
 }
 
 export function formatClassDate(iso: string): string {
@@ -447,6 +525,32 @@ export const MOCK_NOTIFICATIONS_BY_USER: Record<string, Notification[]> = {
       body: 'Hoy es tu día más ocupado de la semana con 15 reservas.',
       read: true,
       createdAt: '2026-06-04T08:00:00Z',
+    },
+  ],
+  'admin-1': [
+    {
+      id: 'admin-notif-1',
+      type: 'verification_request',
+      title: 'Nueva solicitud de verificación',
+      body: 'Lucia Gomez solicitó verificación como instructor.',
+      read: false,
+      createdAt: '2026-06-08T14:00:00Z',
+    },
+    {
+      id: 'admin-notif-2',
+      type: 'review_reported',
+      title: 'Reseña reportada',
+      body: 'Una reseña de James Okonkwo fue reportada 3 veces por contenido inapropiado.',
+      read: false,
+      createdAt: '2026-06-08T10:30:00Z',
+    },
+    {
+      id: 'admin-notif-3',
+      type: 'platform_metrics',
+      title: 'Resumen semanal',
+      body: '12 nuevos usuarios y 47 reservas esta semana en la plataforma.',
+      read: true,
+      createdAt: '2026-06-07T09:00:00Z',
     },
   ],
 };

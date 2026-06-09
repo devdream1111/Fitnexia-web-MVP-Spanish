@@ -73,7 +73,7 @@ export default function CreateClassPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-lg px-6 py-12">
+    <div className="fn-layout-narrow px-6 py-12">
       <PageHeader title={INSTRUCTOR_LABELS.classForm.newClass} showBack />
       <Input label={INSTRUCTOR_LABELS.classForm.className} value={title} onChange={(e) => setTitle(e.target.value)} />
       <Select

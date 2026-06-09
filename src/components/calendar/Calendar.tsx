@@ -87,16 +87,16 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
     const month = currentDate.getMonth();
     const day = currentDate.getDate();
     const startOfWeek = new Date(year, month, day - currentDate.getDay());
-    const hours = Array.from({ length: 12 }, (_, i) => i + 8); // Show 8 AM - 8 PM instead of full 24h
+    const hours = Array.from({ length: 24 }, (_, i) => i);
 
     return (
-      <div className="overflow-x-auto">
+      <div className="max-h-[720px] overflow-auto">
         <div className="flex min-w-[900px]">
           <div className="w-24 flex-shrink-0">
             <div className="h-10"></div>
             {hours.map((hour) => (
               <div key={hour} className="h-12 border-b border-[var(--fn-border)] px-2 text-right text-[10px] text-[var(--fn-text-muted)]">
-                {hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
+                {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
               </div>
             ))}
           </div>
@@ -105,10 +105,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
             date.setDate(startOfWeek.getDate() + idx);
             const isToday = new Date().toDateString() === date.toDateString();
             const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
-            const dayClasses = getClassesForDate(date).filter(c => {
-              const h = new Date(c.startAt).getHours();
-              return h >= 8 && h < 20; // Only show classes 8 AM - 8 PM
-            });
+            const dayClasses = getClassesForDate(date);
 
             return (
               <div key={idx} className="flex-1 border-l border-[var(--fn-border)]">
@@ -130,9 +127,9 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
                   ))}
                   {dayClasses.map((c) => {
                     const start = new Date(c.startAt);
-                    const hourOffset = start.getHours() - 8;
+                    const hourOffset = start.getHours();
                     const top = hourOffset * 48 + (start.getMinutes() * (48 / 60));
-                    const duration = 60; // Assume 1 hour for now
+                    const duration = c.durationMinutes ?? 60;
                     const height = duration * (48 / 60);
                     return (
                       <button

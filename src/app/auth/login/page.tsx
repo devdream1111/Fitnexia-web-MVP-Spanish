@@ -29,11 +29,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('password');
   const [loading, setLoading] = useState(false);
 
+  const homeForRole = (role: UserRole = 'athlete') => {
+    if (role === 'instructor') return '/instructor/dashboard';
+    if (role === 'institution') return '/gym/dashboard';
+    return '/athlete/home';
+  };
+
   const handleLogin = async (role?: UserRole) => {
     setLoading(true);
     try {
-      await login(email, password, role);
-      router.replace('/');
+      const resolvedRole = role ?? 'athlete';
+      await login(email, password, resolvedRole);
+      router.replace(homeForRole(resolvedRole));
     } finally {
       setLoading(false);
     }
@@ -41,13 +48,36 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto flex flex-col px-6 py-12 md:py-16">
-      <div className="mx-auto w-full max-w-md">
+      <div className="fn-layout-form">
         <div className="text-center animate-bounce-in">
           <h1 className="text-3xl font-extrabold md:text-4xl">{BUTTON_LABELS.signIn}</h1>
           <p className="mt-3 text-lg text-[var(--fn-text-muted)]">{AUTH_LABELS.welcomeBack}</p>
         </div>
 
-        <div className="mt-10 space-y-4 animate-slide-up stagger-1">
+        {googleSignIn ? (
+          <div className="mt-8 animate-slide-up stagger-1 mb-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => alert('Inicio de sesión con Google — conecta cuando el backend esté listo.')}
+            >
+              <GoogleIcon />
+                {GENERAL_LABELS.continueWith}{' '}{GENERAL_LABELS.google}
+            </Button>
+            {/* <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[var(--fn-border)]" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-[var(--fn-bg)] px-4 text-[var(--fn-text-muted)]">
+                  {GENERAL_LABELS.orContinueWith}
+                </span>
+              </div>
+            </div> */}
+          </div>
+        ) : null}
+
+        <div className={`space-y-4 animate-slide-up stagger-2 ${googleSignIn ? '' : 'mt-10'}`}>
           <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
           <Input
             label={AUTH_LABELS.password}
@@ -59,38 +89,17 @@ export default function LoginPage() {
           <Link href="/auth/forgot-password" className="text-sm font-medium text-[var(--fn-primary)]">
             {GENERAL_LABELS.forgotPassword}
           </Link>
-          <Button 
-            title={BUTTON_LABELS.signIn} 
-            loading={loading} 
-            className="w-full hover:animate-pulse-glow" 
-            onClick={() => handleLogin()} 
+          <Button
+            title={BUTTON_LABELS.signIn}
+            loading={loading}
+            className="w-full hover:animate-pulse-glow"
+            onClick={() => handleLogin()}
           />
         </div>
 
-        {googleSignIn ? (
-          <div className="mt-6 animate-slide-up stagger-2">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                {/* <div className="w-full border-t border-[var(--fn-border)]" /> */}
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 text-[var(--fn-text-muted)]">{GENERAL_LABELS.orContinueWith}</span>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              className="mt-6 w-full"
-              onClick={() => alert('Inicio de sesión con Google — conecta cuando el backend esté listo.')}
-            >
-              <GoogleIcon />
-              {GENERAL_LABELS.google}
-            </Button>
-          </div>
-        ) : null}
-
         <div className="mt-10 animate-slide-up stagger-3">
           <p className="text-center text-sm font-medium text-[var(--fn-text-muted)]">{GENERAL_LABELS.quickDemo}</p>
-          <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Button title={ROLE_TITLES.athlete} variant="outline" onClick={() => handleLogin('athlete')} />
             <Button title={GENERAL_LABELS.coach} variant="outline" onClick={() => handleLogin('instructor')} />
             <Button title="Gimnasio" variant="outline" onClick={() => handleLogin('institution')} />

@@ -222,6 +222,33 @@ export interface Review {
   verified: boolean;
 }
 
+export interface ReportedReview extends Review {
+  reportCount: number;
+  reportReasons: string[];
+}
+
+export type AdminUserRole = Exclude<UserRole, 'admin'>;
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: AdminUserRole;
+  firstName: string;
+  lastName: string;
+  verified: boolean;
+  suspended?: boolean;
+  instructorId?: string;
+  institutionId?: string;
+}
+
+export interface PendingVerification {
+  type: 'instructor' | 'institution';
+  id: string;
+  name: string;
+  submittedAt: string;
+  reason: string;
+}
+
 /** Verified review from a gym that employs the instructor */
 export interface StaffReview {
   id: string;

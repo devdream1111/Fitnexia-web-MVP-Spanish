@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="mx-auto flex flex-col px-6 py-12 md:py-16">
-      <div className="mx-auto w-full max-w-md">
+      <div className="fn-layout-form">
         <PageHeader title={GENERAL_LABELS.resetPassword} showBack backHref="/auth/login" />
         {sent ? (
           <div className="animate-bounce-in">

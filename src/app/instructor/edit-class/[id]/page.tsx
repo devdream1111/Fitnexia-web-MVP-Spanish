@@ -19,7 +19,7 @@ export default function EditClassPage() {
 
   if (!cls) {
     return (
-      <div className="mx-auto max-w-lg px-6 py-12">
+      <div className="fn-layout-narrow px-6 py-12">
         <PageHeader title={INSTRUCTOR_LABELS.classForm.editClass} showBack />
         <p>{SCREEN_TITLES.classNotFound}</p>
       </div>
@@ -34,7 +34,7 @@ export default function EditClassPage() {
   };
 
   return (
-    <div className="mx-auto max-w-lg px-6 py-12">
+    <div className="fn-layout-narrow px-6 py-12">
       <PageHeader title={INSTRUCTOR_LABELS.classForm.editClass} showBack />
       <Input label={INSTRUCTOR_LABELS.classForm.className} value={title} onChange={(e) => setTitle(e.target.value)} />
       <Input label={INSTRUCTOR_LABELS.classForm.capacity} value={capacity} onChange={(e) => setCapacity(e.target.value)} />

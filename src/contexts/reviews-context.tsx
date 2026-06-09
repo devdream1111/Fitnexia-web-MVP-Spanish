@@ -27,6 +27,7 @@ interface ReviewsContextValue {
   getReviewsForClass: (classId: string) => Review[];
   getReviewsForInstructor: (instructorId: string) => Review[];
   addReview: (review: Omit<Review, 'id' | 'createdAt' | 'verified'>) => Review;
+  removeReview: (id: string) => void;
   getStaffReviewsForInstructor: (instructorId: string) => StaffReview[];
   getGymReviewForInstructor: (institutionId: string, instructorId: string) => StaffReview | undefined;
   canGymReviewInstructor: (
@@ -56,11 +57,15 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
   const addReview = useCallback(
     (input: Omit<Review, 'id' | 'createdAt' | 'verified'>) => {
       const created = addReviewMock(input);
-      setReviews([...reviews, created]);
+      setReviews((prev) => [...prev, created]);
       return created;
     },
-    [reviews],
+    [],
   );
+
+  const removeReview = useCallback((id: string) => {
+    setReviews((prev) => prev.filter((r) => r.id !== id));
+  }, []);
 
   const getStaffReviewsForInstructor = useCallback(
     (instructorId: string) =>
@@ -109,6 +114,7 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
       getReviewsForClass,
       getReviewsForInstructor,
       addReview,
+      removeReview,
       getStaffReviewsForInstructor,
       getGymReviewForInstructor,
       canGymReviewInstructor,
@@ -120,6 +126,7 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
       getReviewsForClass,
       getReviewsForInstructor,
       addReview,
+      removeReview,
       getStaffReviewsForInstructor,
       getGymReviewForInstructor,
       canGymReviewInstructor,

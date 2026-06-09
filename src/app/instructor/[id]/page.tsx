@@ -16,7 +16,7 @@ export default function InstructorPublicPage() {
 
   if (!instructor) {
     return (
-      <div className="mx-auto max-w-2xl px-6 py-12">
+      <div className="fn-layout-content px-6 py-12">
         <PageHeader title={INSTRUCTOR_LABELS.publicProfile.instructor} showBack />
         <p>{INSTRUCTOR_LABELS.publicProfile.notFound}</p>
       </div>
@@ -24,7 +24,7 @@ export default function InstructorPublicPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
+    <div className="fn-layout-content px-6 py-12">
       <PageHeader title={instructor.displayName} showBack />
       <div className="flex items-center gap-4">
         <span className="text-5xl">🎾</span>

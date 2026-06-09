@@ -1,10 +1,11 @@
-type Variant = 'default' | 'success' | 'warning';
+type Variant = 'default' | 'success' | 'warning' | 'danger';
 type Size = 'sm' | 'default';
 
 const variants: Record<Variant, string> = {
   default: 'bg-[var(--fn-surface-muted)] text-[var(--fn-text-secondary)]',
   success: 'bg-[var(--fn-success-muted)] text-[var(--fn-success)]',
   warning: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
+  danger: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
 };
 
 const sizes: Record<Size, string> = {

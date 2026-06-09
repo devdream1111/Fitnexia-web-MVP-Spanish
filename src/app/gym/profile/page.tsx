@@ -77,7 +77,7 @@ export default function GymProfilePage() {
 
   return (
     <div className="flex min-h-[79vh] items-center justify-center">
-      <div className="w-full max-w-3xl rounded-2xl bg-[var(--fn-surface)] p-8 shadow-lg">
+      <div className="fn-layout-profile w-full rounded-2xl bg-[var(--fn-surface)] p-8 shadow-lg">
         <div className="flex flex-col items-start gap-6 md:flex-row md:items-center mb-8 pb-6 border-b border-[var(--fn-border)]" style={{justifyContent:"center"}}>
           <ProfilePictureUpload
             currentAvatar={isEditing ? tempAvatarUri : user?.avatarUri}

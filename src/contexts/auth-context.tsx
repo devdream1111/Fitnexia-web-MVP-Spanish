@@ -13,6 +13,15 @@ export interface NotificationPreferences {
   marketing: boolean;
 }
 
+export interface AdminNotificationPreferences {
+  verificationRequests: boolean;
+  reportedReviews: boolean;
+  platformMetrics: boolean;
+  newUserSignups: boolean;
+  paymentAlerts: boolean;
+  securityAlerts: boolean;
+}
+
 export interface PaymentMethod {
   id: string;
   brand: string;
@@ -60,6 +69,7 @@ export interface AuthUser {
   avatarUri?: string | null;
   favoriteSports: string[];
   notificationPreferences: NotificationPreferences;
+  adminNotificationPreferences?: AdminNotificationPreferences;
   paymentMethods: PaymentMethod[];
   instructorId?: string;
   instructorProfile?: InstructorProfileData;
@@ -73,6 +83,15 @@ const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
   paymentUpdates: true,
   creditsExpiring: true,
   marketing: false,
+};
+
+export const DEFAULT_ADMIN_NOTIFICATIONS: AdminNotificationPreferences = {
+  verificationRequests: true,
+  reportedReviews: true,
+  platformMetrics: true,
+  newUserSignups: true,
+  paymentAlerts: true,
+  securityAlerts: true,
 };
 
 const STORAGE_KEYS = {
@@ -123,6 +142,7 @@ export type UpdateProfileParams = Partial<
   Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'avatarUri' | 'favoriteSports'>
 > & {
   notificationPreferences?: Partial<NotificationPreferences>;
+  adminNotificationPreferences?: Partial<AdminNotificationPreferences>;
   paymentMethods?: PaymentMethod[];
   instructorProfile?: Partial<InstructorProfileData>;
   institutionProfile?: Partial<InstitutionProfileData>;
@@ -208,6 +228,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       lastName: 'Usuario',
       favoriteSports: role === 'athlete' ? ['Yoga', 'Tenis'] : [],
     };
+
+    if (role === 'admin') {
+      setUser(
+        createUser({
+          ...base,
+          id: 'admin-1',
+          firstName: 'Admin',
+          lastName: 'Fitnexia',
+          adminNotificationPreferences: { ...DEFAULT_ADMIN_NOTIFICATIONS },
+        }),
+      );
+      return;
+    }
 
     if (role === 'instructor') {
       setUser(
@@ -306,6 +339,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         notificationPreferences: updates.notificationPreferences
           ? { ...prev.notificationPreferences, ...updates.notificationPreferences }
           : prev.notificationPreferences,
+        adminNotificationPreferences: updates.adminNotificationPreferences
+          ? {
+              ...(prev.adminNotificationPreferences ?? DEFAULT_ADMIN_NOTIFICATIONS),
+              ...updates.adminNotificationPreferences,
+            }
+          : prev.adminNotificationPreferences,
         paymentMethods: updates.paymentMethods ?? prev.paymentMethods,
         instructorProfile: updates.instructorProfile
           ? prev.instructorProfile

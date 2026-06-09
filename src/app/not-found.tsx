@@ -7,7 +7,7 @@ import { GENERAL_LABELS } from '@/constants/labels';
 export default function NotFound() {
   return (
     <div className="mx-auto flex min-h-screen flex-col justify-center px-6 py-12">
-      <div className="mx-auto w-full max-w-md text-center">
+      <div className="fn-layout-form text-center">
         <Logo size="lg" className="mb-6" />
         <h2 className="text-4xl font-extrabold text-[var(--fn-text)]">404</h2>
         <p className="mt-4 text-lg text-[var(--fn-text-muted)]">

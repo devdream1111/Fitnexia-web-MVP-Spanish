@@ -7,7 +7,7 @@ import { Mail, Phone, MapPin, Home, User, Settings, Heart, Star } from 'lucide-r
 export function Footer() {
   return (
     <footer className="bg-[#121C2D] border-t border-[#334155]">
-      <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+      <div className="fn-layout-shell py-12 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">

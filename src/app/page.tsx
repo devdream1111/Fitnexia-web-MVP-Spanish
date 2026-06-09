@@ -27,6 +27,10 @@ export default function HomePage() {
       router.replace('/gym/dashboard');
       return;
     }
+    if (user.role === 'admin') {
+      router.replace('/admin/dashboard');
+      return;
+    }
     router.replace('/athlete/home');
   }, [user, hasSeenOnboarding, isLoading, router]);
 

@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 :root {
+  --fn-layout-max: 100rem;
+  --fn-layout-form: 36rem;
+  --fn-layout-content: 56rem;
+  --fn-layout-narrow: 48rem;
+  --fn-layout-profile: 64rem;
   --fn-bg: #f8fafc;
   --fn-surface: #ffffff;
   --fn-surface-muted: #f1f5f9;
@@ -50,6 +55,49 @@ html, body {
 
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.fn-layout-shell {
+  width: 100%;
+  max-width: var(--fn-layout-max);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 768px) {
+  .fn-layout-shell {
+    padding-inline: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fn-layout-shell {
+    padding-inline: 3rem;
+  }
+}
+
+.fn-layout-form {
+  width: 100%;
+  max-width: var(--fn-layout-form);
+  margin-inline: auto;
+}
+
+.fn-layout-content {
+  width: 100%;
+  max-width: var(--fn-layout-content);
+  margin-inline: auto;
+}
+
+.fn-layout-narrow {
+  width: 100%;
+  max-width: var(--fn-layout-narrow);
+  margin-inline: auto;
+}
+
+.fn-layout-profile {
+  width: 100%;
+  max-width: var(--fn-layout-profile);
+  margin-inline: auto;
 }
 
 @theme inline {
