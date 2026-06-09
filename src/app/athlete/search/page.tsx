@@ -1,10 +1,19 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
 import { Search as SearchIcon, MapPin, X, ChevronDown } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
-import { ClassMap } from '@/components/map/Map';
+
+const ClassMap = dynamic(() => import('@/components/map/Map').then((m) => m.ClassMap), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[520px] w-full items-center justify-center rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] text-sm text-[var(--fn-text-muted)]">
+      Cargando mapa…
+    </div>
+  ),
+});
 import { FilterChip } from '@/components/ui/filter-chip';
 import {
   DISCIPLINES,
