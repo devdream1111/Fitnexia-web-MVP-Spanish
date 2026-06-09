@@ -3,40 +3,41 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { LandingPage } from '@/components/landing/landing-page';
 import { useAuth } from '@/contexts/auth-context';
+import type { UserRole } from '@/types/api';
+
+function homeForRole(role: UserRole) {
+  if (role === 'instructor') return '/instructor/dashboard';
+  if (role === 'institution') return '/gym/dashboard';
+  if (role === 'admin') return '/admin/dashboard';
+  return '/athlete/home';
+}
 
 export default function HomePage() {
   const router = useRouter();
-  const { user, hasSeenOnboarding, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
-    if (!hasSeenOnboarding) {
-      router.replace('/onboarding');
-      return;
-    }
-    if (!user) {
-      router.replace('/auth/login');
-      return;
-    }
-    if (user.role === 'instructor') {
-      router.replace('/instructor/dashboard');
-      return;
-    }
-    if (user.role === 'institution') {
-      router.replace('/gym/dashboard');
-      return;
-    }
-    if (user.role === 'admin') {
-      router.replace('/admin/dashboard');
-      return;
-    }
-    router.replace('/athlete/home');
-  }, [user, hasSeenOnboarding, isLoading, router]);
+    if (isLoading || !user) return;
+    router.replace(homeForRole(user.role));
+  }, [user, isLoading, router]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--fn-primary)] border-t-transparent" />
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--fn-primary)] border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--fn-primary)] border-t-transparent" />
+      </div>
+    );
+  }
+
+  return <LandingPage />;
 }

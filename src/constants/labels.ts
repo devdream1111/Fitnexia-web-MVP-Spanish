@@ -266,6 +266,7 @@ export const GENERAL_LABELS = {
   forgotPassword: '¿Olvidaste tu contraseña?',
   google: 'Google',
   continueWith: 'Continuar con',
+  orContinueWith: 'o continúa con correo',
   quickDemo: 'Demo rápida (simulada)',
   coach: 'Entrenador',
   newHere: '¿Eres nuevo aquí?',
@@ -403,7 +404,132 @@ export const ROLE_DESCRIPTIONS = {
   admin: '',
 } as const;
 
+export const LANDING_LABELS = {
+  badge: 'MVP · España',
+  nav: {
+    what: '¿Qué es?',
+    howItWorks: 'Cómo funciona',
+    whoIsItFor: 'Para quién es',
+    benefits: 'Beneficios',
+    start: 'Empezar',
+  },
+  whatEyebrow: '¿Qué es?',
+  whatTitle: 'La plataforma que conecta profesionales del fitness, usuarios y gimnasios en un solo lugar.',
+  whatBody:
+    'Fitnexia es el ecosistema digital del fitness en España: descubre clases, reserva con instructores verificados y gestiona tu centro o tu marca personal desde una sola web.',
+  trust: ['Instructores verificados', 'Reservas en minutos', 'Pagos transparentes'],
+  whoEyebrow: 'Para quién es',
+  whoTitle: '¿Para quién es Fitnexia?',
+  whoSubtitle: 'Una plataforma pensada para los tres lados del fitness.',
+  roles: {
+    athlete: {
+      label: 'Quiero entrenar',
+      headline: 'Encuentra tu próxima rutina',
+      body: 'Descubre clases cerca de ti, reserva con instructores verificados y explora nuevas disciplinas.',
+      cta: 'Crear cuenta como atleta',
+    },
+    instructor: {
+      label: 'Soy instructor',
+      headline: 'Haz crecer tu marca personal',
+      body: 'Publica tus clases, gestiona tu agenda y recibe solicitudes de gimnasios que buscan talento.',
+      cta: 'Registrarme como instructor',
+    },
+    institution: {
+      label: 'Tengo un gimnasio',
+      headline: 'Coordina tu equipo sin fricción',
+      body: 'Encuentra profesionales verificados, organiza clases grupales y administra tu centro en un solo panel.',
+      cta: 'Registrar mi gimnasio',
+    },
+  },
+  howEyebrow: 'Cómo funciona',
+  howTitle: 'Cómo funciona',
+  howSubtitle: 'Tres pasos para empezar a usar Fitnexia.',
+  steps: [
+    {
+      num: '1',
+      title: 'Crea tu perfil',
+      body: 'Regístrate en minutos como atleta, instructor o gimnasio. Configura tu información y especialidades.',
+    },
+    {
+      num: '2',
+      title: 'Conecta con la comunidad',
+      body: 'Los instructores publican clases, los gimnasios buscan talento y los usuarios encuentran su próxima sesión.',
+    },
+    {
+      num: '3',
+      title: 'Reserva, coordina y entrena',
+      body: 'Reservas con confirmación inmediata, calendarios sincronizados y recordatorios para no perderte nada.',
+    },
+  ],
+  benefitsEyebrow: 'Beneficios',
+  benefitsTitle: 'Beneficios por perfil',
+  benefitsSubtitle: 'Lo que cada uno gana con Fitnexia.',
+  benefitsTabs: {
+    athlete: 'Usuarios',
+    instructor: 'Instructores',
+    institution: 'Gimnasios',
+  },
+  benefits: {
+    athlete: [
+      {
+        title: 'Clases cerca de ti',
+        body: 'Busca por deporte, ubicación y modalidad con mapa integrado y filtros inteligentes.',
+      },
+      {
+        title: 'Instructores verificados',
+        body: 'Perfiles con reseñas, certificaciones y disponibilidad en tiempo real.',
+      },
+      {
+        title: 'Reserva sin complicaciones',
+        body: 'Confirma tu plaza en segundos, presencial u online, con historial de pagos.',
+      },
+    ],
+    instructor: [
+      {
+        title: 'Publica tus clases',
+        body: 'Sube tu agenda y empieza a recibir reservas en minutos.',
+      },
+      {
+        title: 'Haz crecer tu marca',
+        body: 'Perfil profesional con reseñas, certificaciones y portfolio visible.',
+      },
+      {
+        title: 'Recibe solicitudes',
+        body: 'Los gimnasios te encuentran y te contactan para sumarte a su grilla.',
+      },
+    ],
+    institution: [
+      {
+        title: 'Talento verificado',
+        body: 'Encuentra instructores con perfil completo y reseñas de la comunidad.',
+      },
+      {
+        title: 'Gestión centralizada',
+        body: 'Clases, staff y reservas en un panel diseñado para centros deportivos.',
+      },
+      {
+        title: 'Más visibilidad',
+        body: 'Tu gimnasio aparece en búsquedas locales y atrae nuevos socios.',
+      },
+    ],
+  },
+  launchBadge: 'Ya disponible · MVP',
+  launchTitle: 'El fitness español, conectado',
+  launchSubtitle: 'Explora la plataforma hoy mismo. Sin listas de espera — crea tu cuenta y empieza a entrenar.',
+  stats: [
+    { value: '150+', label: 'Usuarios activos' },
+    { value: '50+', label: 'Clases publicadas' },
+    { value: '4.8★', label: 'Valoración media' },
+  ],
+  ctaTitle: '¿Listo para tu próximo entrenamiento?',
+  ctaSubtitle: 'Únete a Fitnexia y descubre clases, instructores y gimnasios en toda España.',
+  ctaButton: 'Crear cuenta gratis',
+  ctaNote: '¿Ya tienes cuenta? Inicia sesión y continúa donde lo dejaste.',
+} as const;
+
 export const ONBOARDING_LABELS = {
+  intro: 'El marketplace que conecta atletas, instructores y gimnasios en toda España.',
+  tagline: 'Tu próximo entrenamiento empieza aquí.',
   slides: [
     {
       title: 'Encuentra tu próxima clase',
