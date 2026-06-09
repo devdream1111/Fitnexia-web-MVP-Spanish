@@ -18,7 +18,7 @@ export default function InstructorClassesPage() {
     <div className="space-y-4">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-extrabold">{INSTRUCTOR_LABELS.classes.yourClasses}</h1>
-        <Link href="/create-class">
+        <Link href="/instructor/create-class">
           <Button title={INSTRUCTOR_LABELS.dashboard.newClass} size="sm" />
         </Link>
       </div>
@@ -26,7 +26,7 @@ export default function InstructorClassesPage() {
         <p className="text-[var(--fn-text-muted)]">{INSTRUCTOR_LABELS.classes.noClassesYet} Crea tu primera clase.</p>
       ) : (
         mine.map((c) => (
-          <ClassCard key={c.id} item={c} showEdit editHref={`/edit-class/${c.id}`} />
+          <ClassCard key={c.id} item={c} showEdit editHref={`/instructor/edit-class/${c.id}`} />
         ))
       )}
     </div>

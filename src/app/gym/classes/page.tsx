@@ -19,7 +19,7 @@ export default function GymClassesPage() {
     <div>
       <div className="mb-6 flex justify-between">
         <h1 className="text-3xl font-extrabold">{GYM_LABELS.classes.yourClasses}</h1>
-        <Link href="/create-class">
+        <Link href="/instructor/create-class">
           <Button title={GYM_LABELS.classes.addClass} size="sm" />
         </Link>
       </div>

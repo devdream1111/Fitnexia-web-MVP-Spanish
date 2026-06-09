@@ -25,7 +25,7 @@ export default function InstructorDashboardPage() {
           <p className="text-sm text-[var(--fn-text-muted)]">{INSTRUCTOR_LABELS.dashboard.hi} {user?.firstName}!</p>
           <h1 className="text-3xl font-extrabold md:text-4xl">{INSTRUCTOR_LABELS.dashboard.todayOverview}</h1>
         </div>
-        <Link href="/create-class">
+        <Link href="/instructor/create-class">
           <Button title={INSTRUCTOR_LABELS.dashboard.newClass} />
         </Link>
       </div>
@@ -48,7 +48,7 @@ export default function InstructorDashboardPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-[var(--fn-surface)] p-6 text-center shadow-sm">
+    <div className="rounded-xl bg-[var(--fn-surface)] p-6 text-center">
       <p className="text-sm text-[var(--fn-text-muted)]">{label}</p>
       <p className="text-3xl font-extrabold mt-2">{value}</p>
     </div>

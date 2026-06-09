@@ -138,7 +138,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
                       <button
                         type="button"
                         key={c.id}
-                        className="absolute left-1 right-1 z-10 overflow-hidden rounded-md border-l-4 border-[var(--fn-primary)] bg-[var(--fn-primary-muted)] px-1.5 py-0.5 text-left text-[10px] shadow-sm transition-all hover:shadow-md"
+                        className="absolute left-1 right-1 z-10 overflow-hidden rounded-md border-l-4 border-[var(--fn-primary)] bg-[var(--fn-primary-muted)] px-1.5 py-0.5 text-left text-[10px] transition-all"
                         style={{ top, height: Math.max(height, 36) }}
                       >
                         <div className="font-semibold text-[var(--fn-primary)]">{c.title}</div>
@@ -209,7 +209,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
             type="button"
             onClick={() => setView('month')}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-              view === 'month' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
+              view === 'month' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)]' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
             }`}
           >
             <CalendarIcon size={16} />
@@ -219,7 +219,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
             type="button"
             onClick={() => setView('week')}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-              view === 'week' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
+              view === 'week' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)]' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
             }`}
           >
             <Clock size={16} />

@@ -43,16 +43,25 @@ export function ClassesProvider({ children }: { children: React.ReactNode }) {
       ...input,
       id: `class-${Date.now()}`,
     };
-    setClasses((prev) => sortByStartAt([...prev, created]));
+    setClasses((prev) => {
+      // Just add the new class and return - we'll keep the array sorted by default
+      const updated = [...prev, created];
+      // Only sort once when adding
+      return sortByStartAt(updated);
+    });
     return created;
   }, []);
 
   const updateClass = useCallback((id: string, updates: Partial<ClassListItem>) => {
-    setClasses((prev) =>
-      sortByStartAt(
-        prev.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-      ),
-    );
+    setClasses((prev) => {
+      // Update the specific class without unnecessary sorting unless startAt changed
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
+      // Only re-sort if the startAt field changed
+      if (updates.startAt) {
+        return sortByStartAt(updated);
+      }
+      return updated;
+    });
   }, []);
 
   const cancelClass = useCallback((id: string) => {

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { Dumbbell, Video, MapPin, Edit3 } from 'lucide-react';
 
@@ -9,16 +10,17 @@ import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel, BUTTON_LABELS }
 import { formatClassDate, formatMoney } from '@/data/mock';
 import type { ClassListItem } from '@/types/api';
 
-export function ClassCard({ item, compact, showEdit, editHref }: { 
+function ClassCardInner({ item, compact, showEdit, editHref }: { 
   item: ClassListItem; 
   compact?: boolean;
   showEdit?: boolean;
   editHref?: string;
 }) {
   const full = item.spotsLeft === 0;
-  const CardContent = () => (
-    <div className="flex flex-col gap-4 rounded-2xl bg-[var(--fn-surface)] p-6 shadow-sm transition-all md:flex-row hover:shadow-lg">
-      <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] md:w-28 animate-float" style={{ animationDelay: '0.1s' }}>
+
+  const content = (
+    <div className="flex flex-col gap-4 rounded-2xl bg-[var(--fn-surface)] p-6 transition-all md:flex-row">
+      <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] md:w-28">
         <Dumbbell size={36} className="text-[var(--fn-primary)]" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
@@ -28,7 +30,7 @@ export function ClassCard({ item, compact, showEdit, editHref }: {
             {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
             {showEdit && editHref ? (
               <Link href={editHref} onClick={(e) => e.stopPropagation()}>
-                <Button variant="outline" size="sm" title={BUTTON_LABELS.edit} className="hover:animate-pulse-glow">
+                <Button variant="outline" size="sm" title={BUTTON_LABELS.edit}>
                   <Edit3 size={16} className="mr-1" /> {BUTTON_LABELS.edit}
                 </Button>
               </Link>
@@ -58,14 +60,16 @@ export function ClassCard({ item, compact, showEdit, editHref }: {
   );
 
   if (showEdit) {
-    return <CardContent />;
+    return content;
   }
 
   return (
     <Link
       href={`/class/${item.id}`}
-      className={`transition-all hover:-translate-y-1 hover:shadow-xl ${compact ? 'mb-2' : ''}`}>
-      <CardContent />
+      className={`transition-all ${compact ? 'mb-2' : ''}`}>
+      {content}
     </Link>
   );
 }
+
+export const ClassCard = React.memo(ClassCardInner);

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/layout/page-header';
 import { useClasses } from '@/contexts/classes-context';
-import { INSTRUCTOR_LABELS, GENERAL_LABELS, BUTTON_LABELS } from '@/constants/labels';
+import { INSTRUCTOR_LABELS, SCREEN_TITLES, BUTTON_LABELS } from '@/constants/labels';
 
 export default function EditClassPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +21,7 @@ export default function EditClassPage() {
     return (
       <div className="mx-auto max-w-lg px-6 py-12">
         <PageHeader title={INSTRUCTOR_LABELS.classForm.editClass} showBack />
-        <p>Clase no encontrada.</p>
+        <p>{SCREEN_TITLES.classNotFound}</p>
       </div>
     );
   }

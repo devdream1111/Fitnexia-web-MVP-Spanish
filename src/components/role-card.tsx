@@ -27,7 +27,7 @@ export function RoleCard({
     <button
       type="button"
       onClick={onPress}
-      className={`mb-3 flex w-full items-center gap-6 rounded-2xl border-2 p-6 text-left transition hover:shadow-lg ${
+      className={`mb-3 flex w-full items-center gap-6 rounded-2xl border-2 p-6 text-left transition ${
         selected
           ? 'border-[var(--fn-primary)] bg-[var(--fn-primary-muted)]'
           : 'border-[var(--fn-border)] bg-[var(--fn-surface)]'

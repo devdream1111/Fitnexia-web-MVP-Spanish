@@ -176,16 +176,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  // Persist user to localStorage whenever it changes
+  // Persist user to localStorage with debounce to avoid frequent writes
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.USER);
-    }
-  }, [user]);
+    if (isLoading) return; // Don't persist during initial load
+    const timeoutId = setTimeout(() => {
+      if (user) {
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.USER);
+      }
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [user, isLoading]);
 
-  // Persist onboarding state
+  // Persist onboarding state immediately (not debounced)
   useEffect(() => {
     if (hasSeenOnboarding) {
       localStorage.setItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING, 'true');

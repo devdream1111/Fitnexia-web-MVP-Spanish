@@ -16,7 +16,7 @@ export function ClassMap({ classes, center = [-34.6037, -58.3816], zoom = 13 }: 
   const inPersonClasses = classes.filter(c => c.modality === 'in_person' && c.location?.lat != null && c.location?.lng != null);
   
   return (
-    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-[var(--fn-border)] shadow-sm relative z-0">
+    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-[var(--fn-border)] relative z-0">
       <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

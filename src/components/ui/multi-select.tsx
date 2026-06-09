@@ -52,7 +52,7 @@ export function MultiSelect({ label, value, onChange, options, placeholder = 'Se
           <ChevronDown className={`h-4 w-4 text-[var(--fn-text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         {isOpen && (
-          <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-lg">
+          <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)]">
             {options.map((option) => (
               <button
                 key={option.value}

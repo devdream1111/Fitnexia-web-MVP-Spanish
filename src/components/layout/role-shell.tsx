@@ -74,7 +74,11 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/auth/login');
+      const path = window.location.pathname;
+      // Don't redirect if we're already on an auth page
+      if (!path.startsWith('/auth/') && path !== '/onboarding') {
+        router.replace('/auth/login');
+      }
     }
   }, [isLoading, user, router]);
 
@@ -178,7 +182,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-2 shadow-lg">
+                <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-2">
                   <Link
                     href={profileLink}
                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--fn-text)] hover:bg-[var(--fn-surface-muted)] transition"
