@@ -137,6 +137,23 @@ export const ADMIN_LABELS = {
   },
 } as const;
 
+export const PROFILE_PAGE_LABELS = {
+  title: 'Mi perfil',
+  memberSince: 'Miembro desde',
+  editProfile: 'Editar perfil',
+  cancelEdit: 'Cancelar',
+  quickLinks: 'Accesos rápidos',
+  accountSecurity: 'Seguridad de la cuenta',
+  notificationsTitle: 'Notificaciones',
+  notificationsSubtitle: 'Gestiona tus preferencias de alertas y recordatorios',
+  saved: 'Perfil actualizado correctamente',
+  favoriteSports: 'Deportes favoritos',
+  certifications: 'Certificaciones',
+  photoGallery: 'Galería de fotos',
+  availableNow: 'Disponible ahora',
+  notAvailable: 'No disponible',
+} as const;
+
 export const PROFILE_MENU_LABELS = {
   favoriteSports: 'Deportes favoritos',
   notifications: 'Notificaciones',

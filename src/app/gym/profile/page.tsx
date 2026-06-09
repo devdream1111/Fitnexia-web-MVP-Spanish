@@ -1,190 +1,186 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import {
+  Users,
+  BookOpen,
+  MapPin,
+  Image,
+  Bell,
+  Building,
+  BarChart3,
+} from 'lucide-react';
 
-import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
+import { PageHeader } from '@/components/layout/page-header';
 import { PhotoGallery } from '@/components/profile/PhotoGallery';
-import { ProfileMenuItem } from '@/components/profile/menu-item';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  ProfileHero,
+  ProfileStatCard,
+  ProfileQuickLinks,
+  ProfileSettingsCard,
+  ProfileEditFields,
+  ProfilePasswordPanel,
+  PROFILE_GRADIENTS,
+  toggleVisible,
+} from '@/components/profile/profile-page-ui';
 import { useAuth } from '@/contexts/auth-context';
-import { BUTTON_LABELS, PROFILE_MENU_LABELS, SCREEN_TITLES, GENERAL_LABELS } from '@/constants/labels';
+import { useClasses } from '@/contexts/classes-context';
+import { resolveInstitutionId } from '@/utils/gym-classes';
+import {
+  ALERT_LABELS,
+  AUTH_LABELS,
+  BADGE_LABELS,
+  DROPDOWN_LABELS,
+  PROFILE_MENU_LABELS,
+  PROFILE_PAGE_LABELS,
+  ADMIN_LABELS,
+} from '@/constants/labels';
 
 export default function GymProfilePage() {
-  const { user, updateProfile, changePassword } = useAuth();
+  const { user, updateProfile } = useAuth();
+  const { classes } = useClasses();
+  const institutionProfile = user?.institutionProfile;
+  const institutionId = resolveInstitutionId(user);
+
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.institutionProfile?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(user?.avatarUri || null);
-  const [tempGallery, setTempGallery] = useState<string[]>(user?.institutionProfile?.gallery ?? []);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [name, setName] = useState(institutionProfile?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [address, setAddress] = useState(institutionProfile?.address ?? '');
+  const [city, setCity] = useState(institutionProfile?.city ?? '');
+  const [description, setDescription] = useState(institutionProfile?.description ?? '');
+  const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
+  const [gallery, setGallery] = useState<string[]>(institutionProfile?.gallery ?? []);
+
+  const gymClasses = useMemo(
+    () => classes.filter((c) => c.institution?.id === institutionId),
+    [classes, institutionId],
+  );
+  const instructorCount = institutionProfile?.instructorIds.length ?? 0;
 
   const handleSave = () => {
-    updateProfile({ 
-      email, 
-      avatarUri: tempAvatarUri,
-      institutionProfile: { 
-        ...user?.institutionProfile, 
-        name,
-        gallery: tempGallery
-      } 
+    updateProfile({
+      email,
+      avatarUri,
+      institutionProfile: { name, address, city, description, gallery },
     });
     setIsEditing(false);
+    alert(`${ALERT_LABELS.savedTitle}: ${PROFILE_PAGE_LABELS.saved}`);
   };
 
   const handleCancel = () => {
-    setName(user?.institutionProfile?.name || '');
-    setEmail(user?.email || '');
-    setTempAvatarUri(user?.avatarUri || null);
-    setTempGallery(user?.institutionProfile?.gallery ?? []);
+    setName(institutionProfile?.name ?? '');
+    setEmail(user?.email ?? '');
+    setAddress(institutionProfile?.address ?? '');
+    setCity(institutionProfile?.city ?? '');
+    setDescription(institutionProfile?.description ?? '');
+    setAvatarUri(user?.avatarUri ?? null);
+    setGallery(institutionProfile?.gallery ?? []);
     setIsEditing(false);
   };
 
-  const handleChangePassword = async () => {
-    setPasswordError('');
-    setPasswordSuccess('');
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError(GENERAL_LABELS.newPasswordsDoNotMatch);
-      return;
-    }
-
-    try {
-      await changePassword(currentPassword, newPassword);
-      setPasswordSuccess(GENERAL_LABELS.passwordChangedSuccessfully);
-      setIsChangingPassword(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : GENERAL_LABELS.failedToChangePassword);
-    }
-  };
-
-  const handleCancelPasswordChange = () => {
-    setIsChangingPassword(false);
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setPasswordError('');
-    setPasswordSuccess('');
-  };
+  const quickLinks = [
+    { href: '/gym/dashboard', label: 'Panel de control', icon: BarChart3 },
+    { href: '/gym/instructors', label: PROFILE_MENU_LABELS.instructors, icon: Users, count: instructorCount },
+    { href: '/gym/classes', label: 'Clases grupales', icon: BookOpen, count: gymClasses.length },
+    { href: '/gym/profile/invite-instructor', label: 'Invitar instructor', icon: Users },
+    { href: '/gym/profile/plan', label: PROFILE_MENU_LABELS.planCommission, icon: Building },
+  ];
 
   return (
-    <div className="flex min-h-[79vh] items-center justify-center">
-      <div className="fn-layout-profile w-full rounded-2xl bg-[var(--fn-surface)] p-8 shadow-lg">
-        <div className="flex flex-col items-start gap-6 md:flex-row md:items-center mb-8 pb-6 border-b border-[var(--fn-border)]" style={{justifyContent:"center"}}>
-          <ProfilePictureUpload
-            currentAvatar={isEditing ? tempAvatarUri : user?.avatarUri}
-            onUpload={(uri) => setTempAvatarUri(uri)}
-            role="institution"
-            size="lg"
-            editable={isEditing}
+    <div className="space-y-8">
+      <PageHeader title={PROFILE_PAGE_LABELS.title} showBack />
+
+      <div className="overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+        <ProfileHero
+          gradientClass={PROFILE_GRADIENTS.institution}
+          badgeLabel={
+            institutionProfile?.verified
+              ? BADGE_LABELS.verified
+              : ADMIN_LABELS.verification.pending
+          }
+          badgeVariant={institutionProfile?.verified ? 'success' : 'warning'}
+          name={institutionProfile?.name ?? 'Gimnasio'}
+          email={user?.email ?? ''}
+          avatarUri={isEditing ? avatarUri : user?.avatarUri}
+          uploadRole="institution"
+          isEditing={isEditing}
+          onEdit={() => setIsEditing(true)}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onAvatarUpload={setAvatarUri}
+        />
+        <div className="grid gap-4 p-6 md:grid-cols-3 md:p-8">
+          <ProfileStatCard icon={Users} label="Instructores" value={instructorCount} accent="success" />
+          <ProfileStatCard icon={BookOpen} label="Clases activas" value={gymClasses.length} />
+          <ProfileStatCard
+            icon={MapPin}
+            label="Ubicación"
+            value={city || '—'}
+            accent="warning"
           />
-          {isEditing ? (
-            <div className="space-y-4 w-full md:w-auto">
-              <Input label="Nombre del gimnasio" value={name} onChange={(e) => setName(e.target.value)} />
-              <Input label={GENERAL_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-          ) : (
-            <div className="space-y-1">
-              <p className="text-2xl font-extrabold">{user?.institutionProfile?.name}</p>
-              <p className="text-base text-[var(--fn-text-muted)]">{user?.email}</p>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-6 mb-8">
-          {/* Photo Gallery */}
-          <div className="rounded-2xl border border-[var(--fn-border)] p-6">
-            <h2 className="mb-4 text-lg font-bold">{PROFILE_MENU_LABELS.photoGallery}</h2>
-            <PhotoGallery
-              images={isEditing ? tempGallery : (user?.institutionProfile?.gallery ?? [])}
-              editable={isEditing}
-              onAddImage={(uri) =>
-                setTempGallery([...tempGallery, uri])
-              }
-              onRemoveImage={(idx) =>
-                setTempGallery(tempGallery.filter((_, i) => i !== idx))
-              }
-            />
-          </div>
-
-          {/* Menu Items */}
-          {!isEditing && (
-            <div className="rounded-2xl border border-[var(--fn-border)] overflow-hidden">
-              <ProfileMenuItem href="/gym/profile/plan" label={PROFILE_MENU_LABELS.planCommission} />
-              
-              <div className="p-6 border-t border-[var(--fn-border)]">
-                {!isChangingPassword ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsChangingPassword(true)}
-                    className="font-semibold text-[var(--fn-primary)] transition hover:opacity-80"
-                  >
-                    {GENERAL_LABELS.changePassword}
-                  </button>
-                ) : (
-                  <div className="space-y-4">
-                    <Input 
-                      label={GENERAL_LABELS.currentPassword} 
-                      type="password" 
-                      value={currentPassword} 
-                      onChange={(e) => setCurrentPassword(e.target.value)} 
-                    />
-                    <Input 
-                      label={GENERAL_LABELS.newPassword} 
-                      type="password" 
-                      value={newPassword} 
-                      onChange={(e) => setNewPassword(e.target.value)} 
-                    />
-                    <Input 
-                      label={GENERAL_LABELS.confirmNewPassword} 
-                      type="password" 
-                      value={confirmPassword} 
-                      onChange={(e) => setConfirmPassword(e.target.value)} 
-                    />
-                    {passwordError && (
-                      <p className="text-sm text-red-500">{passwordError}</p>
-                    )}
-                    {passwordSuccess && (
-                      <p className="text-sm text-blue-500">{passwordSuccess}</p>
-                    )}
-                    <div className="flex gap-3">
-                      <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancelPasswordChange} />
-                      <Button title={GENERAL_LABELS.changePassword} onClick={handleChangePassword} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-3">
-          {!isEditing ? (
-            <Button
-              title={GENERAL_LABELS.change}
-              onClick={() => setIsEditing(true)}
-              className="flex-1 bg-[var(--fn-primary)] text-white py-3 text-lg"
-            />
-          ) : (
-            <>
-              <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancel} className="flex-1 py-3 text-lg" />
-              <Button
-                title={GENERAL_LABELS.saveChange}
-                onClick={handleSave}
-                className="flex-1 bg-[var(--fn-primary)] text-white py-3 text-lg"
-              />
-            </>
-          )}
         </div>
       </div>
+
+      <ProfileEditFields visible={isEditing}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Input label="Nombre del gimnasio" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input label="Dirección" value={address} onChange={(e) => setAddress(e.target.value)} />
+          <Input label="Ciudad" value={city} onChange={(e) => setCity(e.target.value)} />
+          <Input
+            label="Descripción"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="md:col-span-2"
+          />
+        </div>
+      </ProfileEditFields>
+
+      <div
+        className={toggleVisible(
+          !isEditing && !!institutionProfile?.description,
+          'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6',
+        )}
+      >
+        <h3 className="mb-2 text-lg font-bold">Sobre el gimnasio</h3>
+        <p className="text-sm leading-relaxed text-[var(--fn-text-muted)]">{institutionProfile?.description}</p>
+        <p className={toggleVisible(!!(institutionProfile?.address || institutionProfile?.city), 'mt-3 flex items-center gap-2 text-sm text-[var(--fn-text-secondary)]')}>
+          <MapPin size={16} className="text-[var(--fn-primary)]" />
+          {[institutionProfile?.address, institutionProfile?.city, institutionProfile?.country]
+            .filter(Boolean)
+            .join(', ')}
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
+          <Image size={20} className="text-[var(--fn-primary)]" />
+          {PROFILE_PAGE_LABELS.photoGallery}
+        </h3>
+        <PhotoGallery
+          images={isEditing ? gallery : (institutionProfile?.gallery ?? [])}
+          editable={isEditing}
+          onAddImage={(uri) => setGallery([...gallery, uri])}
+          onRemoveImage={(idx) => setGallery(gallery.filter((_, i) => i !== idx))}
+        />
+        <p className={toggleVisible(isEditing, 'mt-3 text-xs text-[var(--fn-text-muted)]')}>
+          Los cambios de galería se guardan al pulsar &quot;Guardar cambios&quot; en el encabezado.
+        </p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ProfileQuickLinks links={quickLinks} />
+        <ProfileSettingsCard
+          title={PROFILE_PAGE_LABELS.notificationsTitle}
+          subtitle={PROFILE_PAGE_LABELS.notificationsSubtitle}
+          href="/gym/profile/notifications"
+          buttonLabel={DROPDOWN_LABELS.settings}
+          icon={Bell}
+        />
+      </div>
+
+      <ProfilePasswordPanel />
     </div>
   );
 }
