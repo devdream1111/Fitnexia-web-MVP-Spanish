@@ -100,7 +100,7 @@ function AuthBrandPanel({ variant }: { variant: 'login' | 'register' }) {
       <div className="fn-auth-brand-overlay" />
       <div className="relative z-10 flex h-full flex-col justify-between p-6 lg:p-8">
         <div>
-          <Logo size="md" className="!mx-0 mb-6 brightness-0 invert" />
+          <Logo href="/" size="md" className="!mx-0 mb-6 brightness-0 invert" />
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90">
             <Sparkles size={14} />
             Marketplace fitness
@@ -158,7 +158,7 @@ export function AuthShell({
             />
             <div className="fn-auth-brand-overlay" />
             <div className="relative z-10">
-              <Logo size="md" className="!mx-0 mb-3 brightness-0 invert" />
+              <Logo href="/" size="md" className="!mx-0 mb-3 brightness-0 invert" />
               <h2 className="text-xl font-extrabold text-white">
                 {variant === 'login'
                   ? 'Tu plataforma fitness en España'

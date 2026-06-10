@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { RoleShell } from '@/components/layout/role-shell';
+import { AdminShell } from '@/components/layout/admin-shell';
 import { AdminProvider } from '@/contexts/admin-context';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -44,7 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AdminProvider>
       <AdminGuard>
-        <RoleShell>{children}</RoleShell>
+        <AdminShell>{children}</AdminShell>
       </AdminGuard>
     </AdminProvider>
   );

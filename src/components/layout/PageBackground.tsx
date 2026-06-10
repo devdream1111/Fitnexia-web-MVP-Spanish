@@ -9,18 +9,21 @@ export function PageBackground({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isDark } = useAppTheme();
   const isAuthRoute = pathname.startsWith('/auth');
+  const isAdminRoute = pathname.startsWith('/admin');
   const isLanding = pathname === '/';
+  const showPageBackground = !isAuthRoute && !isLanding && !isAdminRoute;
+  const showFooter = !isAuthRoute && !isAdminRoute;
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      {!isAuthRoute && !isLanding ? (
+      {showPageBackground ? (
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed opacity-10"
           style={{ backgroundImage: `url(${isDark ? PAGE_BACKGROUNDS.dark : PAGE_BACKGROUNDS.light})` }}
         />
       ) : null}
       <div className="relative z-10 flex-1">{children}</div>
-      {!isAuthRoute ? <Footer /> : null}
+      {showFooter ? <Footer /> : null}
     </div>
   );
 }

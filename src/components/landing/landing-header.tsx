@@ -23,15 +23,16 @@ export function LandingHeader() {
   return (
     <header className={`fn-landing-header${scrolled ? ' fn-landing-header--solid' : ''}`}>
       <div className="fn-layout-shell flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Logo
+            href="/"
             size="md"
             className={scrolled ? '' : 'brightness-0 invert drop-shadow-md'}
           />
           {!scrolled ? (
             <span className="hidden fn-uy-header-badge sm:inline">{LANDING_LABELS.badge}</span>
           ) : null}
-        </Link>
+        </div>
 
         <nav className="hidden items-center gap-5 lg:flex" aria-label="Principal">
           <a href="#que-es" className="fn-landing-nav-link">

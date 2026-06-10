@@ -56,24 +56,21 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 border-b border-[var(--fn-border)] bg-[var(--fn-surface)]">
-        <div className="fn-layout-shell flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center">
-            <Logo size="md" />
-          </Link>
-          <button
-            type="button"
-            onClick={toggleDarkMode}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--fn-surface-muted)] text-[var(--fn-text-muted)] transition hover:bg-[var(--fn-border)]"
-          >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
-      </header>
+    <div className="relative flex min-h-screen flex-col">
+      <button
+        type="button"
+        onClick={toggleDarkMode}
+        className="fn-auth-theme-toggle"
+        aria-label="Cambiar tema"
+      >
+        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
 
       <main className="flex flex-1 flex-col px-6 py-12 md:py-16">
         <div className="fn-layout-form">
+          <div className="mb-8 flex justify-center">
+            <Logo href="/" size="md" />
+          </div>
           <div className="text-center">
             <h1 className="text-3xl font-extrabold md:text-4xl">{ADMIN_LABELS.login.title}</h1>
             <p className="mt-3 text-lg text-[var(--fn-text-muted)]">{ADMIN_LABELS.login.subtitle}</p>
