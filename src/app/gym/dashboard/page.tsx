@@ -1,6 +1,16 @@
 'use client';
 
+import { CalendarCheck, DollarSign, Users } from 'lucide-react';
+
 import { ClassCard } from '@/components/class-card';
+import {
+  DashboardClassGrid,
+  DashboardHero,
+  DashboardPage,
+  DashboardSection,
+  DashboardStatCard,
+  DASHBOARD_GRADIENTS,
+} from '@/components/dashboard/dashboard-ui';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { computeGymDashboardStats, resolveInstitutionId } from '@/utils/gym-classes';
@@ -15,33 +25,41 @@ export default function GymDashboardPage() {
   const gymClasses = classes.filter((c) => c.institution?.id === institutionId).slice(0, 4);
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="text-sm text-[var(--fn-text-muted)]">{user?.institutionProfile?.name ?? 'Gym'}</p>
-        <h1 className="text-3xl font-extrabold md:text-4xl">{GYM_LABELS.dashboard.controlPanel}</h1>
+    <DashboardPage>
+      <DashboardHero
+        gradient={DASHBOARD_GRADIENTS.gym}
+        eyebrow={user?.institutionProfile?.name ?? 'Gym'}
+        title={GYM_LABELS.dashboard.controlPanel}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <DashboardStatCard
+          label={GYM_LABELS.dashboard.bookingsToday}
+          value={String(stats.todayBookings)}
+          icon={CalendarCheck}
+          accent="primary"
+        />
+        <DashboardStatCard
+          label={GYM_LABELS.dashboard.revenue}
+          value={formatRevenueCompact(stats.weekRevenueCents)}
+          icon={DollarSign}
+          accent="emerald"
+        />
+        <DashboardStatCard
+          label={GYM_LABELS.dashboard.occupancy}
+          value={formatAttendanceRate(stats.occupancyRate)}
+          icon={Users}
+          accent="violet"
+        />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Stat label={GYM_LABELS.dashboard.bookingsToday} value={String(stats.todayBookings)} />
-        <Stat label={GYM_LABELS.dashboard.revenue} value={formatRevenueCompact(stats.weekRevenueCents)} />
-        <Stat label={GYM_LABELS.dashboard.occupancy} value={formatAttendanceRate(stats.occupancyRate)} />
-      </div>
-
-      <h2 className="mt-10 mb-4 text-lg font-bold md:text-xl">{GYM_LABELS.dashboard.upcomingClasses}</h2>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {gymClasses.map((c) => (
-          <ClassCard key={c.id} item={c} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-[var(--fn-surface)] p-6 shadow-sm">
-      <p className="text-sm text-[var(--fn-text-muted)]">{label}</p>
-      <p className="text-3xl font-extrabold mt-2">{value}</p>
-    </div>
+      <DashboardSection title={GYM_LABELS.dashboard.upcomingClasses}>
+        <DashboardClassGrid>
+          {gymClasses.map((c) => (
+            <ClassCard key={c.id} item={c} />
+          ))}
+        </DashboardClassGrid>
+      </DashboardSection>
+    </DashboardPage>
   );
 }

@@ -1157,3 +1157,75 @@ body {
   color: var(--fn-text-muted);
 }
 
+/* Role dashboards (athlete / instructor / gym) */
+@keyframes fn-dashboard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fn-dashboard-page > * {
+  animation: fn-dashboard-rise 0.45s ease-out both;
+}
+
+.fn-dashboard-page > *:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.fn-dashboard-page > *:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.fn-dashboard-page > *:nth-child(4) {
+  animation-delay: 0.18s;
+}
+
+.fn-dashboard-hero {
+  box-shadow: 0 20px 50px rgb(37 99 235 / 22%);
+}
+
+.fn-dashboard-search {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--fn-border);
+  background: var(--fn-surface);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 20px rgb(15 23 42 / 6%);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.fn-dashboard-search:hover {
+  border-color: color-mix(in srgb, var(--fn-primary) 35%, var(--fn-border));
+  box-shadow: 0 8px 28px rgb(37 99 235 / 12%);
+  transform: translateY(-1px);
+}
+
+.fn-class-card-thumb {
+  background: linear-gradient(135deg, var(--fn-primary) 0%, #1d4ed8 55%, #312e81 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 20%);
+}
+
+.fn-class-card:focus-visible {
+  outline: 2px solid var(--fn-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fn-dashboard-page > * {
+    animation: none;
+  }
+
+  .fn-dashboard-search:hover,
+  .fn-dashboard-stat:hover,
+  .fn-class-card:hover {
+    transform: none;
+  }
+}
+

@@ -27,7 +27,7 @@ import type { UserRole } from '@/types/api';
 const BRAND_FEATURES = [
   { icon: CalendarCheck, text: 'Reserva clases presenciales y online al instante' },
   { icon: MapPin, text: 'Explora instructores y gimnasios cerca de ti' },
-  { icon: Users, text: 'Una plataforma para atletas, coaches y centros' },
+  { icon: Users, text: 'Una plataforma para atletas, instructores y centros' },
 ] as const;
 
 const BRAND_STATS = [

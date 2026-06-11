@@ -19,13 +19,13 @@ function ClassCardInner({ item, compact, showEdit, editHref }: {
   const full = item.spotsLeft === 0;
 
   const content = (
-    <div className="flex flex-col gap-4 rounded-2xl bg-[var(--fn-surface)] p-6 transition-all md:flex-row">
-      <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] md:w-28">
-        <Dumbbell size={36} className="text-[var(--fn-primary)]" />
+    <div className="fn-class-card-inner flex flex-col gap-4 p-5 md:flex-row md:p-6">
+      <div className="fn-class-card-thumb flex h-28 w-full shrink-0 items-center justify-center rounded-2xl md:w-28">
+        <Dumbbell size={36} className="text-white drop-shadow-sm" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-lg font-bold text-[var(--fn-text)] truncate">{item.title}</h3>
+          <h3 className="truncate text-lg font-bold text-[var(--fn-text)]">{item.title}</h3>
           <div className="flex items-center gap-2 shrink-0">
             {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
             {showEdit && editHref ? (
@@ -60,13 +60,18 @@ function ClassCardInner({ item, compact, showEdit, editHref }: {
   );
 
   if (showEdit) {
-    return content;
+    return (
+      <div className="fn-class-card overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+        {content}
+      </div>
+    );
   }
 
   return (
     <Link
       href={`/class/${item.id}`}
-      className={`transition-all ${compact ? 'mb-2' : ''}`}>
+      className={`fn-class-card block overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--fn-primary)]/30 hover:shadow-lg ${compact ? 'mb-2' : ''}`}
+    >
       {content}
     </Link>
   );

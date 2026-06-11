@@ -10,12 +10,21 @@ export const metadata: Metadata = {
   description: 'Marketplace connecting athletes, instructors, and gyms',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+  modal,
+}: {
+  children: React.ReactNode;
+  modal: React.ReactNode;
+}) {
   return (
     <html lang="es" suppressHydrationWarning>
       <body className="antialiased">
         <AppProviders>
-          <PageBackground>{children}</PageBackground>
+          <PageBackground>
+            {children}
+            {modal}
+          </PageBackground>
         </AppProviders>
       </body>
     </html>
