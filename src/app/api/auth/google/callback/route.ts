@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     if (stored.mode === 'register' && stored.role) {
       body.role = stored.role;
       if (stored.institutionName) body.institutionName = stored.institutionName;
-    }
+    } 
 
     const authRes = await fetch(`${apiBase}/auth/oauth/google`, {
       method: 'POST',
