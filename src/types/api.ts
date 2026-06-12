@@ -289,4 +289,6 @@ export interface HomeFeed {
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ??
   process.env.EXPO_PUBLIC_API_URL ??
-  'http://localhost:3001/v1';
+  'https://svganchordev.net/fitnexia-api/v1';
+
+  // 'http://localhost:3001/v1';
