@@ -21,7 +21,8 @@ import {
 import { useClasses } from '@/contexts/classes-context';
 import { useAdmin } from '@/contexts/admin-context';
 import { useReviews } from '@/contexts/reviews-context';
-import { MOCK_BOOKINGS, MOCK_PAYMENTS, formatMoney } from '@/data/mock';
+import { MOCK_BOOKINGS, MOCK_PAYMENTS } from '@/data/mock';
+import { formatMoney } from '@/utils/format';
 import { ADMIN_LABELS, ROLE_TITLES, TAB_LABELS } from '@/constants/labels';
 import { ClassCard } from '@/components/class-card';
 import { Button } from '@/components/ui/button';

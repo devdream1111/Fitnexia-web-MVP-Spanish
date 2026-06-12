@@ -1,5 +1,4 @@
-import type { ClassListItem } from '@/types/api';
-import { MOCK_INSTRUCTORS } from '@/data/mock';
+import type { ClassListItem, Instructor } from '@/types/api';
 import { getLinkedInstitutionId } from '@/utils/institution';
 import { isSameCalendarDay } from '@/utils/schedule';
 
@@ -17,10 +16,8 @@ export function canManageGymClass(
   return false;
 }
 
-export function getLinkedInstructors(instructorIds: string[]) {
-  return instructorIds
-    .map((id) => MOCK_INSTRUCTORS.find((i) => i.id === id))
-    .filter((i): i is (typeof MOCK_INSTRUCTORS)[number] => Boolean(i));
+export function getLinkedInstructors(instructors: Pick<Instructor, 'id' | 'displayName' | 'disciplines' | 'verified'>[]) {
+  return instructors;
 }
 
 export function computeClassBooked(cls: ClassListItem): number {

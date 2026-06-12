@@ -26,31 +26,37 @@ import type { Review } from '@/types/api';
 export function ClassDetailHeader({
   title,
   onClose,
-  compact,
+  variant = 'page',
 }: {
   title: string;
   onClose?: () => void;
-  compact?: boolean;
+  variant?: 'page' | 'modal';
 }) {
   const router = useRouter();
   const handleClose = onClose ?? (() => router.back());
+  const isModal = variant === 'modal';
 
   return (
     <header
-      className={`sticky top-0 z-30 border-b border-[var(--fn-border)] bg-[var(--fn-surface)]/95 backdrop-blur-md ${
-        compact ? 'px-4 py-3' : '-mx-4 px-4 py-3 sm:-mx-6 sm:px-6'
+      className={`sticky top-0 z-30 shrink-0 border-b border-[var(--fn-border)] bg-[var(--fn-surface)]/95 backdrop-blur-md ${
+        isModal ? 'px-6 py-4 md:px-8' : '-mx-4 px-4 py-3 sm:-mx-6 sm:px-6'
       }`}
     >
-      <div className="flex items-center gap-3">
+      <div className={`flex min-w-0 items-center gap-4 ${isModal ? 'justify-between' : 'gap-3'}`}>
         <button
           type="button"
           onClick={handleClose}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] text-[var(--fn-text-muted)] transition hover:border-[var(--fn-primary)] hover:text-[var(--fn-text)]"
           aria-label="Cerrar"
         >
-          {compact ? <X size={20} /> : <ArrowLeft size={20} />}
+          {isModal ? <X size={20} /> : <ArrowLeft size={20} />}
         </button>
-        <h1 id="class-detail-title" className="min-w-0 flex-1 truncate text-lg font-bold text-[var(--fn-text)]">
+        <h1
+          id="class-detail-title"
+          className={`min-w-0 truncate font-bold text-[var(--fn-text)] ${
+            isModal ? 'max-w-[min(70%,20rem)] text-right text-base sm:text-lg' : 'flex-1 text-lg'
+          }`}
+        >
           {title}
         </h1>
       </div>
@@ -89,14 +95,14 @@ export function ClassDetailFact({
       </div>
       <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">{label}</p>
-        <p className="mt-1 text-sm font-semibold leading-snug text-[var(--fn-text)] sm:text-base">{value}</p>
+        <p className="mt-1 break-words text-sm font-semibold leading-snug text-[var(--fn-text)] sm:text-base">{value}</p>
       </div>
     </div>
   );
 }
 
 export function ClassDetailFactGrid({ children }: { children: ReactNode }) {
-  return <div className="grid gap-3 sm:grid-cols-2">{children}</div>;
+  return <div className="grid min-w-0 gap-3 sm:grid-cols-2">{children}</div>;
 }
 
 export function ClassDetailInstructorCard({
@@ -105,12 +111,14 @@ export function ClassDetailInstructorCard({
   verified,
   rating,
   viewProfileLabel,
+  showProfileLink = true,
 }: {
   href: string;
   name: string;
   verified?: boolean;
   rating?: number;
   viewProfileLabel: string;
+  showProfileLink?: boolean;
 }) {
   const initials = name
     .split(' ')
@@ -119,11 +127,8 @@ export function ClassDetailInstructorCard({
     .slice(0, 2)
     .toUpperCase();
 
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-4 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 transition hover:border-[var(--fn-primary)]/40"
-    >
+  const inner = (
+    <>
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--fn-primary-muted)] text-sm font-bold text-[var(--fn-primary)]">
         {initials || <UserRound size={20} />}
       </div>
@@ -139,12 +144,27 @@ export function ClassDetailInstructorCard({
           ) : null}
         </div>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-semibold text-[var(--fn-primary)]">
-        {viewProfileLabel}
-        <ChevronRight size={16} />
-      </span>
-    </Link>
+      {showProfileLink ? (
+        <span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-semibold text-[var(--fn-primary)]">
+          {viewProfileLabel}
+          <ChevronRight size={16} />
+        </span>
+      ) : null}
+    </>
   );
+
+  const className =
+    'flex items-center gap-4 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 transition';
+
+  if (showProfileLink) {
+    return (
+      <Link href={href} className={`${className} hover:border-[var(--fn-primary)]/40`}>
+        {inner}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{inner}</div>;
 }
 
 export function ClassDetailSection({
@@ -217,6 +237,8 @@ export function ClassDetailBookingPanel({
   fullLabel,
   onBook,
   onWaitlist,
+  compact,
+  showActions = true,
 }: {
   price: string;
   spotsLabel?: string;
@@ -227,9 +249,15 @@ export function ClassDetailBookingPanel({
   fullLabel: string;
   onBook: () => void;
   onWaitlist: () => void;
+  compact?: boolean;
+  showActions?: boolean;
 }) {
   return (
-    <aside className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 lg:sticky lg:top-20">
+    <aside
+      className={`rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] ${
+        compact ? 'p-5' : 'p-6 lg:sticky lg:top-20'
+      }`}
+    >
       <div className="space-y-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">Precio</p>
@@ -241,18 +269,33 @@ export function ClassDetailBookingPanel({
             <p className="text-sm font-medium text-[var(--fn-text-secondary)]">{spotsLabel}</p>
           </div>
         ) : null}
-        <div className="pt-1">
-          {full ? (
-            waitlistEnabled ? (
-              <Button title={waitlistLabel} variant="secondary" className="w-full" onClick={onWaitlist} />
+        {showActions ? (
+          <div className="pt-1">
+            {full ? (
+              waitlistEnabled ? (
+                <Button title={waitlistLabel} variant="secondary" className="w-full" onClick={onWaitlist} />
+              ) : (
+                <Button title={fullLabel} disabled className="w-full" />
+              )
             ) : (
-              <Button title={fullLabel} disabled className="w-full" />
-            )
-          ) : (
-            <Button title={bookLabel} className="w-full" onClick={onBook} />
-          )}
-        </div>
+              <Button title={bookLabel} className="w-full" onClick={onBook} />
+            )}
+          </div>
+        ) : null}
       </div>
+    </aside>
+  );
+}
+
+export function ClassDetailPricePanel({ price, compact }: { price: string; compact?: boolean }) {
+  return (
+    <aside
+      className={`rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] ${
+        compact ? 'p-5' : 'p-6'
+      }`}
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">Precio</p>
+      <p className="mt-1 text-3xl font-extrabold text-[var(--fn-primary)]">{price}</p>
     </aside>
   );
 }

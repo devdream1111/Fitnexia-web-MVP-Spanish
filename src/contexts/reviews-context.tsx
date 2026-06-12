@@ -2,135 +2,170 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
+import {
+  apiCreateReview,
+  apiCreateStaffReview,
+  apiGetInstructorReviews,
+  apiGetStaffReviews,
+  type ApiReview,
+  type StaffReviewRecord,
+} from '@/services/api';
 import type { Review, StaffReview } from '@/types/api';
-import { 
-  addReview as addReviewMock,
-  MOCK_REVIEWS 
-} from '@/data/mock';
-
-const INITIAL_STAFF_REVIEWS: StaffReview[] = [
-  {
-    id: 'sr-1',
-    instructorId: 'inst-2',
-    institutionId: 'gym-1',
-    institutionName: 'FitHub Downtown',
-    rating: 5,
-    comment: 'Excellent group sessions. Always prepared and professional.',
-    createdAt: '2026-05-15T10:00:00Z',
-    verified: true,
-  },
-];
 
 interface ReviewsContextValue {
-  reviews: Review[];
-  staffReviews: StaffReview[];
-  getReviewsForClass: (classId: string) => Review[];
+  reviewsByInstructor: Record<string, ApiReview[]>;
+  staffReviewsByInstructor: Record<string, StaffReview[]>;
+  loading: boolean;
+  fetchInstructorReviews: (instructorId: string) => Promise<ApiReview[]>;
+  fetchStaffReviews: (instructorId: string) => Promise<StaffReview[]>;
+  getReviewsForClass: (classId: string, instructorId: string) => Review[];
   getReviewsForInstructor: (instructorId: string) => Review[];
-  addReview: (review: Omit<Review, 'id' | 'createdAt' | 'verified'>) => Review;
-  removeReview: (id: string) => void;
+  addReview: (body: { bookingId: string; rating: number; comment?: string }) => Promise<void>;
   getStaffReviewsForInstructor: (instructorId: string) => StaffReview[];
-  getGymReviewForInstructor: (institutionId: string, instructorId: string) => StaffReview | undefined;
-  canGymReviewInstructor: (
-    institutionId: string,
-    instructorId: string,
-    linkedInstructorIds: string[],
-  ) => boolean;
-  addStaffReview: (review: Omit<StaffReview, 'id' | 'verified' | 'createdAt'>) => StaffReview;
+  addStaffReview: (body: {
+    instructorId: string;
+    institutionId: string;
+    institutionName: string;
+    rating: number;
+    comment?: string;
+  }) => Promise<void>;
+  removeReview: (id: string) => void;
 }
 
 const ReviewsContext = createContext<ReviewsContextValue | null>(null);
 
-export function ReviewsProvider({ children }: { children: React.ReactNode }) {
-  const [reviews, setReviews] = useState<Review[]>(MOCK_REVIEWS);
-  const [staffReviews, setStaffReviews] = useState<StaffReview[]>(INITIAL_STAFF_REVIEWS);
+function mapApiReview(r: ApiReview, instructorId: string): Review {
+  return {
+    id: r.id,
+    classId: '',
+    instructorId,
+    userId: '',
+    rating: r.rating,
+    comment: r.comment,
+    authorName: r.authorName,
+    createdAt: r.createdAt,
+    verified: true,
+  };
+}
 
-  const getReviewsForClass = useCallback(
-    (classId: string) => reviews.filter((r) => r.classId === classId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [reviews],
-  );
+function mapStaffReview(r: StaffReviewRecord): StaffReview {
+  return {
+    id: r.id,
+    instructorId: r.instructorId,
+    institutionId: r.institutionId,
+    institutionName: r.institutionName,
+    rating: r.rating,
+    comment: r.comment,
+    createdAt: r.createdAt,
+    verified: true,
+  };
+}
+
+export function ReviewsProvider({ children }: { children: React.ReactNode }) {
+  const [reviewsByInstructor, setReviewsByInstructor] = useState<Record<string, ApiReview[]>>({});
+  const [staffReviewsByInstructor, setStaffReviewsByInstructor] = useState<
+    Record<string, StaffReview[]>
+  >({});
+  const [loading, setLoading] = useState(false);
+
+  const fetchInstructorReviews = useCallback(async (instructorId: string) => {
+    setLoading(true);
+    try {
+      const { data } = await apiGetInstructorReviews(instructorId);
+      setReviewsByInstructor((prev) => ({ ...prev, [instructorId]: data }));
+      return data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchStaffReviews = useCallback(async (instructorId: string) => {
+    setLoading(true);
+    try {
+      const { data } = await apiGetStaffReviews(instructorId);
+      const mapped = data.map(mapStaffReview);
+      setStaffReviewsByInstructor((prev) => ({ ...prev, [instructorId]: mapped }));
+      return mapped;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const getReviewsForInstructor = useCallback(
-    (instructorId: string) => reviews.filter((r) => r.instructorId === instructorId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [reviews],
+    (instructorId: string) =>
+      (reviewsByInstructor[instructorId] ?? []).map((r) => mapApiReview(r, instructorId)),
+    [reviewsByInstructor],
+  );
+
+  const getReviewsForClass = useCallback(
+    (_classId: string, instructorId: string) => getReviewsForInstructor(instructorId),
+    [getReviewsForInstructor],
+  );
+
+  const getStaffReviewsForInstructor = useCallback(
+    (instructorId: string) => staffReviewsByInstructor[instructorId] ?? [],
+    [staffReviewsByInstructor],
   );
 
   const addReview = useCallback(
-    (input: Omit<Review, 'id' | 'createdAt' | 'verified'>) => {
-      const created = addReviewMock(input);
-      setReviews((prev) => [...prev, created]);
-      return created;
+    async (body: { bookingId: string; rating: number; comment?: string }) => {
+      await apiCreateReview(body);
     },
     [],
-  );
-
-  const removeReview = useCallback((id: string) => {
-    setReviews((prev) => prev.filter((r) => r.id !== id));
-  }, []);
-
-  const getStaffReviewsForInstructor = useCallback(
-    (instructorId: string) =>
-      staffReviews.filter((r) => r.instructorId === instructorId).sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ),
-    [staffReviews],
-  );
-
-  const getGymReviewForInstructor = useCallback(
-    (institutionId: string, instructorId: string) =>
-      staffReviews.find(
-        (r) => r.institutionId === institutionId && r.instructorId === instructorId,
-      ),
-    [staffReviews],
-  );
-
-  const canGymReviewInstructor = useCallback(
-    (institutionId: string, instructorId: string, linkedInstructorIds: string[]) => {
-      if (!linkedInstructorIds.includes(instructorId)) return false;
-      return !staffReviews.some(
-        (r) => r.institutionId === institutionId && r.instructorId === instructorId,
-      );
-    },
-    [staffReviews],
   );
 
   const addStaffReview = useCallback(
-    (input: Omit<StaffReview, 'id' | 'verified' | 'createdAt'>) => {
-      const created: StaffReview = {
-        ...input,
-        id: `sr-${Date.now()}`,
-        verified: true,
-        createdAt: new Date().toISOString(),
-      };
-      setStaffReviews((prev) => [...prev, created]);
-      return created;
+    async (body: {
+      instructorId: string;
+      institutionId: string;
+      institutionName: string;
+      rating: number;
+      comment?: string;
+    }) => {
+      const created = await apiCreateStaffReview({
+        instructorId: body.instructorId,
+        rating: body.rating,
+        comment: body.comment,
+      });
+      const mapped = mapStaffReview(created);
+      setStaffReviewsByInstructor((prev) => ({
+        ...prev,
+        [body.instructorId]: [...(prev[body.instructorId] ?? []), mapped],
+      }));
     },
     [],
   );
 
+  const removeReview = useCallback((_id: string) => {
+    // Admin-only mock moderation — no backend endpoint for athletes
+  }, []);
+
   const value = useMemo(
     () => ({
-      reviews,
-      staffReviews,
+      reviewsByInstructor,
+      staffReviewsByInstructor,
+      loading,
+      fetchInstructorReviews,
+      fetchStaffReviews,
       getReviewsForClass,
       getReviewsForInstructor,
       addReview,
-      removeReview,
       getStaffReviewsForInstructor,
-      getGymReviewForInstructor,
-      canGymReviewInstructor,
       addStaffReview,
+      removeReview,
     }),
     [
-      reviews,
-      staffReviews,
+      reviewsByInstructor,
+      staffReviewsByInstructor,
+      loading,
+      fetchInstructorReviews,
+      fetchStaffReviews,
       getReviewsForClass,
       getReviewsForInstructor,
       addReview,
-      removeReview,
       getStaffReviewsForInstructor,
-      getGymReviewForInstructor,
-      canGymReviewInstructor,
       addStaffReview,
+      removeReview,
     ],
   );
 

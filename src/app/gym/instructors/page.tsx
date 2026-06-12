@@ -1,42 +1,148 @@
 'use client';
 
-import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
+import { GymStaffCard, GymStaffGrid, GymStaffHero } from '@/components/gym/gym-staff-ui';
 import { useAuth } from '@/contexts/auth-context';
-import { BADGE_LABELS, GYM_LABELS, GENERAL_LABELS } from '@/constants/labels';
-import { MOCK_INSTRUCTORS } from '@/data/mock';
-import { resolveInstitutionId } from '@/utils/gym-classes';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
+import {
+  apiCancelInstructorInvite,
+  apiGetStaffRoster,
+  apiInviteInstructor,
+  apiUnlinkInstructor,
+  type StaffRosterItem,
+} from '@/services/api';
+import { ApiClientError } from '@/services/api-client';
+import { ALERT_LABELS, GENERAL_LABELS, GYM_LABELS } from '@/constants/labels';
 
 export default function GymInstructorsPage() {
   const { user } = useAuth();
-  const institutionId = resolveInstitutionId(user);
-  const linkedIds = user?.institutionProfile?.instructorIds ?? [];
-  const staff = MOCK_INSTRUCTORS.filter((i) => linkedIds.includes(i.id));
+  const { showNotice } = useNoticeModal();
+  const [roster, setRoster] = useState<StaffRosterItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const loadRoster = useCallback(async () => {
+    if (user?.role !== 'institution') return;
+    setLoading(true);
+    try {
+      const res = await apiGetStaffRoster();
+      setRoster(res.data);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    loadRoster();
+  }, [loadRoster]);
+
+  const linkedCount = useMemo(
+    () => roster.filter((r) => r.staffStatus === 'linked').length,
+    [roster],
+  );
+  const pendingCount = useMemo(
+    () => roster.filter((r) => r.staffStatus === 'pending').length,
+    [roster],
+  );
+
+  const handleAdd = async (instructorId: string) => {
+    setBusyId(instructorId);
+    try {
+      await apiInviteInstructor({ instructorId });
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: GYM_LABELS.instructors.inviteSent,
+        variant: 'success',
+      });
+      await loadRoster();
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.code === 'INVITE_EXISTS'
+            ? GYM_LABELS.instructors.alreadyPending
+            : error.code === 'ALREADY_LINKED'
+              ? GYM_LABELS.instructors.alreadyLinked
+              : error.message
+          : 'No se pudo enviar la solicitud';
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message,
+        variant: 'error',
+      });
+      await loadRoster();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleUnlink = async (instructorId: string) => {
+    if (!window.confirm(GYM_LABELS.instructors.unlinkConfirm)) return;
+    setBusyId(instructorId);
+    try {
+      await apiUnlinkInstructor(instructorId);
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: GYM_LABELS.instructors.removedFromStaff,
+        variant: 'success',
+      });
+      await loadRoster();
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: error instanceof ApiClientError ? error.message : 'No se pudo quitar al instructor',
+        variant: 'error',
+      });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleCancelInvite = async (inviteId: string) => {
+    setBusyId(inviteId);
+    try {
+      await apiCancelInstructorInvite(inviteId);
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: GYM_LABELS.instructors.inviteCancelled,
+        variant: 'success',
+      });
+      await loadRoster();
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: error instanceof ApiClientError ? error.message : 'No se pudo cancelar la solicitud',
+        variant: 'error',
+      });
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return (
-    <div>
-      <div className="mb-6 flex justify-between">
-        <h1 className="text-3xl font-extrabold">{GYM_LABELS.instructors.yourInstructors}</h1>
-        <Link href="/gym/profile/invite-instructor" className="text-sm font-semibold text-[var(--fn-primary)]">
-          {GYM_LABELS.instructors.inviteInstructor} +
-        </Link>
-      </div>
-      {staff.map((i) => (
-        <div
-          key={i.id}
-          className="mb-3 flex items-center justify-between rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
-          <div>
-            <p className="font-bold">{i.displayName}</p>
-            <p className="text-sm text-[var(--fn-text-muted)]">{i.disciplines.join(', ')}</p>
-            {i.verified ? <Badge label={BADGE_LABELS.verified} /> : null}
-          </div>
-          <Link href={`/gym/review-instructor/${i.id}`} className="text-sm text-[var(--fn-primary)]">
-            {GENERAL_LABELS.reviews}
-          </Link>
+    <div className="space-y-8 pb-4">
+      <GymStaffHero linked={linkedCount} pending={pendingCount} />
+
+      {loading ? (
+        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
+      ) : roster.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[var(--fn-border)] px-6 py-16 text-center">
+          <p className="text-[var(--fn-text-muted)]">{GYM_LABELS.instructors.noInstructors}</p>
         </div>
-      ))}
-      <p className="mt-4 text-xs text-[var(--fn-text-muted)]">Institución: {institutionId}</p>
+      ) : (
+        <GymStaffGrid>
+          {roster.map((item) => (
+            <GymStaffCard
+              key={item.id}
+              item={item}
+              busy={busyId === item.id || busyId === item.inviteId}
+              onAdd={handleAdd}
+              onUnlink={handleUnlink}
+              onCancelInvite={handleCancelInvite}
+            />
+          ))}
+        </GymStaffGrid>
+      )}
     </div>
   );
 }

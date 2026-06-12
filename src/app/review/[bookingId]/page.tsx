@@ -1,54 +1,77 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/page-header';
-import { getBookingById } from '@/data/mock';
 import { useClasses } from '@/contexts/classes-context';
 import { useReviews } from '@/contexts/reviews-context';
 import { useAuth } from '@/contexts/auth-context';
-import { GENERAL_LABELS } from '@/constants/labels';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
+import { apiGetReviewEligibility } from '@/services/api';
+import { formatClassDate } from '@/utils/format';
+import { ALERT_LABELS, GENERAL_LABELS } from '@/constants/labels';
+import type { ClassListItem } from '@/types/api';
 
 export default function ReviewPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const router = useRouter();
-  const { getClassById } = useClasses();
+  const { fetchClassById } = useClasses();
   const { addReview } = useReviews();
   const { user } = useAuth();
-  const booking = getBookingById(bookingId ?? '');
-  const cls = booking ? getClassById(booking.classId) : undefined;
+  const { showNotice } = useNoticeModal();
+  const [cls, setCls] = useState<ClassListItem | null>(null);
+  const [eligible, setEligible] = useState<boolean | null>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const submit = () => {
-    if (!booking || !cls || !user) return;
-    
+  useEffect(() => {
+    if (!bookingId) return;
+    apiGetReviewEligibility(bookingId).then(async (result) => {
+      setEligible(result.eligible);
+      if (!result.eligible) return;
+      const booking = await import('@/services/api').then((m) => m.apiGetBooking(bookingId));
+      const classData = await fetchClassById(booking.classId);
+      setCls(classData);
+    }).catch(() => setEligible(false));
+  }, [bookingId, fetchClassById]);
+
+  const submit = async () => {
+    if (!bookingId || !user) return;
     setSubmitting(true);
-    addReview({
-      classId: cls.id,
-      instructorId: cls.instructor.id,
-      userId: user.id,
-      authorName: `${user.firstName} ${user.lastName}`,
-      rating,
-      comment: comment || undefined,
-      response: null,
-    });
-    
-    setTimeout(() => {
-      setSubmitting(false);
-      alert(GENERAL_LABELS.reviewSubmittedAlert);
+    setError('');
+    try {
+      await addReview({ bookingId, rating, comment: comment || undefined });
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: GENERAL_LABELS.reviewSubmittedAlert,
+        variant: 'success',
+      });
       router.push('/athlete/bookings');
-    }, 500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo enviar la reseña');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (!booking || !cls) {
+  if (eligible === false) {
     return (
       <div className="fn-layout-narrow px-6 py-12">
         <PageHeader title={GENERAL_LABELS.review} showBack />
         <p>{GENERAL_LABELS.bookingNotFound}</p>
+      </div>
+    );
+  }
+
+  if (!cls) {
+    return (
+      <div className="fn-layout-narrow px-6 py-12">
+        <PageHeader title={GENERAL_LABELS.leaveAReview} showBack />
+        <p>{GENERAL_LABELS.loading}</p>
       </div>
     );
   }
@@ -65,7 +88,8 @@ export default function ReviewPage() {
             key={n}
             type="button"
             onClick={() => setRating(n)}
-            className={`text-2xl cursor-pointer transition-transform hover:scale-110 ${n <= rating ? 'opacity-100 text-yellow-500' : 'opacity-30'}`}>
+            className={`text-2xl cursor-pointer transition-transform hover:scale-110 ${n <= rating ? 'opacity-100 text-yellow-500' : 'opacity-30'}`}
+          >
             ★
           </button>
         ))}
@@ -77,6 +101,7 @@ export default function ReviewPage() {
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
+      {error ? <p className="mb-2 text-sm text-[var(--fn-error)]">{error}</p> : null}
       <Button title={GENERAL_LABELS.submitReview} onClick={submit} loading={submitting} />
     </div>
   );

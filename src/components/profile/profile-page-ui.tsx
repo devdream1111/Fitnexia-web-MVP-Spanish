@@ -231,80 +231,15 @@ export function ProfileEditFields({
 }
 
 export function ProfilePasswordPanel() {
-  const { changePassword } = useAuth();
-  const [isChanging, setIsChanging] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
-
-  const handleChangePassword = async () => {
-    setPasswordError('');
-    setPasswordSuccess('');
-    if (newPassword !== confirmPassword) {
-      setPasswordError(GENERAL_LABELS.newPasswordsDoNotMatch);
-      return;
-    }
-    try {
-      await changePassword(currentPassword, newPassword);
-      setPasswordSuccess(GENERAL_LABELS.passwordChangedSuccessfully);
-      setIsChanging(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : GENERAL_LABELS.failedToChangePassword);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsChanging(false);
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setPasswordError('');
-    setPasswordSuccess('');
-  };
-
   return (
     <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
-      <h3 className="mb-4 text-lg font-bold">{PROFILE_PAGE_LABELS.accountSecurity}</h3>
-      <div className={toggleVisible(!isChanging)}>
-        <Button variant="outline" onClick={() => setIsChanging(true)}>
-          {GENERAL_LABELS.changePassword}
-        </Button>
-      </div>
-      <div className={toggleVisible(isChanging, 'space-y-4')}>
-        <Input
-          label={GENERAL_LABELS.currentPassword}
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-        />
-        <Input
-          label={GENERAL_LABELS.newPassword}
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
-        <Input
-          label={GENERAL_LABELS.confirmNewPassword}
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
-        <p className={toggleVisible(!!passwordError, 'text-sm text-[var(--fn-error)]')}>
-          {passwordError || '\u00a0'}
-        </p>
-        <p className={toggleVisible(!!passwordSuccess, 'text-sm text-[var(--fn-success)]')}>
-          {passwordSuccess || '\u00a0'}
-        </p>
-        <div className="flex gap-3">
-          <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={handleCancel} />
-          <Button title={GENERAL_LABELS.changePassword} onClick={handleChangePassword} />
-        </div>
-      </div>
+      <h3 className="mb-2 text-lg font-bold">{PROFILE_PAGE_LABELS.accountSecurity}</h3>
+      <p className="mb-5 text-sm leading-relaxed text-[var(--fn-text-muted)]">
+        {PROFILE_PAGE_LABELS.passwordChangeViaEmail}
+      </p>
+      <Link href="/auth/forgot-password">
+        <Button variant="outline" title={PROFILE_PAGE_LABELS.resetPasswordLink} />
+      </Link>
     </div>
   );
 }

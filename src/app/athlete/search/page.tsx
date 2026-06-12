@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search as SearchIcon, MapPin, X, ChevronDown } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
@@ -17,31 +17,30 @@ const ClassMap = dynamic(() => import('@/components/map/Map').then((m) => m.Clas
 import { FilterChip } from '@/components/ui/filter-chip';
 import {
   DISCIPLINES,
-  MOCK_LOCATION_AREAS,
   PRICE_RANGES,
   SCHEDULE_FILTERS,
   type ScheduleFilter,
 } from '@/constants/fitnexia';
 import { MODALITY_LABELS, modalityBadgeLabel, GENERAL_LABELS, DISCIPLINE_LABELS } from '@/constants/labels';
+import { useFeature } from '@/hooks/use-feature';
 import { useClasses } from '@/contexts/classes-context';
+import { apiGetClassMapMarkers, type MapMarker } from '@/services/api';
 import { filterClasses, sortClassesByDate } from '@/utils/class-filters';
 import type { Modality } from '@/types/api';
 
-// Custom Dropdown Component
-const CustomDropdown = ({ 
-  value, 
-  onChange, 
-  options, 
-  placeholder 
-}: { 
-  value: string; 
-  onChange: (val: string) => void; 
+const CustomDropdown = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  value: string;
+  onChange: (val: string) => void;
   options: { value: string; label: string }[];
   placeholder: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  const selectedOption = options.find(opt => opt.value === value);
+  const selectedOption = options.find((opt) => opt.value === value);
 
   return (
     <div className="relative">
@@ -58,13 +57,10 @@ const CustomDropdown = ({
           className={`text-[var(--fn-text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
-      
+
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
           <div className="absolute top-full left-0 right-0 z-20 mt-2 max-h-60 overflow-auto rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-lg">
             {options.map((option) => (
               <button
@@ -91,7 +87,9 @@ const CustomDropdown = ({
 };
 
 export default function SearchPage() {
-  const { classes } = useClasses();
+  const { classes, searchClasses, loading } = useClasses();
+  const geolocationEnabled = useFeature('geolocationMap');
+  const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
   const [query, setQuery] = useState('');
   const [discipline, setDiscipline] = useState<string | null>(null);
   const [modality, setModality] = useState<Modality | null>(null);
@@ -101,18 +99,34 @@ export default function SearchPage() {
 
   const priceRange = PRICE_RANGES.find((p) => p.id === priceRangeId) ?? PRICE_RANGES[0];
 
+  useEffect(() => {
+    const params = {
+      q: query || undefined,
+      discipline: discipline ?? undefined,
+      modality: modality ?? undefined,
+      priceMin: priceRange.min === 0 ? undefined : priceRange.min,
+      priceMax: Number.isFinite(priceRange.max) ? priceRange.max : undefined,
+    };
+    searchClasses(params);
+    if (geolocationEnabled) {
+      apiGetClassMapMarkers(params)
+        .then((res) => setMapMarkers(res.data))
+        .catch(() => setMapMarkers([]));
+    }
+  }, [query, discipline, modality, priceRange.min, priceRange.max, searchClasses, geolocationEnabled]);
+
   const results = useMemo(() => {
     const filtered = filterClasses(classes, {
-      query,
-      discipline,
-      modality,
+      query: '',
+      discipline: null,
+      modality: null,
       location,
       schedule,
-      priceMin: priceRange.min === 0 ? null : priceRange.min,
-      priceMax: Number.isFinite(priceRange.max) ? priceRange.max : null,
+      priceMin: null,
+      priceMax: null,
     });
     return sortClassesByDate(filtered);
-  }, [classes, query, discipline, modality, location, schedule, priceRange]);
+  }, [classes, location, schedule]);
 
   const clearFilters = () => {
     setQuery('');
@@ -125,21 +139,27 @@ export default function SearchPage() {
 
   const activeFilters = useMemo(() => {
     const filters = [];
-    if (discipline) filters.push({ type: 'discipline', value: discipline, label: DISCIPLINE_LABELS[discipline as keyof typeof DISCIPLINE_LABELS] || discipline });
-    if (modality) filters.push({ type: 'modality', value: modality, label: modalityBadgeLabel(modality) });
+    if (discipline)
+      filters.push({
+        type: 'discipline',
+        value: discipline,
+        label: DISCIPLINE_LABELS[discipline as keyof typeof DISCIPLINE_LABELS] || discipline,
+      });
+    if (modality)
+      filters.push({ type: 'modality', value: modality, label: modalityBadgeLabel(modality) });
     if (location) filters.push({ type: 'location', value: location, label: location });
     if (schedule !== 'any') {
-      const sched = SCHEDULE_FILTERS.find(s => s.id === schedule);
+      const sched = SCHEDULE_FILTERS.find((s) => s.id === schedule);
       if (sched) filters.push({ type: 'schedule', value: schedule, label: sched.label });
     }
     if (priceRangeId !== 'any') {
-      const price = PRICE_RANGES.find(p => p.id === priceRangeId);
+      const price = PRICE_RANGES.find((p) => p.id === priceRangeId);
       if (price) filters.push({ type: 'price', value: priceRangeId, label: price.label });
     }
     return filters;
   }, [discipline, modality, location, schedule, priceRangeId]);
 
-  const removeFilter = (type: string, value: any) => {
+  const removeFilter = (type: string) => {
     switch (type) {
       case 'discipline':
         setDiscipline(null);
@@ -159,27 +179,27 @@ export default function SearchPage() {
     }
   };
 
-  // Prepare options for custom dropdowns
   const disciplineOptions = [
     { value: '', label: GENERAL_LABELS.discipline },
-    ...DISCIPLINES.map(d => ({ value: d, label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] || d })),
+    ...DISCIPLINES.map((d) => ({
+      value: d,
+      label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] || d,
+    })),
   ];
-  
+
   const modalityOptions = [
     { value: '', label: GENERAL_LABELS.modality },
     { value: 'in_person', label: MODALITY_LABELS.inPerson },
     { value: 'online', label: MODALITY_LABELS.online },
   ];
-  
-  const scheduleOptions = SCHEDULE_FILTERS.map(s => ({ value: s.id, label: s.label }));
-  
-  const priceOptions = PRICE_RANGES.map(p => ({ value: p.id, label: p.label }));
+
+  const scheduleOptions = SCHEDULE_FILTERS.map((s) => ({ value: s.id, label: s.label }));
+  const priceOptions = PRICE_RANGES.map((p) => ({ value: p.id, label: p.label }));
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-extrabold">{GENERAL_LABELS.search}</h1>
 
-      {/* Search and Location Inputs */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="relative">
           <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]" />
@@ -208,19 +228,9 @@ export default function SearchPage() {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
-          {location && (
-            <button
-              type="button"
-              onClick={() => setLocation('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--fn-text-muted)] hover:text-[var(--fn-text)] transition"
-            >
-              <X size={16} />
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Custom Dropdown Filters */}
       <div className="grid gap-4 md:grid-cols-4 relative z-10">
         <CustomDropdown
           value={discipline || ''}
@@ -228,21 +238,18 @@ export default function SearchPage() {
           options={disciplineOptions}
           placeholder={GENERAL_LABELS.discipline}
         />
-        
         <CustomDropdown
           value={modality || ''}
           onChange={(val) => setModality((val as Modality) || null)}
           options={modalityOptions}
           placeholder={GENERAL_LABELS.modality}
         />
-        
         <CustomDropdown
           value={schedule}
           onChange={(val) => setSchedule(val as ScheduleFilter)}
           options={scheduleOptions}
           placeholder={GENERAL_LABELS.schedule}
         />
-        
         <CustomDropdown
           value={priceRangeId}
           onChange={setPriceRangeId}
@@ -251,42 +258,32 @@ export default function SearchPage() {
         />
       </div>
 
-      {/* Active Filters */}
       {activeFilters.length > 0 && (
         <div className="flex flex-wrap items-center gap-3">
           {activeFilters.map((filter) => (
             <span
               key={`${filter.type}-${filter.value}`}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--fn-surface-muted)] px-3 py-1 text-sm text-[var(--fn-text)] transition hover:bg-[var(--fn-border)]"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--fn-surface-muted)] px-3 py-1 text-sm"
             >
               {filter.label}
-              <button
-                type="button"
-                onClick={() => removeFilter(filter.type, filter.value)}
-                className="text-[var(--fn-text-muted)] hover:text-[var(--fn-text)] transition"
-              >
+              <button type="button" onClick={() => removeFilter(filter.type)}>
                 <X size={14} />
               </button>
             </span>
           ))}
-          <div className="h-6 w-px bg-[var(--fn-border)]" />
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="text-sm font-medium text-[var(--fn-primary)] hover:opacity-80 transition"
-          >
+          <button type="button" onClick={clearFilters} className="text-sm font-medium text-[var(--fn-primary)]">
             {GENERAL_LABELS.clearFilters}
           </button>
         </div>
       )}
 
-      {/* Map */}
-      <ClassMap classes={results} />
+      {geolocationEnabled ? (
+        <ClassMap markers={mapMarkers} classes={results} />
+      ) : null}
 
-      {/* Results */}
       <div className="space-y-4">
         <p className="text-sm font-semibold text-[var(--fn-text-muted)]">
-          {results.length} {results.length === 1 ? GENERAL_LABELS.class : GENERAL_LABELS.classes}
+          {loading ? GENERAL_LABELS.loading : `${results.length} ${results.length === 1 ? GENERAL_LABELS.class : GENERAL_LABELS.classes}`}
         </p>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {results.map((c) => (

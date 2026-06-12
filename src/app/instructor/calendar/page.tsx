@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { getLinkedInstructorId } from '@/utils/instructor';
-import { formatClassDate, formatMoney } from '@/data/mock';
+import { formatClassDate, formatMoney } from '@/utils/format';
 import { INSTRUCTOR_LABELS } from '@/constants/labels';
 
 export default function InstructorCalendarPage() {
@@ -16,7 +16,8 @@ export default function InstructorCalendarPage() {
   const mine = getClassesByInstructor(getLinkedInstructorId(user));
 
   const getClassesForDate = (date: Date) => {
-    return mine.filter(c => {
+    return mine.filter((c) => {
+      if (!c?.startAt) return false;
       const cDate = new Date(c.startAt);
       return cDate.toDateString() === date.toDateString();
     });

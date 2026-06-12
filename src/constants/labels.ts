@@ -20,6 +20,16 @@ export const CLASS_CARD_LABELS = {
   spotsLeft: (count: number) => `${count} lugares disponibles`,
 } as const;
 
+export const CLASS_FORMAT_LABELS = {
+  group: 'Grupal',
+  individual: 'Privada',
+} as const;
+
+export function classFormatBadgeLabel(classFormat?: string): string {
+  if (classFormat === 'individual') return CLASS_FORMAT_LABELS.individual;
+  return CLASS_FORMAT_LABELS.group;
+}
+
 export const MODALITY_LABELS = {
   online: 'Online',
   inPerson: 'Presencial',
@@ -52,6 +62,7 @@ export const TAB_LABELS = {
     dashboard: 'Panel',
     staff: 'Personal',
     classes: 'Clases',
+    earnings: 'Ingresos',
     profile: 'Gimnasio',
   },
   admin: {
@@ -147,11 +158,17 @@ export const PROFILE_PAGE_LABELS = {
   notificationsTitle: 'Notificaciones',
   notificationsSubtitle: 'Gestiona tus preferencias de alertas y recordatorios',
   saved: 'Perfil actualizado correctamente',
+  passwordChangeViaEmail: 'Para cambiar tu contraseña, usa el enlace que te enviamos por correo.',
+  resetPasswordLink: 'Restablecer contraseña por correo',
   favoriteSports: 'Deportes favoritos',
   certifications: 'Certificaciones',
   photoGallery: 'Galería de fotos',
   availableNow: 'Disponible ahora',
   notAvailable: 'No disponible',
+  hourlyRate: 'Tarifa por hora (UYU)',
+  hourlyRateUnset: 'Sin tarifa definida',
+  bio: 'Biografía',
+  bioUnset: 'Sin biografía',
 } as const;
 
 export const PROFILE_MENU_LABELS = {
@@ -201,6 +218,9 @@ export const BUTTON_LABELS = {
   viewProfile: 'Perfil',
   confirmBooking: 'Confirmar reserva',
   payAndConfirm: 'Pagar y confirmar',
+  cancelClass: 'Cancelar clase',
+  removeFromStaff: 'Quitar del equipo',
+  cancelInvite: 'Cancelar solicitud',
 } as const;
 
 export const CLASS_DETAIL_LABELS = {
@@ -210,6 +230,7 @@ export const CLASS_DETAIL_LABELS = {
   price: 'Precio',
   spots: 'Lugares',
   about: 'Acerca de',
+  description: 'Descripción',
   locationTbd: 'Por confirmar',
   full: 'Lleno',
   fullWaitlist: 'Lleno — lista de espera disponible',
@@ -551,6 +572,7 @@ export const ONBOARDING_LABELS = {
 
 export const NOTIFICATIONS_LABELS = {
   noNotificationsYet: 'Aún no hay notificaciones.',
+  managePreferences: 'Preferencias de notificaciones',
   preferences: {
     bookingConfirmed: 'Reserva confirmada',
     classReminders: 'Recordatorios de clase',
@@ -591,16 +613,37 @@ export const INSTRUCTOR_LABELS = {
   publicProfile: {
     instructor: 'Instructor',
     notFound: 'No encontrado.',
-    disciplines: 'Disciplinas:',
+    disciplines: 'Área de especialidad',
+    expertise: 'Especialidades',
+    expertiseEmpty: 'Sin especialidades definidas.',
+    bio: 'Presentación',
+    bioEmpty: 'Este instructor aún no ha añadido una presentación.',
+    certifications: 'Certificaciones',
+    certificationsEmpty: 'Sin certificaciones publicadas.',
     from: 'Desde',
     reviews: 'Reseñas',
+    reviewsEmpty: 'Aún no hay reseñas de atletas.',
+    staffReviews: 'Reseñas del equipo',
+    staffReviewsHint: 'Valoraciones de gimnasios donde ha impartido clases.',
+    availableNow: 'Disponible ahora',
+    notAvailableNow: 'No disponible ahora',
+    profileEyebrow: 'Perfil de instructor',
   },
   classForm: {
     newClass: 'Nueva clase',
     editClass: 'Editar clase',
     className: 'Nombre de la clase',
+    description: 'Descripción',
+    descriptionPlaceholder: 'Describe la clase, nivel, qué deben traer los participantes…',
     discipline: 'Disciplina',
     modality: 'Modalidad',
+    classFormat: 'Tipo de clase',
+    basicsSection: 'Información básica',
+    basicsSectionHint: 'Nombre, disciplina y tipo de sesión.',
+    scheduleSection: 'Horario',
+    scheduleSectionHint: 'Fecha, hora y duración de la clase.',
+    pricingSection: 'Precio y cupos',
+    pricingSectionHint: 'Define el costo y cuántas personas pueden reservar.',
     date: 'Fecha (AAAA-MM-DD)',
     time: 'Hora (HH:MM)',
     duration: 'Duración (min)',
@@ -609,8 +652,8 @@ export const INSTRUCTOR_LABELS = {
     publishClass: 'Publicar clase',
     updateClass: 'Actualizar clase',
     classNameRequired: 'El nombre de la clase es obligatorio.',
-    classPublished: 'Clase publicada (simulada)',
-    classUpdated: 'Clase actualizada (simulada)',
+    classPublished: 'Clase publicada correctamente.',
+    classUpdated: 'Clase actualizada correctamente.',
   },
 } as const;
 
@@ -624,19 +667,57 @@ export const GYM_LABELS = {
   },
   classes: {
     yourClasses: 'Tus clases',
-    addClass: 'Agregar clase',
+    addClass: 'Nueva clase grupal',
+    groupOnly: 'Solo clases grupales',
+    pickInstructor: 'Instructor asignado',
+    pickInstructorHint: 'Solo instructores vinculados a tu gimnasio.',
+    noLinkedInstructors: 'Aún no tienes instructores vinculados. Agrégalos desde la página de instructores.',
+    goToInstructors: 'Ir a instructores',
   },
   instructors: {
-    yourInstructors: 'Tus instructores',
-    inviteInstructor: 'Invitar instructor',
-    instructorName: 'Nombre del instructor',
-    email: 'Correo electrónico',
-    sendInvite: 'Enviar invitación',
-    inviteSent: 'Invitación enviada (simulada)',
+    yourInstructors: 'Instructores',
+    rosterTitle: 'Directorio de instructores',
+    rosterSubtitle: 'Explora perfiles, envía solicitudes de vinculación y valora a tu equipo.',
+    addToStaff: 'Agregar',
+    pending: 'Pendiente',
+    onStaff: 'En equipo',
+    review: 'Reseñar',
+    reviewSent: 'Reseña enviada',
+    reviewLocked: 'Completa una clase con este instructor para reseñar',
+    inviteSent: 'Solicitud enviada al instructor',
+    alreadyPending: 'Ya hay una solicitud pendiente',
+    alreadyLinked: 'Este instructor ya forma parte de tu equipo',
+    linkedCount: (n: number) => `${n} en tu equipo`,
+    pendingCount: (n: number) => `${n} pendiente${n === 1 ? '' : 's'}`,
+    noInstructors: 'No hay instructores registrados en la plataforma.',
+    acceptInvite: 'Aceptar invitación',
+    inviteFromGym: 'Invitación de gimnasio',
+    inviteBody: (gym: string) => `${gym} quiere agregarte a su equipo.`,
+    inviteAccepted: 'Te has unido al gimnasio correctamente.',
+    removedFromStaff: 'Instructor eliminado del equipo.',
+    inviteCancelled: 'Solicitud cancelada.',
+    unlinkConfirm: '¿Quitar a este instructor de tu equipo?',
+  },
+  staffReview: {
+    title: 'Reseña de instructor',
+    subtitle: 'Comparte tu experiencia trabajando con este instructor en tu gimnasio.',
+    ratingLabel: 'Calificación',
+    commentLabel: 'Comentario',
+    commentPlaceholder: 'Describe puntualidad, trato con alumnos, preparación de la clase…',
+    submit: 'Publicar reseña',
+    notEligible: 'Aún no puedes reseñar a este instructor.',
+    needCompletedClass: 'Debe haber completado al menos una clase en tu gimnasio.',
+    needLinked: 'El instructor debe estar vinculado a tu gimnasio.',
+    alreadyReviewed: 'Ya publicaste una reseña para este instructor.',
+    success: 'Reseña publicada correctamente.',
+  },
+  earnings: {
+    yourEarnings: 'Ingresos del gimnasio',
   },
   plan: {
     yourPlan: 'Tu plan',
     planTitle: 'Plan de gym',
-    planDescription: 'Plan básico para gestionar tus clases y instructores.',
+    planDescription: 'Compara planes y comisiones disponibles para tu gimnasio.',
+    loadError: 'No se pudieron cargar los planes.',
   },
 } as const;

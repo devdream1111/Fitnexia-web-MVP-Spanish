@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Users,
   BookOpen,
@@ -24,7 +24,8 @@ import {
   PROFILE_GRADIENTS,
   toggleVisible,
 } from '@/components/profile/profile-page-ui';
-import { useAuth } from '@/contexts/auth-context';
+import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useClasses } from '@/contexts/classes-context';
 import { resolveInstitutionId } from '@/utils/gym-classes';
 import {
@@ -39,6 +40,7 @@ import {
 
 export default function GymProfilePage() {
   const { user, updateProfile } = useAuth();
+  const { showNotice } = useNoticeModal();
   const { classes } = useClasses();
   const institutionProfile = user?.institutionProfile;
   const institutionId = resolveInstitutionId(user);
@@ -52,20 +54,44 @@ export default function GymProfilePage() {
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
   const [gallery, setGallery] = useState<string[]>(institutionProfile?.gallery ?? []);
 
+  useEffect(() => {
+    if (!isEditing) {
+      setName(user?.institutionProfile?.name ?? '');
+      setEmail(user?.email ?? '');
+      setAddress(user?.institutionProfile?.address ?? '');
+      setCity(user?.institutionProfile?.city ?? '');
+      setDescription(user?.institutionProfile?.description ?? '');
+      setAvatarUri(user?.avatarUri ?? null);
+      setGallery(user?.institutionProfile?.gallery ?? []);
+    }
+  }, [user, isEditing]);
+
   const gymClasses = useMemo(
     () => classes.filter((c) => c.institution?.id === institutionId),
     [classes, institutionId],
   );
   const instructorCount = institutionProfile?.instructorIds.length ?? 0;
 
-  const handleSave = () => {
-    updateProfile({
-      email,
-      avatarUri,
-      institutionProfile: { name, address, city, description, gallery },
-    });
-    setIsEditing(false);
-    alert(`${ALERT_LABELS.savedTitle}: ${PROFILE_PAGE_LABELS.saved}`);
+  const handleSave = async () => {
+    try {
+      await updateProfile({
+        email,
+        avatarUri,
+        institutionProfile: { name, address, city, description, gallery },
+      });
+      setIsEditing(false);
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: PROFILE_PAGE_LABELS.saved,
+        variant: 'success',
+      });
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: getAuthErrorMessage(error),
+        variant: 'error',
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -83,7 +109,6 @@ export default function GymProfilePage() {
     { href: '/gym/dashboard', label: 'Panel de control', icon: BarChart3 },
     { href: '/gym/instructors', label: PROFILE_MENU_LABELS.instructors, icon: Users, count: instructorCount },
     { href: '/gym/classes', label: 'Clases grupales', icon: BookOpen, count: gymClasses.length },
-    { href: '/gym/profile/invite-instructor', label: 'Invitar instructor', icon: Users },
     { href: '/gym/profile/plan', label: PROFILE_MENU_LABELS.planCommission, icon: Building },
   ];
 
@@ -135,17 +160,36 @@ export default function GymProfilePage() {
             className="md:col-span-2"
           />
         </div>
+        <div className="mt-6">
+          <h4 className="mb-4 flex items-center gap-2 text-base font-bold">
+            <Image size={20} className="text-[var(--fn-primary)]" />
+            {PROFILE_PAGE_LABELS.photoGallery}
+          </h4>
+          <PhotoGallery
+            images={gallery}
+            editable
+            onAddImage={(uri) => setGallery([...gallery, uri])}
+            onRemoveImage={(idx) => setGallery(gallery.filter((_, i) => i !== idx))}
+          />
+        </div>
       </ProfileEditFields>
 
       <div
         className={toggleVisible(
-          !isEditing && !!institutionProfile?.description,
+          !isEditing,
           'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6',
         )}
       >
         <h3 className="mb-2 text-lg font-bold">Sobre el gimnasio</h3>
-        <p className="text-sm leading-relaxed text-[var(--fn-text-muted)]">{institutionProfile?.description}</p>
-        <p className={toggleVisible(!!(institutionProfile?.address || institutionProfile?.city), 'mt-3 flex items-center gap-2 text-sm text-[var(--fn-text-secondary)]')}>
+        <p className="text-sm leading-relaxed text-[var(--fn-text-muted)]">
+          {institutionProfile?.description || '—'}
+        </p>
+        <p
+          className={toggleVisible(
+            !!(institutionProfile?.address || institutionProfile?.city),
+            'mt-3 flex items-center gap-2 text-sm text-[var(--fn-text-secondary)]',
+          )}
+        >
           <MapPin size={16} className="text-[var(--fn-primary)]" />
           {[institutionProfile?.address, institutionProfile?.city, institutionProfile?.country]
             .filter(Boolean)
@@ -153,20 +197,17 @@ export default function GymProfilePage() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
+      <div
+        className={toggleVisible(
+          !isEditing,
+          'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6',
+        )}
+      >
         <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
           <Image size={20} className="text-[var(--fn-primary)]" />
           {PROFILE_PAGE_LABELS.photoGallery}
         </h3>
-        <PhotoGallery
-          images={isEditing ? gallery : (institutionProfile?.gallery ?? [])}
-          editable={isEditing}
-          onAddImage={(uri) => setGallery([...gallery, uri])}
-          onRemoveImage={(idx) => setGallery(gallery.filter((_, i) => i !== idx))}
-        />
-        <p className={toggleVisible(isEditing, 'mt-3 text-xs text-[var(--fn-text-muted)]')}>
-          Los cambios de galería se guardan al pulsar &quot;Guardar cambios&quot; en el encabezado.
-        </p>
+        <PhotoGallery images={institutionProfile?.gallery ?? []} editable={false} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

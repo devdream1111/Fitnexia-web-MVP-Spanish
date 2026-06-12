@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
-import { formatClassDate, formatMoney } from '@/data/mock';
+import { formatClassDate, formatMoney } from '@/utils/format';
 import type { ClassListItem } from '@/types/api';
 
 interface CalendarProps {
@@ -14,16 +14,29 @@ interface CalendarProps {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const FULL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+function uniqueClassesById(items: ClassListItem[]): ClassListItem[] {
+  const seen = new Set<string>();
+  return items.filter((c) => {
+    if (!c?.id || seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+}
+
 export function Calendar({ classes, onDateClick, showSidePanel = true }: CalendarProps) {
   const [view, setView] = useState<'month' | 'week'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const getClassesForDate = (date: Date) => {
-    return classes.filter((c) => {
-      const cDate = new Date(c.startAt);
-      return cDate.toDateString() === date.toDateString();
-    });
+    return uniqueClassesById(
+      classes.filter((c) => {
+        if (!c?.startAt) return false;
+        const cDate = new Date(c.startAt);
+        if (Number.isNaN(cDate.getTime())) return false;
+        return cDate.toDateString() === date.toDateString();
+      }),
+    );
   };
 
   const handleDateClick = (date: Date) => {

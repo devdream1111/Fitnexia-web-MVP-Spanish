@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 import {
   AuthDivider,
@@ -10,24 +10,31 @@ import {
   AuthFormHeader,
   AuthFormIntro,
   AuthShell,
-  DemoAccessPanel,
   GoogleSignInButton,
   PasswordInput,
 } from '@/components/auth/auth-ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/auth-context';
+import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
 import { AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
 import type { UserRole } from '@/types/api';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
-  const googleSignIn = useFeature('googleSignIn');
+  const searchParams = useSearchParams();
+  const googleSignInEnabled = useFeature('googleSignIn');
   const { login } = useAuth();
-  const [email, setEmail] = useState('demo@fitnexia.com');
-  const [password, setPassword] = useState('password');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const googleError = searchParams.get('googleError');
+    if (googleError) setError(googleError);
+  }, [searchParams]);
 
   const homeForRole = (role: UserRole = 'athlete') => {
     if (role === 'instructor') return '/instructor/dashboard';
@@ -35,12 +42,19 @@ export default function LoginPage() {
     return '/athlete/home';
   };
 
-  const handleLogin = async (role?: UserRole) => {
+  const startGoogleLogin = () => {
+    setGoogleLoading(true);
+    window.location.href = '/api/auth/google?mode=login';
+  };
+
+  const handleLogin = async () => {
     setLoading(true);
+    setError('');
     try {
-      const resolvedRole = role ?? 'athlete';
-      await login(email, password, resolvedRole);
-      router.replace(homeForRole(resolvedRole));
+      const loggedIn = await login(email, password);
+      router.replace(homeForRole(loggedIn.role));
+    } catch (e) {
+      setError(getAuthErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -51,11 +65,12 @@ export default function LoginPage() {
       <AuthFormIntro>
         <AuthFormHeader title={BUTTON_LABELS.signIn} subtitle={AUTH_LABELS.signInSubtitle} />
 
-        {googleSignIn ? (
+        {googleSignInEnabled ? (
           <>
             <GoogleSignInButton
               label={`${GENERAL_LABELS.continueWith} ${GENERAL_LABELS.google}`}
-              onClick={() => alert('Inicio de sesión con Google — conecta cuando el backend esté listo.')}
+              onClick={startGoogleLogin}
+              loading={googleLoading}
             />
             <AuthDivider label={GENERAL_LABELS.orContinueWith} />
           </>
@@ -76,6 +91,7 @@ export default function LoginPage() {
           onChange={setPassword}
           autoComplete="current-password"
         />
+        {error ? <p className="text-sm text-[var(--fn-error)]">{error}</p> : null}
         <div className="flex justify-end">
           <Link
             href="/auth/forgot-password"
@@ -89,11 +105,9 @@ export default function LoginPage() {
           loading={loading}
           className="w-full"
           size="md"
-          onClick={() => handleLogin()}
+          onClick={handleLogin}
         />
       </div>
-
-      <DemoAccessPanel onDemoLogin={handleLogin} />
 
       <div className="mt-6">
         <AuthFooterLink
@@ -103,5 +117,13 @@ export default function LoginPage() {
         />
       </div>
     </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

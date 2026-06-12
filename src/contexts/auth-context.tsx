@@ -3,6 +3,26 @@
 import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 
 import type { Certification, UserRole, WeeklySchedule } from '@/types/api';
+import { ApiClientError } from '@/services/api-client';
+import {
+  apiForgotPassword,
+  apiGetMe,
+  apiGetNotificationPreferences,
+  apiGoogleOAuth,
+  apiLogin,
+  apiLogout,
+  apiRegister,
+  apiUpdateAthleteProfile,
+  apiUpdateInstructor,
+  apiSetAvailableNow,
+  apiUpdateInstitution,
+  apiUpdateNotificationPreferences,
+  apiUpdateUserEmail,
+  type RegisterBody,
+} from '@/services/api';
+import { clearTokens, getRefreshToken, setTokens } from '@/services/api-client';
+import { createMockAdminUser, mapMeToAuthUser } from '@/utils/auth-mapper';
+import { resolveUploadableImageUrl, resolveUploadableImageUrls } from '@/utils/media';
 import { defaultWeeklySchedule } from '@/utils/schedule';
 
 export interface NotificationPreferences {
@@ -97,9 +117,14 @@ export const DEFAULT_ADMIN_NOTIFICATIONS: AdminNotificationPreferences = {
 const STORAGE_KEYS = {
   USER: 'fitnexia_user',
   HAS_SEEN_ONBOARDING: 'fitnexia_has_seen_onboarding',
+  ADMIN_SESSION: 'fitnexia_admin_session',
 };
 
-export function defaultInstructorProfile(firstName: string, lastName: string, disciplines: string[] = []): InstructorProfileData {
+export function defaultInstructorProfile(
+  firstName: string,
+  lastName: string,
+  disciplines: string[] = [],
+): InstructorProfileData {
   return {
     displayName: `${firstName} ${lastName}`.trim(),
     bio: '',
@@ -153,28 +178,27 @@ interface AuthContextValue {
   hasSeenOnboarding: boolean;
   isLoading: boolean;
   completeOnboarding: () => void;
-  login: (email: string, password: string, role?: UserRole) => Promise<void>;
+  login: (email: string, password: string, role?: UserRole) => Promise<AuthUser>;
   register: (params: RegisterParams) => Promise<void>;
-  updateProfile: (updates: UpdateProfileParams) => void;
+  googleSignIn: (params: {
+    idToken: string;
+    role?: Exclude<UserRole, 'admin'>;
+    institutionName?: string;
+  }) => Promise<AuthUser>;
+  updateProfile: (updates: UpdateProfileParams) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-type UserSeed = Omit<AuthUser, 'favoriteSports' | 'notificationPreferences' | 'paymentMethods'> & {
-  favoriteSports?: string[];
-  notificationPreferences?: NotificationPreferences;
-  paymentMethods?: PaymentMethod[];
-};
-
-function createUser(partial: UserSeed): AuthUser {
-  return {
-    favoriteSports: partial.favoriteSports ?? [],
-    notificationPreferences: partial.notificationPreferences ?? { ...DEFAULT_NOTIFICATIONS },
-    paymentMethods: partial.paymentMethods ?? [],
-    ...partial,
-  };
+async function loadNotificationPrefs(): Promise<NotificationPreferences> {
+  try {
+    return await apiGetNotificationPreferences();
+  } catch {
+    return { ...DEFAULT_NOTIFICATIONS };
+  }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -182,158 +206,147 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-    const storedOnboarding = localStorage.getItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING);
-    
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    if (storedOnboarding) {
-      setHasSeenOnboarding(true);
-    }
-    setIsLoading(false);
+  const refreshUser = useCallback(async () => {
+    const me = await apiGetMe();
+    const mapped = mapMeToAuthUser(me);
+    const prefs = await loadNotificationPrefs();
+    setUser({ ...mapped, notificationPreferences: prefs });
   }, []);
 
-  // Persist user to localStorage with debounce to avoid frequent writes
   useEffect(() => {
-    if (isLoading) return; // Don't persist during initial load
-    const timeoutId = setTimeout(() => {
-      if (user) {
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-      } else {
-        localStorage.removeItem(STORAGE_KEYS.USER);
-      }
-    }, 300);
-    return () => clearTimeout(timeoutId);
-  }, [user, isLoading]);
+    async function bootstrap() {
+      const storedOnboarding = localStorage.getItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING);
+      if (storedOnboarding) setHasSeenOnboarding(true);
 
-  // Persist onboarding state immediately (not debounced)
-  useEffect(() => {
-    if (hasSeenOnboarding) {
-      localStorage.setItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING, 'true');
+      const isAdminSession = localStorage.getItem(STORAGE_KEYS.ADMIN_SESSION) === 'true';
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+
+      if (isAdminSession && storedUser) {
+        setUser(JSON.parse(storedUser) as AuthUser);
+        setIsLoading(false);
+        return;
+      }
+
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        await refreshUser();
+      } catch {
+        clearTokens();
+        localStorage.removeItem(STORAGE_KEYS.USER);
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [hasSeenOnboarding]);
+
+    bootstrap();
+  }, [refreshUser]);
+
+  useEffect(() => {
+    if (isLoading || !user) return;
+    if (user.role === 'admin') {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'true');
+    }
+  }, [user, isLoading]);
 
   const completeOnboarding = useCallback(() => {
     setHasSeenOnboarding(true);
+    localStorage.setItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING, 'true');
   }, []);
 
-  const login = useCallback(async (email: string, _password: string, role: UserRole = 'athlete') => {
-    const base = {
-      email,
-      role,
-      firstName: 'Demo',
-      lastName: 'Usuario',
-      favoriteSports: role === 'athlete' ? ['Yoga', 'Tenis'] : [],
-    };
-
+  const login = useCallback(
+    async (email: string, password: string, role: UserRole = 'athlete') => {
     if (role === 'admin') {
-      setUser(
-        createUser({
-          ...base,
-          id: 'admin-1',
-          firstName: 'Admin',
-          lastName: 'Fitnexia',
-          adminNotificationPreferences: { ...DEFAULT_ADMIN_NOTIFICATIONS },
-        }),
-      );
-      return;
-    }
+        const adminUser = createMockAdminUser(email);
+        setUser(adminUser);
+        localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'true');
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(adminUser));
+        return adminUser;
+      }
 
-    if (role === 'instructor') {
-      setUser(
-        createUser({
-          ...base,
-          id: 'inst-1',
-          instructorId: 'inst-1',
-          instructorProfile: {
-            ...defaultInstructorProfile('Demo', 'Usuario', ['Tenis', 'Padel']),
-            bio: 'Entrenador de tenis certificado por PTR con más de 10 años de experiencia.',
-            availableNow: true,
-            weeklySchedule: defaultWeeklySchedule(),
-            hourlyRate: '50',
-            verified: true,
-            certifications: [
-              { name: 'Certificado PTR', issuer: 'PTR', year: 2018 },
-              { name: 'Psicología del Deporte', issuer: 'ITF', year: 2020 },
-            ],
-          },
-        }),
-      );
-      return;
-    }
+      const auth = await apiLogin(email.trim(), password);
+      setTokens(auth.accessToken, auth.refreshToken);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
 
-    if (role === 'institution') {
-      setUser(
-        createUser({
-          ...base,
-          id: 'gym-1',
-          institutionId: 'gym-1',
-          institutionProfile: {
-            ...defaultInstitutionProfile('FitHub Centro'),
-            description: 'Estudio de fitness premium en el centro de la ciudad.',
-            address: 'Calle Principal 123',
-            city: 'Buenos Aires',
-            country: 'AR',
-            verified: true,
-            instructorIds: ['inst-1', 'inst-2', 'inst-3'],
-          },
-        }),
-      );
-      return;
-    }
-
-    setUser(createUser({ ...base, id: 'mock-user' }));
-  }, []);
+      const me = await apiGetMe();
+      const mapped = mapMeToAuthUser(me);
+      const prefs = await loadNotificationPrefs();
+      const nextUser = { ...mapped, notificationPreferences: prefs };
+      setUser(nextUser);
+      return nextUser;
+    },
+    [],
+  );
 
   const register = useCallback(async (params: RegisterParams) => {
-    const base: UserSeed = {
-      id: 'mock-user-new',
-      email: params.email,
+    if (params.role === 'admin') {
+      throw new Error('Cannot register as admin');
+    }
+
+    const photoUrl = params.avatarUri
+      ? await resolveUploadableImageUrl(params.avatarUri)
+      : undefined;
+
+    const body: RegisterBody = {
+      email: params.email.trim(),
+      password: params.password,
       role: params.role,
-      firstName: params.firstName,
-      lastName: params.lastName,
-      avatarUri: params.avatarUri ?? null,
-      favoriteSports: params.favoriteSports ?? [],
+      firstName: params.firstName.trim(),
+      lastName: params.lastName.trim() || 'User',
+      favoriteSports: params.favoriteSports,
+      disciplines: params.disciplines,
+      institutionName: params.institutionName,
+      photoUrl,
+      acceptTerms: true,
     };
 
-    if (params.role === 'instructor') {
-      setUser(
-        createUser({
-          ...base,
-          instructorId: `inst-${Date.now()}`,
-          instructorProfile: defaultInstructorProfile(
-            params.firstName,
-            params.lastName,
-            params.disciplines ?? [],
-          ),
-        }),
-      );
-      return;
-    }
+    const auth = await apiRegister(body);
+    setTokens(auth.accessToken, auth.refreshToken);
+    localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
 
-    if (params.role === 'institution') {
-      const gymName =
-        params.institutionName?.trim() || `${params.firstName} ${params.lastName}`.trim();
-      setUser(
-        createUser({
-          ...base,
-          institutionId: `gym-${Date.now()}`,
-          institutionProfile: defaultInstitutionProfile(gymName),
-        }),
-      );
-      return;
-    }
-
-    setUser(createUser(base));
+    const me = await apiGetMe();
+    const mapped = mapMeToAuthUser(me);
+    const prefs = await loadNotificationPrefs();
+    setUser({ ...mapped, notificationPreferences: prefs });
   }, []);
 
-  const updateProfile = useCallback((updates: UpdateProfileParams) => {
+  const googleSignIn = useCallback(
+    async (params: {
+      idToken: string;
+      role?: Exclude<UserRole, 'admin'>;
+      institutionName?: string;
+    }) => {
+      const auth = await apiGoogleOAuth({
+        idToken: params.idToken,
+        role: params.role,
+        institutionName: params.institutionName,
+      });
+      setTokens(auth.accessToken, auth.refreshToken);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
+
+      const me = await apiGetMe();
+      const mapped = mapMeToAuthUser(me);
+      const prefs = await loadNotificationPrefs();
+      const nextUser = { ...mapped, notificationPreferences: prefs };
+      setUser(nextUser);
+      return nextUser;
+    },
+    [],
+  );
+
+  const updateProfile = useCallback(
+    async (updates: UpdateProfileParams) => {
+      if (!user) return;
+
+      if (user.role === 'admin') {
     setUser((prev) => {
       if (!prev) return prev;
-      return createUser({
+          return {
         ...prev,
         ...updates,
         notificationPreferences: updates.notificationPreferences
@@ -345,44 +358,142 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               ...updates.adminNotificationPreferences,
             }
           : prev.adminNotificationPreferences,
-        paymentMethods: updates.paymentMethods ?? prev.paymentMethods,
-        instructorProfile: updates.instructorProfile
-          ? prev.instructorProfile
-            ? { ...prev.instructorProfile, ...updates.instructorProfile }
-            : prev.role === 'instructor'
-              ? {
-                  ...defaultInstructorProfile(prev.firstName, prev.lastName),
-                  ...updates.instructorProfile,
-                }
-              : undefined
-          : prev.instructorProfile,
-        institutionProfile: updates.institutionProfile
-          ? prev.institutionProfile
-            ? { ...prev.institutionProfile, ...updates.institutionProfile }
-            : prev.role === 'institution'
-              ? {
-                  ...defaultInstitutionProfile(`${prev.firstName} ${prev.lastName}`.trim() || 'Gym'),
-                  ...updates.institutionProfile,
-                }
-              : undefined
-          : prev.institutionProfile,
-      });
-    });
-  }, []);
+          } as AuthUser;
+        });
+        return;
+      }
 
-  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
-    // Mock password change - in a real app, you'd verify the current password and update it
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // For this mock, we just "succeed" if newPassword is at least 6 characters
-    if (newPassword.length < 6) {
-      throw new Error('New password must be at least 6 characters');
+      if (updates.email && updates.email !== user.email) {
+        await apiUpdateUserEmail(updates.email);
+      }
+
+      if (updates.notificationPreferences) {
+        const prefs = await apiUpdateNotificationPreferences(updates.notificationPreferences);
+        setUser((prev) => (prev ? { ...prev, notificationPreferences: prefs } : prev));
+      }
+
+      if (user.role === 'athlete') {
+        const hasProfileFields =
+          updates.firstName !== undefined ||
+          updates.lastName !== undefined ||
+          updates.avatarUri !== undefined ||
+          updates.favoriteSports !== undefined;
+
+        if (hasProfileFields) {
+          const photoUrl =
+            updates.avatarUri !== undefined
+              ? await resolveUploadableImageUrl(updates.avatarUri)
+              : undefined;
+
+          const profile = await apiUpdateAthleteProfile({
+            firstName: updates.firstName,
+            lastName: updates.lastName,
+            ...(photoUrl !== undefined ? { photoUrl } : {}),
+            favoriteSports: updates.favoriteSports,
+          });
+          setUser((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  firstName: profile.firstName,
+                  lastName: profile.lastName,
+                  avatarUri: profile.photoUrl ?? null,
+                  favoriteSports: profile.favoriteSports ?? [],
+                  email: updates.email ?? prev.email,
+                }
+              : prev,
+          );
+        } else if (updates.email) {
+          setUser((prev) => (prev ? { ...prev, email: updates.email! } : prev));
+        }
+        return;
+      }
+
+      if (user.role === 'instructor' && (updates.instructorProfile || updates.avatarUri !== undefined)) {
+        const ip = updates.instructorProfile;
+        const body: Record<string, unknown> = {};
+        if (ip?.displayName !== undefined) body.displayName = ip.displayName;
+        if (ip?.bio !== undefined) body.bio = ip.bio;
+        if (ip?.disciplines !== undefined) body.disciplines = ip.disciplines;
+        if (ip?.certifications !== undefined) body.certifications = ip.certifications;
+        if (ip?.hourlyRate !== undefined && ip.hourlyRate !== '') {
+          body.hourlyRate = {
+            amount: Math.round(parseFloat(ip.hourlyRate) * 100),
+            currency: 'UYU',
+          };
+        }
+        if (updates.avatarUri !== undefined) {
+          const photoUrl = await resolveUploadableImageUrl(updates.avatarUri);
+          if (photoUrl) body.photoUrl = photoUrl;
+        }
+
+        if (Object.keys(body).length > 0) {
+          await apiUpdateInstructor(body);
+        }
+
+        if (ip?.availableNow !== undefined) {
+          await apiSetAvailableNow(ip.availableNow);
+        }
+
+        await refreshUser();
+        return;
+      }
+
+      if (
+        user.role === 'institution' &&
+        (updates.institutionProfile || updates.avatarUri !== undefined)
+      ) {
+        const ip = updates.institutionProfile;
+        const body: Record<string, unknown> = {};
+        if (ip?.name !== undefined) body.name = ip.name;
+        if (ip?.description !== undefined) body.description = ip.description;
+        if (ip?.gallery !== undefined) {
+          body.gallery = await resolveUploadableImageUrls(ip.gallery);
+        }
+        if (updates.avatarUri !== undefined) {
+          const logoUrl = await resolveUploadableImageUrl(updates.avatarUri);
+          if (logoUrl) body.logoUrl = logoUrl;
+        }
+        if (ip && (ip.address !== undefined || ip.city !== undefined || ip.country !== undefined)) {
+          body.location = {
+            address: ip.address ?? user.institutionProfile?.address ?? '',
+            city: ip.city ?? user.institutionProfile?.city ?? '',
+            country: ip.country ?? user.institutionProfile?.country ?? '',
+          };
+        }
+        if (Object.keys(body).length > 0) {
+          await apiUpdateInstitution(body);
+          await refreshUser();
+        }
+      }
+    },
+    [user, refreshUser],
+  );
+
+  const changePassword = useCallback(async (_currentPassword: string, newPassword: string) => {
+    if (newPassword.length < 8) {
+      throw new Error('Password must be at least 8 characters');
     }
+    throw new Error('Password change is not available yet');
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
+  const logout = useCallback(async () => {
+    const refreshToken = getRefreshToken();
+    const isAdmin = user?.role === 'admin';
+
+    if (!isAdmin && refreshToken) {
+      try {
+        await apiLogout(refreshToken);
+      } catch {
+        // ignore logout errors
+      }
+    }
+
+    clearTokens();
     localStorage.removeItem(STORAGE_KEYS.USER);
-  }, []);
+    localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
+    setUser(null);
+  }, [user]);
 
   const value = useMemo(
     () => ({
@@ -392,11 +503,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       completeOnboarding,
       login,
       register,
+      googleSignIn,
       updateProfile,
       changePassword,
       logout,
+      refreshUser,
     }),
-    [user, hasSeenOnboarding, isLoading, completeOnboarding, login, register, updateProfile, changePassword, logout],
+    [
+      user,
+      hasSeenOnboarding,
+      isLoading,
+      completeOnboarding,
+      login,
+      register,
+      googleSignIn,
+      updateProfile,
+      changePassword,
+      logout,
+      refreshUser,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -409,3 +534,23 @@ export function useAuth() {
 }
 
 export { DEFAULT_NOTIFICATIONS };
+
+export function getAuthErrorMessage(err: unknown): string {
+  if (err instanceof ApiClientError) {
+    const errors = err.details?.errors;
+    if (Array.isArray(errors) && errors.length > 0) {
+      const messages = errors
+        .map((item) => {
+          if (item && typeof item === 'object' && 'message' in item) {
+            return String((item as { message?: string }).message ?? '');
+          }
+          return '';
+        })
+        .filter(Boolean);
+      if (messages.length > 0) return messages.join('. ');
+    }
+    return err.message;
+  }
+  if (err instanceof Error) return err.message;
+  return 'An unexpected error occurred';
+}

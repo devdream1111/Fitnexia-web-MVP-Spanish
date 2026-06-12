@@ -1,74 +1,74 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
+import { InstructorPublicProfile } from '@/components/instructor/instructor-public-profile';
 import { PageHeader } from '@/components/layout/page-header';
-import { BADGE_LABELS, INSTRUCTOR_LABELS, GENERAL_LABELS } from '@/constants/labels';
-import { formatMoney, getInstructorById } from '@/data/mock';
+import { INSTRUCTOR_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import { useReviews } from '@/contexts/reviews-context';
+import { apiGetInstructor } from '@/services/api';
+import type { Instructor } from '@/types/api';
 
 export default function InstructorPublicPage() {
   const { id } = useParams<{ id: string }>();
-  const instructor = getInstructorById(id ?? '');
-  const { getReviewsForInstructor } = useReviews();
+  const {
+    getReviewsForInstructor,
+    fetchInstructorReviews,
+    getStaffReviewsForInstructor,
+    fetchStaffReviews,
+    loading: reviewsLoading,
+  } = useReviews();
+  const [instructor, setInstructor] = useState<Instructor | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    setLoading(true);
+    apiGetInstructor(id)
+      .then((data) => {
+        if (!cancelled) setInstructor(data);
+      })
+      .catch(() => {
+        if (!cancelled) setInstructor(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    fetchInstructorReviews(id);
+    fetchStaffReviews(id);
+    return () => {
+      cancelled = true;
+    };
+  }, [id, fetchInstructorReviews, fetchStaffReviews]);
+
   const reviews = instructor ? getReviewsForInstructor(instructor.id) : [];
+  const staffReviews = instructor ? getStaffReviewsForInstructor(instructor.id) : [];
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
+      </div>
+    );
+  }
 
   if (!instructor) {
     return (
-      <div className="fn-layout-content px-6 py-12">
+      <div className="mx-auto max-w-5xl space-y-4 py-4">
         <PageHeader title={INSTRUCTOR_LABELS.publicProfile.instructor} showBack />
-        <p>{INSTRUCTOR_LABELS.publicProfile.notFound}</p>
+        <p className="text-[var(--fn-text-muted)]">{INSTRUCTOR_LABELS.publicProfile.notFound}</p>
       </div>
     );
   }
 
   return (
-    <div className="fn-layout-content px-6 py-12">
-      <PageHeader title={instructor.displayName} showBack />
-      <div className="flex items-center gap-4">
-        <span className="text-5xl">🎾</span>
-        <div>
-          {instructor.verified ? <Badge label={BADGE_LABELS.verified} /> : null}
-          <p className="text-sm text-[var(--fn-text-muted)]">
-            ★ {instructor.averageRating} ({instructor.reviewCount} {GENERAL_LABELS.reviews})
-          </p>
-        </div>
-      </div>
-      {instructor.bio ? <p className="mt-6 text-[var(--fn-text-secondary)]">{instructor.bio}</p> : null}
-      <p className="mt-4 text-sm">
-        <strong>{INSTRUCTOR_LABELS.publicProfile.disciplines}</strong> {instructor.disciplines.join(', ')}
-      </p>
-      {instructor.hourlyRate ? (
-        <p className="mt-2 text-lg font-bold text-[var(--fn-primary)]">
-          {INSTRUCTOR_LABELS.publicProfile.from} {formatMoney(instructor.hourlyRate)}/hr
-        </p>
-      ) : null}
-
-      {reviews.length > 0 ? (
-        <div className="mt-12">
-          <h3 className="mb-6 text-xl font-bold">{GENERAL_LABELS.reviews} ({reviews.length})</h3>
-          <div className="space-y-6">
-            {reviews.map((review) => (
-              <div key={review.id} className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-bold">{review.authorName}</p>
-                  {review.verified && <Badge label={BADGE_LABELS.verified} variant="success" size="sm" />}
-                </div>
-                <div className="text-lg mb-2">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</div>
-                {review.comment && <p className="text-[var(--fn-text-muted)]">{review.comment}</p>}
-                <p className="text-xs text-[var(--fn-text-muted)] mt-3">
-                  {new Date(review.createdAt).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-    </div>
+    <InstructorPublicProfile
+      instructor={instructor}
+      reviews={reviews}
+      staffReviews={staffReviews}
+      reviewsLoading={reviewsLoading}
+    />
   );
 }

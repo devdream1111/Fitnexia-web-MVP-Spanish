@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -9,69 +9,108 @@ import { Calendar } from '@/components/calendar/Calendar';
 import { useClasses } from '@/contexts/classes-context';
 import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
-import { useNotifications } from '@/contexts/notifications-context';
-import { formatClassDate, formatMoney, canCancelBooking, getRefundAmount } from '@/data/mock';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
+import { formatClassDate, formatMoney } from '@/utils/format';
+import { canCancelBooking, getRefundAmount } from '@/utils/booking';
 import { GENERAL_LABELS } from '@/constants/labels';
-import type { Booking, ClassListItem } from '@/types/api';
+import type { ClassListItem } from '@/types/api';
+import type { BookingRecord } from '@/services/api';
 
 export default function BookingsPage() {
-  const { getClassById } = useClasses();
-  const { bookings, cancelBooking } = useBookings();
+  const { getClassById, fetchClassById } = useClasses();
+  const { bookings, cancelBooking, syncPayment, refreshBookings } = useBookings();
   const { user } = useAuth();
-  const { addNotification } = useNotifications();
+  const { showNotice } = useNoticeModal();
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [showCalendar, setShowCalendar] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(null);
+  const [classCache, setClassCache] = useState<Record<string, ClassListItem>>({});
 
-  const userBookings = user ? bookings.filter(b => b.userId === user.id) : [];
-  
-  const list = tab === 'upcoming'
-    ? userBookings.filter((b) => b.status === 'confirmed')
-    : userBookings.filter((b) => b.status === 'completed' || b.status === 'cancelled');
+  useEffect(() => {
+    refreshBookings();
+  }, [refreshBookings]);
+
+  useEffect(() => {
+    bookings.forEach((b) => {
+      if (!classCache[b.classId] && !getClassById(b.classId)) {
+        fetchClassById(b.classId).then((c) => {
+          if (c) setClassCache((prev) => ({ ...prev, [c.id]: c }));
+        });
+      }
+    });
+  }, [bookings, classCache, getClassById, fetchClassById]);
+
+  const resolveClass = (classId: string): ClassListItem | undefined =>
+    getClassById(classId) ?? classCache[classId];
+
+  const userBookings = user ? bookings.filter((b) => b.userId === user.id) : [];
+
+  const list =
+    tab === 'upcoming'
+      ? userBookings.filter((b) => ['confirmed', 'pending_payment'].includes(b.status))
+      : userBookings.filter((b) =>
+          ['completed', 'cancelled', 'refunded'].includes(b.status),
+        );
 
   const entries = useMemo(() => {
     return list
       .map((booking) => {
-        const cls = getClassById(booking.classId);
+        const cls = resolveClass(booking.classId);
         if (!cls) return null;
         return { booking, cls };
       })
-      .filter((e): e is { booking: Booking; cls: ClassListItem } => e !== null);
-  }, [list, getClassById]);
+      .filter((e): e is { booking: BookingRecord; cls: ClassListItem } => e !== null);
+  }, [list, classCache, getClassById]);
 
   const bookedClasses = useMemo(() => {
-    return userBookings
-      .map((booking) => getClassById(booking.classId))
-      .filter((c): c is ClassListItem => c !== null);
-  }, [userBookings, getClassById]);
+    const byId = new Map<string, ClassListItem>();
+    for (const booking of userBookings) {
+      const cls = resolveClass(booking.classId);
+      if (cls?.startAt && !byId.has(cls.id)) {
+        byId.set(cls.id, cls);
+      }
+    }
+    return Array.from(byId.values());
+  }, [userBookings, classCache, getClassById]);
 
   const handleCancel = (bookingId: string) => {
     setShowCancelConfirm(bookingId);
   };
 
-  const confirmCancel = (bookingId: string) => {
+  const confirmCancel = async (bookingId: string) => {
+    const booking = bookings.find((b) => b.id === bookingId);
+    const cls = booking ? resolveClass(booking.classId) : null;
+
     setCancellingId(bookingId);
-    const booking = bookings.find(b => b.id === bookingId);
-    const cls = booking ? getClassById(booking.classId) : null;
-    
-    setTimeout(() => {
-      cancelBooking(bookingId);
-      
-      if (user && booking && cls) {
-        addNotification({
-          type: 'booking_cancelled',
+    try {
+      await cancelBooking(bookingId);
+      setShowCancelConfirm(null);
+      if (cls && booking) {
+        showNotice({
           title: GENERAL_LABELS.bookingCancelledTitle,
-          body: GENERAL_LABELS.bookingCancelledBody.replace('{classTitle}', cls.title).replace('{amount}', formatMoney(getRefundAmount(booking))),
-          read: false,
+          message: GENERAL_LABELS.bookingCancelledAlert,
+          variant: 'success',
         });
       }
-      
+    } finally {
       setCancellingId(null);
-      setShowCancelConfirm(null);
-      alert(GENERAL_LABELS.bookingCancelledAlert);
-    }, 500);
+    }
+  };
+
+  const handlePay = async (booking: BookingRecord) => {
+    if (booking.checkoutUrl) {
+      window.location.href = booking.checkoutUrl;
+      return;
+    }
+    setCancellingId(booking.id);
+    try {
+      const updated = await syncPayment(booking.id);
+      if (updated.checkoutUrl) window.location.href = updated.checkoutUrl;
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   const getBookingsForDate = (date: Date) => {
@@ -89,8 +128,8 @@ export default function BookingsPage() {
           type="button"
           onClick={() => setShowCalendar(!showCalendar)}
           className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
-            showCalendar 
-              ? 'bg-[var(--fn-primary)] text-white shadow-md' 
+            showCalendar
+              ? 'bg-[var(--fn-primary)] text-white shadow-md'
               : 'bg-[var(--fn-surface)] text-[var(--fn-text-muted)] hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]'
           }`}
         >
@@ -99,23 +138,27 @@ export default function BookingsPage() {
         </button>
       </div>
 
-      {showCalendar && (
+      {showCalendar ? (
         <div className="mb-8">
-          <Calendar 
-            classes={bookedClasses} 
+          <Calendar
+            classes={bookedClasses}
             onDateClick={(date) => setSelectedDate(date)}
             showSidePanel={false}
           />
         </div>
-      )}
+      ) : null}
 
-      {/* Date Modal */}
-      {selectedDate && (
+      {selectedDate ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="fn-layout-narrow w-full rounded-2xl bg-[var(--fn-surface)] p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
-                {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                {selectedDate.toLocaleDateString('es-ES', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
               </h2>
               <button
                 type="button"
@@ -130,18 +173,23 @@ export default function BookingsPage() {
                 <p className="text-sm text-[var(--fn-text-muted)]">{GENERAL_LABELS.noBookingsForDay}</p>
               ) : (
                 getBookingsForDate(selectedDate).map(({ booking, cls }) => (
-                  <div key={booking.id} className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-4">
+                  <div
+                    key={booking.id}
+                    className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-4"
+                  >
                     <p className="font-semibold text-[var(--fn-text)]">{cls.title}</p>
                     <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
                     <p className="text-sm text-[var(--fn-primary)]">{formatMoney(booking.price)}</p>
-                    <p className="text-xs text-[var(--fn-text-muted)] mt-1">{GENERAL_LABELS.status}: {booking.status}</p>
+                    <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
+                      {GENERAL_LABELS.status}: {booking.status}
+                    </p>
                   </div>
                 ))
               )}
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="mb-6 flex rounded-xl bg-[var(--fn-surface-muted)] p-1">
         {(['upcoming', 'past'] as const).map((t) => (
@@ -150,20 +198,26 @@ export default function BookingsPage() {
             type="button"
             onClick={() => setTab(t)}
             className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-              tab === t ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm' : 'text-[var(--fn-text-muted)]'
+              tab === t
+                ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm'
+                : 'text-[var(--fn-text-muted)]'
             }`}
           >
             {t === 'upcoming' ? GENERAL_LABELS.upcoming : GENERAL_LABELS.history}
           </button>
         ))}
       </div>
+
       {entries.length === 0 ? (
         <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noBookingsInTab}</p>
       ) : (
         entries.map(({ booking, cls }) => {
-          const canCancel = canCancelBooking(cls.startAt);
-          const refundAmount = getRefundAmount(booking);
-          
+          const policyHours = 24;
+          const canCancel =
+            ['confirmed', 'pending_payment'].includes(booking.status) &&
+            canCancelBooking(cls.startAt, policyHours);
+          const refundAmount = getRefundAmount(booking, cls.startAt, policyHours);
+
           return (
             <div
               key={booking.id}
@@ -171,30 +225,41 @@ export default function BookingsPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-bold text-lg">{cls.title}</p>
-                  <p className="text-sm text-[var(--fn-text-muted)] mt-1">{formatClassDate(cls.startAt)}</p>
-                  <p className="mt-2 text-sm">{formatMoney(booking.price)} · {booking.status}</p>
+                  <p className="text-lg font-bold">{cls.title}</p>
+                  <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
+                  <p className="mt-2 text-sm">
+                    {formatMoney(booking.price)} · {booking.status}
+                  </p>
                 </div>
-                {booking.status === 'confirmed' && tab === 'upcoming' ? (
-                  <Button
-                    title={GENERAL_LABELS.cancel}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCancel(booking.id)}
-                    loading={cancellingId === booking.id}
-                    disabled={!canCancel}
-                  />
+                {['confirmed', 'pending_payment'].includes(booking.status) && tab === 'upcoming' ? (
+                  <div className="flex flex-col gap-2">
+                    {booking.status === 'pending_payment' ? (
+                      <Button
+                        title="Completar pago"
+                        size="sm"
+                        loading={cancellingId === booking.id}
+                        onClick={() => handlePay(booking)}
+                      />
+                    ) : null}
+                    <Button
+                      title={GENERAL_LABELS.cancel}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCancel(booking.id)}
+                      loading={cancellingId === booking.id}
+                      disabled={!canCancel}
+                    />
+                  </div>
                 ) : null}
               </div>
-              
-              {showCancelConfirm === booking.id && (
-                <div className="mt-4 p-4 rounded-xl border border-red-200 bg-red-50">
-                  <p className="font-bold mb-2">{GENERAL_LABELS.cancelBooking}</p>
-                  <p className="text-sm mb-4">
+
+              {showCancelConfirm === booking.id ? (
+                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/30">
+                  <p className="mb-2 font-bold">{GENERAL_LABELS.cancelBooking}</p>
+                  <p className="mb-4 text-sm">
                     {canCancel
                       ? GENERAL_LABELS.fullRefund.replace('{amount}', formatMoney(refundAmount))
-                      : GENERAL_LABELS.partialRefund.replace('{amount}', formatMoney(refundAmount))
-                    }
+                      : GENERAL_LABELS.partialRefund.replace('{amount}', formatMoney(refundAmount))}
                   </p>
                   <div className="flex gap-3">
                     <Button
@@ -212,8 +277,8 @@ export default function BookingsPage() {
                     />
                   </div>
                 </div>
-              )}
-              
+              ) : null}
+
               {booking.status === 'completed' ? (
                 <div className="mt-4">
                   <Link href={`/review/${booking.id}`} className="inline-block">

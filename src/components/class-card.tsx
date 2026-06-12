@@ -6,8 +6,8 @@ import { Dumbbell, Video, MapPin, Edit3 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel, BUTTON_LABELS } from '@/constants/labels';
-import { formatClassDate, formatMoney } from '@/data/mock';
+import { BADGE_LABELS, CLASS_CARD_LABELS, classFormatBadgeLabel, modalityLocationLabel, BUTTON_LABELS } from '@/constants/labels';
+import { formatClassDate, formatMoney } from '@/utils/format';
 import type { ClassListItem } from '@/types/api';
 
 function ClassCardInner({ item, compact, showEdit, editHref }: { 
@@ -38,7 +38,7 @@ function ClassCardInner({ item, compact, showEdit, editHref }: {
           </div>
         </div>
         <p className="text-sm text-[var(--fn-text-muted)] truncate">
-          {item.discipline} · {formatClassDate(item.startAt)}
+          {item.discipline} · {classFormatBadgeLabel(item.classFormat)} · {formatClassDate(item.startAt)}
         </p>
         <p className="text-sm text-[var(--fn-text-secondary)] truncate">{item.instructor.displayName}</p>
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">

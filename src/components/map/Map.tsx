@@ -8,7 +8,8 @@ import { Crosshair, Maximize2, Minimize2 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import './map-styles.css';
 
-import { formatMoney } from '@/data/mock';
+import { formatMoney, formatMoneyFromCents } from '@/utils/format';
+import type { MapMarker } from '@/services/api';
 import type { ClassListItem } from '@/types/api';
 
 const DEFAULT_CENTER: [number, number] = [-34.6037, -58.3816];
@@ -137,27 +138,71 @@ function MapToolbar({
   );
 }
 
+type MapPoint = {
+  id: string;
+  lat: number;
+  lng: number;
+  title: string;
+  priceLabel: string;
+  subtitle?: string;
+  href: string;
+};
+
 interface ClassMapProps {
-  classes: ClassListItem[];
+  classes?: ClassListItem[];
+  markers?: MapMarker[];
   center?: [number, number];
   zoom?: number;
 }
 
-export function ClassMap({ classes, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM }: ClassMapProps) {
+function toMapPoints(classes: ClassListItem[], markers: MapMarker[]): MapPoint[] {
+  if (markers.length > 0) {
+    return markers.map((m) => ({
+      id: m.id,
+      lat: m.lat,
+      lng: m.lng,
+      title: m.title,
+      priceLabel: formatMoneyFromCents(m.price.amount, m.price.currency),
+      subtitle: new Date(m.startAt).toLocaleString('es-ES', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      href: `/class/${m.id}`,
+    }));
+  }
+  return classes
+    .filter((c) => c.modality === 'in_person' && c.location?.lat != null && c.location?.lng != null)
+    .map((c) => ({
+      id: c.id,
+      lat: c.location!.lat!,
+      lng: c.location!.lng!,
+      title: c.title,
+      priceLabel: formatMoney(c.price),
+      subtitle: c.location?.label,
+      href: `/class/${c.id}`,
+    }));
+}
+
+export function ClassMap({
+  classes = [],
+  markers = [],
+  center = DEFAULT_CENTER,
+  zoom = DEFAULT_ZOOM,
+}: ClassMapProps) {
   const shellRef = useRef<HTMLDivElement>(null);
   const [mapType, setMapType] = useState<MapType>('roadmap');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
   const [recenterToken, setRecenterToken] = useState(0);
 
-  const inPersonClasses = useMemo(
-    () => classes.filter((c) => c.modality === 'in_person' && c.location?.lat != null && c.location?.lng != null),
-    [classes],
-  );
+  const mapPoints = useMemo(() => toMapPoints(classes, markers), [classes, markers]);
 
   const positions = useMemo(
-    () => inPersonClasses.map((c) => [c.location!.lat!, c.location!.lng!] as [number, number]),
-    [inPersonClasses],
+    () => mapPoints.map((p) => [p.lat, p.lng] as [number, number]),
+    [mapPoints],
   );
 
   const defaultPin = useMemo(() => createPinIcon(false), []);
@@ -228,28 +273,28 @@ export function ClassMap({ classes, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM
         <MapFitBounds positions={fitPositions} />
         <MapZoomControls />
 
-        {inPersonClasses.map((c) => {
-          const isActive = activeMarkerId === c.id;
+        {mapPoints.map((point) => {
+          const isActive = activeMarkerId === point.id;
           return (
             <Marker
-              key={c.id}
-              position={[c.location!.lat!, c.location!.lng!]}
+              key={point.id}
+              position={[point.lat, point.lng]}
               icon={isActive ? activePin : defaultPin}
               eventHandlers={{
-                click: () => setActiveMarkerId(c.id),
-                popupopen: () => setActiveMarkerId(c.id),
-                popupclose: () => setActiveMarkerId((id) => (id === c.id ? null : id)),
+                click: () => setActiveMarkerId(point.id),
+                popupopen: () => setActiveMarkerId(point.id),
+                popupclose: () => setActiveMarkerId((id) => (id === point.id ? null : id)),
               }}
             >
               <Popup>
                 <div className="space-y-2 p-4">
-                  <p className="font-bold text-[var(--fn-text)]">{c.title}</p>
-                  <p className="text-sm text-[var(--fn-text-muted)]">{c.location?.label}</p>
-                  <p className="text-sm font-semibold text-[var(--fn-primary)]">
-                    {formatMoney(c.price)}
-                  </p>
+                  <p className="font-bold text-[var(--fn-text)]">{point.title}</p>
+                  {point.subtitle ? (
+                    <p className="text-sm text-[var(--fn-text-muted)]">{point.subtitle}</p>
+                  ) : null}
+                  <p className="text-sm font-semibold text-[var(--fn-primary)]">{point.priceLabel}</p>
                   <Link
-                    href={`/class/${c.id}`}
+                    href={point.href}
                     className="inline-block rounded-lg bg-[var(--fn-primary)] px-3 py-1.5 text-sm font-semibold text-white transition hover:opacity-90"
                   >
                     Ver clase

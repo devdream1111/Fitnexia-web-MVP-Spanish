@@ -1,76 +1,101 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Receipt } from 'lucide-react';
 
 import { PageHeader } from '@/components/layout/page-header';
-import { usePayments } from '@/contexts/payments-context';
+import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
-import { formatMoney, formatClassDate } from '@/data/mock';
+import { apiGetPayment, type PaymentDetail } from '@/services/api';
+import { formatMoney, formatClassDate } from '@/utils/format';
 import { SCREEN_TITLES, GENERAL_LABELS } from '@/constants/labels';
-import type { Payment, ClassListItem } from '@/types/api';
+import type { BookingRecord } from '@/services/api';
+
+function PaymentEntry({
+  booking,
+  clsTitle,
+  clsDate,
+}: {
+  booking: BookingRecord;
+  clsTitle: string;
+  clsDate?: string;
+}) {
+  const [payment, setPayment] = useState<PaymentDetail | null>(null);
+
+  useEffect(() => {
+    if (!booking.paymentId) return;
+    apiGetPayment(booking.paymentId)
+      .then(setPayment)
+      .catch(() => setPayment(null));
+  }, [booking.paymentId]);
+
+  const statusLabel = payment?.status ?? booking.status;
+  const amount = payment?.amount ?? booking.price;
+
+  return (
+    <article className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 transition hover:shadow-md">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
+            <Receipt size={18} />
+          </span>
+          <div className="min-w-0">
+            <p className="font-bold text-[var(--fn-text)]">{clsTitle}</p>
+            {clsDate ? (
+              <p className="text-sm text-[var(--fn-text-muted)]">{clsDate}</p>
+            ) : null}
+            <p className="mt-2 text-lg font-bold text-[var(--fn-primary)]">{formatMoney(amount)}</p>
+            {payment?.provider ? (
+              <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
+                {payment.provider} · {new Date(payment.createdAt).toLocaleDateString('es-ES')}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <span className="shrink-0 rounded-full bg-[var(--fn-surface-muted)] px-3 py-1 text-xs font-semibold uppercase text-[var(--fn-text-muted)]">
+          {statusLabel}
+        </span>
+      </div>
+    </article>
+  );
+}
 
 export default function PaymentHistoryPage() {
-  const { getPaymentsForUser } = usePayments();
+  const { bookings } = useBookings();
   const { getClassById } = useClasses();
   const { user } = useAuth();
 
-  const userPayments = user ? getPaymentsForUser(user.id) : [];
-
   const entries = useMemo(() => {
-    return userPayments
-      .map((payment) => {
-        const cls = getClassById(payment.bookingId);
-        return { payment, cls };
-      });
-  }, [userPayments, getClassById]);
+    if (!user) return [];
+    return bookings
+      .filter((b) => b.userId === user.id && ['confirmed', 'completed', 'refunded'].includes(b.status))
+      .map((booking) => ({
+        booking,
+        cls: getClassById(booking.classId),
+      }));
+  }, [bookings, user, getClassById]);
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title={SCREEN_TITLES.paymentHistory} showBack />
-      
-      <div className="mt-6">
-        {entries.length === 0 ? (
+
+      {entries.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[var(--fn-border)] px-6 py-14 text-center">
           <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noPaymentHistoryYet}</p>
-        ) : (
-          entries.map(({ payment, cls }) => (
-            <div
-              key={payment.id}
-              className="mb-4 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-bold text-lg">{cls?.title || GENERAL_LABELS.classBooking}</p>
-                  <p className="text-sm text-[var(--fn-text-muted)] mt-1">
-                    {new Date(payment.createdAt).toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                  <p className="mt-2 text-sm">
-                    {formatMoney(payment.amount)} · {payment.paymentMethod}
-                  </p>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  payment.status === 'paid' 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : payment.status === 'refunded'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {payment.status === 'paid' 
-                    ? GENERAL_LABELS.paid 
-                    : payment.status === 'refunded' 
-                    ? GENERAL_LABELS.refunded 
-                    : payment.status}
-                </span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {entries.map(({ booking, cls }) => (
+            <PaymentEntry
+              key={booking.id}
+              booking={booking}
+              clsTitle={cls?.title ?? 'Clase'}
+              clsDate={cls ? formatClassDate(cls.startAt) : undefined}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

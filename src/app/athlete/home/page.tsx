@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import {
   AthleteHomeFeatureCard,
   AthleteHomeHero,
@@ -12,9 +14,22 @@ import { useClasses } from '@/contexts/classes-context';
 import { GENERAL_LABELS } from '@/constants/labels';
 
 export default function AthleteHomePage() {
-  const { classes } = useClasses();
-  const nearby = classes.slice(0, 4);
-  const recommended = [...classes].reverse().slice(0, 4);
+  const { homeFeed, fetchHomeFeed, loading } = useClasses();
+
+  useEffect(() => {
+    fetchHomeFeed();
+  }, [fetchHomeFeed]);
+
+  const nearby = homeFeed?.nearby ?? [];
+  const recommended = homeFeed?.recommended ?? [];
+
+  if (loading && !homeFeed) {
+    return (
+      <AthleteHomeShell>
+        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
+      </AthleteHomeShell>
+    );
+  }
 
   return (
     <AthleteHomeShell>

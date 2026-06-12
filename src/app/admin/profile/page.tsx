@@ -14,6 +14,7 @@ import {
   PROFILE_GRADIENTS,
 } from '@/components/profile/profile-page-ui';
 import { useAuth } from '@/contexts/auth-context';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useAdmin } from '@/contexts/admin-context';
 import {
   ADMIN_LABELS,
@@ -25,6 +26,7 @@ import {
 
 export default function AdminProfilePage() {
   const { user, updateProfile } = useAuth();
+  const { showNotice } = useNoticeModal();
   const { pendingVerifications, reportedReviews, users, institutions } = useAdmin();
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
@@ -35,7 +37,11 @@ export default function AdminProfilePage() {
   const handleSave = () => {
     updateProfile({ firstName, lastName, email, avatarUri });
     setIsEditing(false);
-    alert(`${ALERT_LABELS.savedTitle}: ${ADMIN_LABELS.profile.saveProfile}`);
+    showNotice({
+      title: ALERT_LABELS.savedTitle,
+      message: ADMIN_LABELS.profile.saveProfile,
+      variant: 'success',
+    });
   };
 
   const handleCancel = () => {

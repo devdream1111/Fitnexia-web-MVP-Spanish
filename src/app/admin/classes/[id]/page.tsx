@@ -6,7 +6,8 @@ import { useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { useClasses } from '@/contexts/classes-context';
-import { MOCK_BOOKINGS, formatClassDate, formatMoney, getInstructorById } from '@/data/mock';
+import { MOCK_BOOKINGS } from '@/data/mock';
+import { formatClassDate, formatMoney } from '@/utils/format';
 import {
   CLASS_DETAIL_LABELS,
   modalityBadgeLabel,
@@ -18,7 +19,6 @@ export default function AdminClassDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { getClassById } = useClasses();
   const cls = getClassById(id ?? '');
-  const instructor = cls ? getInstructorById(cls.instructor.id) : undefined;
   const classBookings = MOCK_BOOKINGS.filter((b) => b.classId === cls?.id);
 
   if (!cls) {
@@ -39,7 +39,6 @@ export default function AdminClassDetailPage() {
         <div className="mt-2 flex flex-wrap gap-2">
           <Badge label={cls.discipline} />
           <Badge label={modalityBadgeLabel(cls.modality)} variant="success" />
-          {instructor?.verified && <Badge label="Instructor verificado" variant="success" />}
         </div>
 
         <dl className="mt-6 grid gap-4 sm:grid-cols-2">

@@ -7,19 +7,27 @@ import { CheckCircle2 } from 'lucide-react';
 import { AuthFormHeader, AuthFormIntro, AuthShell } from '@/components/auth/auth-ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { apiForgotPassword } from '@/services/api';
+import { ApiClientError } from '@/services/api-client';
 import { GENERAL_LABELS, AUTH_LABELS } from '@/constants/labels';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError('');
+    try {
+      await apiForgotPassword(email.trim());
       setSent(true);
-    }, 1000);
+    } catch (e) {
+      setError(e instanceof ApiClientError ? e.message : 'No se pudo enviar el enlace');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,6 +59,7 @@ export default function ForgotPasswordPage() {
             type="email"
             placeholder="tu@ejemplo.com"
           />
+          {error ? <p className="text-sm text-[var(--fn-error)]">{error}</p> : null}
           <Button
             title={GENERAL_LABELS.sendResetLink}
             onClick={handleSubmit}

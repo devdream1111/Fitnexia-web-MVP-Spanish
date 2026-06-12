@@ -2,9 +2,8 @@
 
 import { useAuth, DEFAULT_NOTIFICATIONS } from '@/contexts/auth-context';
 import { isNotificationPrefVisible } from '@/constants/features';
-import { Button } from '@/components/ui/button';
 import { ToggleButton } from '@/components/ui/toggle-button';
-import { BUTTON_LABELS, NOTIFICATIONS_LABELS } from '@/constants/labels';
+import { NOTIFICATIONS_LABELS } from '@/constants/labels';
 
 const PREFS: { key: keyof typeof DEFAULT_NOTIFICATIONS; label: string }[] = [
   { key: 'bookingConfirmed', label: NOTIFICATIONS_LABELS.preferences.bookingConfirmed },
@@ -34,7 +33,9 @@ export function NotificationsForm() {
           onChange={() => toggle(p.key)}
         />
       ))}
-      <Button title={BUTTON_LABELS.save} className="mt-4" onClick={() => alert('Preferencias guardadas (simulado)')} />
+      <p className="mt-4 text-xs text-[var(--fn-text-muted)]">
+        Los cambios se guardan automáticamente al activar o desactivar cada opción.
+      </p>
     </div>
   );
 }

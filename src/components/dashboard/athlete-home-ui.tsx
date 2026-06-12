@@ -5,7 +5,7 @@ import { Dumbbell, MapPin, Sparkles, Video } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel } from '@/constants/labels';
-import { formatClassDate, formatMoney } from '@/data/mock';
+import { formatClassDate, formatMoney } from '@/utils/format';
 import type { ClassListItem } from '@/types/api';
 
 export function AthleteHomeShell({ children }: { children: React.ReactNode }) {

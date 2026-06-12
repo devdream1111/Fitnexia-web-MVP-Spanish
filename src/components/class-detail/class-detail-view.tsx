@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import {
   Calendar,
@@ -9,6 +10,7 @@ import {
   ClassDetailFactGrid,
   ClassDetailHeader,
   ClassDetailInstructorCard,
+  ClassDetailPricePanel,
   ClassDetailReviews,
   ClassDetailSection,
   ClassDetailTitleBlock,
@@ -18,18 +20,22 @@ import {
   Users,
 } from '@/components/class-detail/class-detail-ui';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { useReviews } from '@/contexts/reviews-context';
-import { formatClassDate, formatMoney, getInstructorById } from '@/data/mock';
+import { apiGetClass, apiGetInstructor } from '@/services/api';
+import { formatClassDate, formatMoney } from '@/utils/format';
 import {
   BUTTON_LABELS,
   CLASS_DETAIL_LABELS,
   GENERAL_LABELS,
   SCREEN_TITLES,
+  classFormatBadgeLabel,
   classSpotsLabel,
   modalityBadgeLabel,
 } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
+import type { Class, Instructor } from '@/types/api';
 
 export function ClassDetailView({
   classId,
@@ -41,20 +47,68 @@ export function ClassDetailView({
   variant?: 'page' | 'modal';
 }) {
   const router = useRouter();
-  const { getClassById } = useClasses();
-  const { getReviewsForClass } = useReviews();
+  const { user } = useAuth();
+  const { getClassById, fetchClassById } = useClasses();
+  const { getReviewsForInstructor, fetchInstructorReviews } = useReviews();
   const waitlistEnabled = useFeature('waitlist');
-  const cls = getClassById(classId);
-  const instructor = cls ? getInstructorById(cls.instructor.id) : undefined;
-  const reviews = cls ? getReviewsForClass(cls.id) : [];
+  const [cls, setCls] = useState<Class | undefined>(() => {
+    const cached = getClassById(classId);
+    return cached as Class | undefined;
+  });
+  const [instructor, setInstructor] = useState<Instructor | null>(null);
+  const [loading, setLoading] = useState(!cls);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      const classData =
+        (await apiGetClass(classId).catch(() => null)) ??
+        (await fetchClassById(classId)) ??
+        getClassById(classId);
+      if (cancelled) return;
+      if (classData) {
+        setCls(classData as Class);
+        const [inst] = await Promise.all([
+          apiGetInstructor(classData.instructor.id).catch(() => null),
+          fetchInstructorReviews(classData.instructor.id),
+        ]);
+        if (!cancelled && inst) setInstructor(inst);
+      }
+      setLoading(false);
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [classId, fetchClassById, fetchInstructorReviews, getClassById]);
+
+  const reviews = cls ? getReviewsForInstructor(cls.instructor.id) : [];
   const isModal = variant === 'modal';
+  const role = user?.role;
+  const isAthleteView = !role || role === 'athlete';
+  const isInstructorView = role === 'instructor';
+  const isGymView = role === 'institution';
+  const showBookingActions = isAthleteView;
+  const showInstructorSection = Boolean(instructor) && !isInstructorView;
+  const showInstructorProfileLink = !isInstructorView;
+  const showBookingSidebar = isAthleteView || isGymView;
+  const showInstructorPriceSidebar = isInstructorView && isModal;
+  const showPriceInFactGrid = !isModal || (!showBookingSidebar && !showInstructorPriceSidebar);
+
+  if (loading && !cls) {
+    return (
+      <div className={isModal ? 'p-5' : 'mx-auto max-w-5xl px-4 py-8'}>
+        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
+      </div>
+    );
+  }
 
   if (!cls) {
     return (
-      <div className={isModal ? 'p-4' : 'mx-auto max-w-5xl'}>
-        <ClassDetailHeader title={SCREEN_TITLES.class} onClose={onClose} />
-        <p className={`text-[var(--fn-text-muted)] ${isModal ? 'py-6' : 'px-4 py-8 sm:px-0'}`}>
+      <div className={isModal ? 'min-w-0' : 'mx-auto max-w-5xl'}>
+        <ClassDetailHeader title={SCREEN_TITLES.class} onClose={onClose} variant={variant} />
+        <p className={`text-[var(--fn-text-muted)] ${isModal ? 'p-5' : 'px-4 py-8 sm:px-0'}`}>
           {SCREEN_TITLES.classNotFound}
         </p>
       </div>
@@ -70,112 +124,138 @@ export function ClassDetailView({
     ? classSpotsLabel(cls.spotsLeft ?? 0, cls.capacity, { waitlistEnabled })
     : undefined;
 
-  const goBook = () => router.push(`/book/${cls.id}`);
-  const goWaitlist = () => router.push(`/book/${cls.id}?waitlist=1`);
+  const badges = [
+    <Badge key="mod" label={modalityBadgeLabel(cls.modality)} />,
+    <Badge
+      key="fmt"
+      label={classFormatBadgeLabel(cls.classFormat)}
+      variant={cls.classFormat === 'individual' ? 'warning' : 'default'}
+    />,
+    <Badge key="disc" label={cls.discipline} />,
+  ];
 
-  const bookingPanel = (
+  const goBook = () => {
+    router.push(`/book/${cls.id}`);
+  };
+  const goWaitlist = () => {
+    router.push(`/book/${cls.id}?waitlist=1`);
+  };
+
+  const descriptionSection =
+    cls.description?.trim() ? (
+      <ClassDetailSection title={CLASS_DETAIL_LABELS.description}>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--fn-text-secondary)]">
+          {cls.description.trim()}
+        </p>
+      </ClassDetailSection>
+    ) : null;
+
+  const bookingPanel = showBookingSidebar ? (
     <ClassDetailBookingPanel
       price={formatMoney(cls.price)}
       spotsLabel={spotsValue}
       full={full}
       waitlistEnabled={waitlistEnabled}
       bookLabel={BUTTON_LABELS.bookNow}
-      waitlistLabel={BUTTON_LABELS.joinWaitlist}
+      waitlistLabel={BUTTON_LABELS.joinWaitlistShort}
       fullLabel={BUTTON_LABELS.classFull}
       onBook={goBook}
       onWaitlist={goWaitlist}
+      compact={isModal}
+      showActions={showBookingActions}
     />
+  ) : null;
+
+  const instructorPricePanel =
+    showInstructorPriceSidebar ? (
+      <ClassDetailPricePanel price={formatMoney(cls.price)} compact={isModal} />
+    ) : null;
+
+  const factGrid = (
+    <ClassDetailFactGrid>
+      <ClassDetailFact icon={Calendar} label={CLASS_DETAIL_LABELS.when} value={formatClassDate(cls.startAt)} />
+      <ClassDetailFact icon={Clock} label={CLASS_DETAIL_LABELS.duration} value={`${cls.durationMinutes} min`} />
+      {showPriceInFactGrid ? (
+        <ClassDetailFact icon={DollarSign} label={CLASS_DETAIL_LABELS.price} value={formatMoney(cls.price)} />
+      ) : null}
+      <ClassDetailFact icon={MapPin} label={CLASS_DETAIL_LABELS.where} value={whereValue} />
+      {spotsValue ? (
+        <ClassDetailFact icon={Users} label={CLASS_DETAIL_LABELS.spots} value={spotsValue} />
+      ) : null}
+    </ClassDetailFactGrid>
   );
 
-  return (
-    <div className={isModal ? '' : 'mx-auto max-w-5xl pb-8'}>
-      <ClassDetailHeader title={SCREEN_TITLES.classDetails} onClose={onClose} compact={isModal} />
+  if (isModal) {
+    const sidebar = bookingPanel ?? instructorPricePanel;
+    const hasSidebar = Boolean(sidebar);
 
-      <div className={`space-y-6 ${isModal ? 'p-4 pt-2' : 'mt-6 space-y-8 px-4 sm:px-0'}`}>
-        <ClassDetailTitleBlock
-          title={cls.title}
-          badges={
-            <>
-              <Badge label={cls.discipline} />
-              <Badge label={modalityBadgeLabel(cls.modality)} variant="success" />
-              {full ? <Badge label={CLASS_DETAIL_LABELS.full} variant="warning" /> : null}
-            </>
-          }
-        />
-
-        {isModal ? (
-          <div className="space-y-6">
-            <ClassDetailFactGrid>
-              <ClassDetailFact icon={Calendar} label={CLASS_DETAIL_LABELS.when} value={formatClassDate(cls.startAt)} />
-              <ClassDetailFact
-                icon={Clock}
-                label={CLASS_DETAIL_LABELS.duration}
-                value={`${cls.durationMinutes} ${GENERAL_LABELS.min}`}
-              />
-              <ClassDetailFact icon={MapPin} label={CLASS_DETAIL_LABELS.where} value={whereValue} />
-              <ClassDetailFact icon={DollarSign} label={CLASS_DETAIL_LABELS.price} value={formatMoney(cls.price)} />
-              {spotsValue ? (
-                <ClassDetailFact icon={Users} label={CLASS_DETAIL_LABELS.spots} value={spotsValue} />
+    return (
+      <div className="flex min-h-0 min-w-0 flex-col">
+        <ClassDetailHeader title={cls.title} onClose={onClose} variant="modal" />
+        <div className="min-w-0 overflow-x-hidden p-6 md:p-8">
+          <div className="mb-6 flex flex-wrap gap-2">{badges}</div>
+          <div
+            className={`grid min-w-0 gap-8 ${
+              hasSidebar ? 'lg:grid-cols-[minmax(0,1fr)_min(20rem,100%)]' : ''
+            }`}
+          >
+            <div className="min-w-0 space-y-6">
+              {factGrid}
+              {descriptionSection}
+              {showInstructorSection ? (
+                <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
+                  <ClassDetailInstructorCard
+                    href={`/instructor/${instructor!.id}`}
+                    name={instructor!.displayName}
+                    verified={instructor!.verified}
+                    rating={instructor!.averageRating}
+                    viewProfileLabel={BUTTON_LABELS.viewProfile}
+                    showProfileLink={showInstructorProfileLink}
+                  />
+                </ClassDetailSection>
               ) : null}
-            </ClassDetailFactGrid>
-
-            {bookingPanel}
-
-            <ClassDetailInstructorCard
-              href={`/instructor/${cls.instructor.id}`}
-              name={cls.instructor.displayName}
-              verified={instructor?.verified}
-              rating={instructor?.averageRating}
-              viewProfileLabel={BUTTON_LABELS.viewProfile}
-            />
-
-            <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
-              <p className="text-sm leading-relaxed text-[var(--fn-text-muted)]">
-                Únete a {cls.instructor.displayName} para una sesión atractiva de {cls.discipline.toLowerCase()}.
-              </p>
-            </ClassDetailSection>
-
-            <ClassDetailReviews title={`${GENERAL_LABELS.reviews} (${reviews.length})`} reviews={reviews} />
-          </div>
-        ) : (
-          <div className="grid gap-8 lg:grid-cols-[1fr_17rem] lg:items-start">
-            <div className="space-y-8">
-              <ClassDetailFactGrid>
-                <ClassDetailFact icon={Calendar} label={CLASS_DETAIL_LABELS.when} value={formatClassDate(cls.startAt)} />
-                <ClassDetailFact
-                  icon={Clock}
-                  label={CLASS_DETAIL_LABELS.duration}
-                  value={`${cls.durationMinutes} ${GENERAL_LABELS.min}`}
-                />
-                <ClassDetailFact icon={MapPin} label={CLASS_DETAIL_LABELS.where} value={whereValue} />
-                <ClassDetailFact icon={DollarSign} label={CLASS_DETAIL_LABELS.price} value={formatMoney(cls.price)} />
-                {spotsValue ? (
-                  <ClassDetailFact icon={Users} label={CLASS_DETAIL_LABELS.spots} value={spotsValue} />
-                ) : null}
-              </ClassDetailFactGrid>
-
-              <div className="lg:hidden">{bookingPanel}</div>
-
-              <ClassDetailInstructorCard
-                href={`/instructor/${cls.instructor.id}`}
-                name={cls.instructor.displayName}
-                verified={instructor?.verified}
-                rating={instructor?.averageRating}
-                viewProfileLabel={BUTTON_LABELS.viewProfile}
-              />
-
-              <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
-                <p className="text-sm leading-relaxed text-[var(--fn-text-muted)] sm:text-base">
-                  Únete a {cls.instructor.displayName} para una sesión atractiva de {cls.discipline.toLowerCase()}.
-                </p>
-              </ClassDetailSection>
-
-              <ClassDetailReviews title={`${GENERAL_LABELS.reviews} (${reviews.length})`} reviews={reviews} />
+              {reviews.length > 0 ? (
+                <ClassDetailReviews title={GENERAL_LABELS.reviews} reviews={reviews} />
+              ) : null}
             </div>
-
-            <div className="hidden lg:block">{bookingPanel}</div>
+            {sidebar ? <div className="min-w-0">{sidebar}</div> : null}
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl">
+      <ClassDetailHeader title={cls.title} onClose={onClose} variant="page" />
+      <div className="px-4 pb-8 sm:px-0">
+        <ClassDetailTitleBlock title={cls.title} badges={badges} />
+        <div
+          className={`mt-6 grid gap-8 ${
+            showBookingSidebar ? 'lg:grid-cols-[minmax(0,1fr)_min(20rem,100%)]' : ''
+          }`}
+        >
+          <div className="min-w-0 space-y-8">
+            {factGrid}
+            {descriptionSection}
+            {showInstructorSection ? (
+              <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
+                <ClassDetailInstructorCard
+                  href={`/instructor/${instructor!.id}`}
+                  name={instructor!.displayName}
+                  verified={instructor!.verified}
+                  rating={instructor!.averageRating}
+                  viewProfileLabel={BUTTON_LABELS.viewProfile}
+                  showProfileLink={showInstructorProfileLink}
+                />
+              </ClassDetailSection>
+            ) : null}
+            {reviews.length > 0 ? (
+              <ClassDetailReviews title={GENERAL_LABELS.reviews} reviews={reviews} />
+            ) : null}
+          </div>
+          {showBookingSidebar && bookingPanel ? <div className="min-w-0">{bookingPanel}</div> : null}
+        </div>
       </div>
     </div>
   );

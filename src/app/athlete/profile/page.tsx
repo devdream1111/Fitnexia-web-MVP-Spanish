@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Calendar,
   Search,
@@ -12,7 +12,6 @@ import {
 
 import { PageHeader } from '@/components/layout/page-header';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
 import {
   ProfileHero,
@@ -24,12 +23,12 @@ import {
   PROFILE_GRADIENTS,
   toggleVisible,
 } from '@/components/profile/profile-page-ui';
-import { useAuth } from '@/contexts/auth-context';
+import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useBookings } from '@/contexts/bookings-context';
 import {
   ALERT_LABELS,
   AUTH_LABELS,
-  BUTTON_LABELS,
   DISCIPLINE_LABELS,
   DROPDOWN_LABELS,
   GENERAL_LABELS,
@@ -43,6 +42,7 @@ import { useFeature } from '@/hooks/use-feature';
 
 export default function AthleteProfilePage() {
   const { user, updateProfile } = useAuth();
+  const { showNotice } = useNoticeModal();
   const { bookings } = useBookings();
   const showPaymentMethods = useFeature('savedPaymentMethods');
 
@@ -51,8 +51,17 @@ export default function AthleteProfilePage() {
   const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
-  const [editingSports, setEditingSports] = useState(false);
   const [favoriteSports, setFavoriteSports] = useState<string[]>(user?.favoriteSports ?? []);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setFirstName(user?.firstName ?? '');
+      setLastName(user?.lastName ?? '');
+      setEmail(user?.email ?? '');
+      setAvatarUri(user?.avatarUri ?? null);
+      setFavoriteSports(user?.favoriteSports ?? []);
+    }
+  }, [user, isEditing]);
 
   const userBookings = useMemo(
     () => bookings.filter((b) => b.userId === 'me' || b.userId === user?.id),
@@ -63,10 +72,22 @@ export default function AthleteProfilePage() {
     [userBookings],
   );
 
-  const handleSave = () => {
-    updateProfile({ firstName, lastName, email, avatarUri });
-    setIsEditing(false);
-    alert(`${ALERT_LABELS.savedTitle}: ${PROFILE_PAGE_LABELS.saved}`);
+  const handleSave = async () => {
+    try {
+      await updateProfile({ firstName, lastName, email, avatarUri, favoriteSports });
+      setIsEditing(false);
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: PROFILE_PAGE_LABELS.saved,
+        variant: 'success',
+      });
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: getAuthErrorMessage(error),
+        variant: 'error',
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -74,12 +95,8 @@ export default function AthleteProfilePage() {
     setLastName(user?.lastName ?? '');
     setEmail(user?.email ?? '');
     setAvatarUri(user?.avatarUri ?? null);
+    setFavoriteSports(user?.favoriteSports ?? []);
     setIsEditing(false);
-  };
-
-  const handleSaveSports = () => {
-    updateProfile({ favoriteSports });
-    setEditingSports(false);
   };
 
   const quickLinks = [
@@ -132,18 +149,7 @@ export default function AthleteProfilePage() {
             className="md:col-span-2"
           />
         </div>
-      </ProfileEditFields>
-
-      <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold">{PROFILE_PAGE_LABELS.favoriteSports}</h3>
-          <div className={toggleVisible(!editingSports)}>
-            <Button variant="ghost" size="sm" onClick={() => setEditingSports(true)}>
-              {BUTTON_LABELS.edit}
-            </Button>
-          </div>
-        </div>
-        <div className={toggleVisible(editingSports, 'space-y-4')}>
+        <div className="mt-4">
           <MultiSelect
             label={PROFILE_MENU_LABELS.favoriteSports}
             value={favoriteSports}
@@ -153,16 +159,16 @@ export default function AthleteProfilePage() {
               label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
             }))}
           />
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => { setFavoriteSports(user?.favoriteSports ?? []); setEditingSports(false); }}>
-              {GENERAL_LABELS.cancel}
-            </Button>
-            <Button onClick={handleSaveSports}>{BUTTON_LABELS.save}</Button>
-          </div>
         </div>
-        <p className={toggleVisible(!editingSports, 'text-sm text-[var(--fn-text-muted)]')}>
+      </ProfileEditFields>
+
+      <div className={toggleVisible(!isEditing, 'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6')}>
+        <h3 className="mb-4 text-lg font-bold">{PROFILE_PAGE_LABELS.favoriteSports}</h3>
+        <p className="text-sm text-[var(--fn-text-muted)]">
           {user?.favoriteSports.length
-            ? user.favoriteSports.join(' · ')
+            ? user.favoriteSports
+                .map((d) => DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] ?? d)
+                .join(' · ')
             : GENERAL_LABELS.none}
         </p>
       </div>

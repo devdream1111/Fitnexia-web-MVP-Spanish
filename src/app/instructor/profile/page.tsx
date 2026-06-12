@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   Calendar,
@@ -29,13 +29,13 @@ import {
   PROFILE_GRADIENTS,
   toggleVisible,
 } from '@/components/profile/profile-page-ui';
-import { useAuth } from '@/contexts/auth-context';
+import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useClasses } from '@/contexts/classes-context';
 import {
   ALERT_LABELS,
   AUTH_LABELS,
   BADGE_LABELS,
-  BUTTON_LABELS,
   DISCIPLINE_LABELS,
   DROPDOWN_LABELS,
   GENERAL_LABELS,
@@ -47,6 +47,7 @@ import { DISCIPLINES } from '@/constants/fitnexia';
 
 export default function InstructorProfilePage() {
   const { user, updateProfile } = useAuth();
+  const { showNotice } = useNoticeModal();
   const { getClassesByInstructor } = useClasses();
   const profile = user?.instructorProfile;
 
@@ -54,13 +55,30 @@ export default function InstructorProfilePage() {
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
-  const [editingSports, setEditingSports] = useState(false);
-  const [editingCerts, setEditingCerts] = useState(false);
-  const [favoriteSports, setFavoriteSports] = useState<string[]>(user?.favoriteSports ?? []);
+  const [bio, setBio] = useState(profile?.bio ?? '');
+  const [hourlyRate, setHourlyRate] = useState(profile?.hourlyRate ?? '');
+  const [disciplines, setDisciplines] = useState<string[]>(profile?.disciplines ?? []);
   const [certifications, setCertifications] = useState<Certification[]>(profile?.certifications ?? []);
+  const [availableNow, setAvailableNow] = useState(profile?.availableNow ?? false);
   const [newCertName, setNewCertName] = useState('');
   const [newCertIssuer, setNewCertIssuer] = useState('');
   const [newCertYear, setNewCertYear] = useState('');
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDisplayName(user?.instructorProfile?.displayName ?? '');
+      setEmail(user?.email ?? '');
+      setAvatarUri(user?.avatarUri ?? null);
+      setHourlyRate(user?.instructorProfile?.hourlyRate ?? '');
+      setBio(user?.instructorProfile?.bio ?? '');
+      setDisciplines(user?.instructorProfile?.disciplines ?? []);
+      setCertifications(user?.instructorProfile?.certifications ?? []);
+      setAvailableNow(user?.instructorProfile?.availableNow ?? false);
+      setNewCertName('');
+      setNewCertIssuer('');
+      setNewCertYear('');
+    }
+  }, [user, isEditing]);
 
   const instructorId = user?.instructorId ?? 'inst-1';
   const myClasses = useMemo(() => getClassesByInstructor(instructorId), [getClassesByInstructor, instructorId]);
@@ -69,21 +87,60 @@ export default function InstructorProfilePage() {
     [myClasses],
   );
 
-  const handleSave = () => {
-    updateProfile({
-      email,
-      avatarUri,
-      instructorProfile: { ...profile, displayName },
-    });
-    setIsEditing(false);
-    alert(`${ALERT_LABELS.savedTitle}: ${PROFILE_PAGE_LABELS.saved}`);
+  const handleSave = async () => {
+    try {
+      await updateProfile({
+        email,
+        avatarUri,
+        instructorProfile: {
+          displayName,
+          hourlyRate,
+          bio,
+          disciplines,
+          certifications,
+          availableNow,
+        },
+      });
+      setIsEditing(false);
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: PROFILE_PAGE_LABELS.saved,
+        variant: 'success',
+      });
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: getAuthErrorMessage(error),
+        variant: 'error',
+      });
+    }
   };
 
   const handleCancel = () => {
     setDisplayName(profile?.displayName ?? '');
     setEmail(user?.email ?? '');
     setAvatarUri(user?.avatarUri ?? null);
+    setHourlyRate(profile?.hourlyRate ?? '');
+    setBio(profile?.bio ?? '');
+    setDisciplines(profile?.disciplines ?? []);
+    setCertifications(profile?.certifications ?? []);
+    setAvailableNow(profile?.availableNow ?? false);
+    setNewCertName('');
+    setNewCertIssuer('');
+    setNewCertYear('');
     setIsEditing(false);
+  };
+
+  const addCertification = () => {
+    if (newCertName && newCertIssuer && newCertYear) {
+      setCertifications([
+        ...certifications,
+        { name: newCertName, issuer: newCertIssuer, year: parseInt(newCertYear, 10) },
+      ]);
+      setNewCertName('');
+      setNewCertIssuer('');
+      setNewCertYear('');
+    }
   };
 
   const quickLinks = [
@@ -125,15 +182,13 @@ export default function InstructorProfilePage() {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => updateProfile({ instructorProfile: { availableNow: !profile?.availableNow } })}
+      <div
         className={[
-          'w-full rounded-2xl border p-5 text-left transition hover:opacity-95',
+          'rounded-2xl border p-5',
           profile?.availableNow
             ? 'border-[var(--fn-success)] bg-[var(--fn-success-muted)]'
             : 'border-[var(--fn-border)] bg-[var(--fn-surface)]',
-          isEditing ? 'hidden' : '',
+          toggleVisible(!isEditing),
         ].join(' ')}
       >
         <span className="flex items-center gap-3 text-lg font-semibold">
@@ -144,108 +199,130 @@ export default function InstructorProfilePage() {
             <Badge label={BADGE_LABELS.availableNow} variant="success" size="sm" />
           </span>
         </span>
-      </button>
+      </div>
 
       <ProfileEditFields visible={isEditing}>
         <div className="grid gap-4 md:grid-cols-2">
           <Input label="Nombre profesional" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
           <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            label={PROFILE_PAGE_LABELS.hourlyRate}
+            type="number"
+            min="0"
+            step="0.01"
+            value={hourlyRate}
+            onChange={(e) => setHourlyRate(e.target.value)}
+            placeholder="25"
+          />
         </div>
+        <label className="mt-4 block">
+          <span className="mb-1.5 block text-sm font-medium">{PROFILE_PAGE_LABELS.bio}</span>
+          <textarea
+            className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4"
+            rows={4}
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+          />
+        </label>
+        <div className="mt-4">
+          <MultiSelect
+            label={PROFILE_MENU_LABELS.disciplines}
+            value={disciplines}
+            onChange={setDisciplines}
+            options={DISCIPLINES.map((d) => ({
+              value: d,
+              label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
+            }))}
+          />
+        </div>
+        <div className="mt-6 space-y-4">
+          <h4 className="text-base font-bold">{PROFILE_PAGE_LABELS.certifications}</h4>
+          <div className="grid gap-3 md:grid-cols-3">
+            <Input label="Certificación" value={newCertName} onChange={(e) => setNewCertName(e.target.value)} />
+            <Input label="Emisor" value={newCertIssuer} onChange={(e) => setNewCertIssuer(e.target.value)} />
+            <Input label="Año" type="number" value={newCertYear} onChange={(e) => setNewCertYear(e.target.value)} />
+          </div>
+          <Button variant="outline" onClick={addCertification}>
+            Agregar
+          </Button>
+          {certifications.map((cert, idx) => (
+            <div key={idx} className="flex items-center justify-between rounded-xl bg-[var(--fn-surface-muted)] p-3">
+              <span className="text-sm">
+                <strong>{cert.name}</strong> · {cert.issuer} · {cert.year}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCertifications(certifications.filter((_, i) => i !== idx))}
+              >
+                Eliminar
+              </Button>
+            </div>
+          ))}
+        </div>
+        <label className="mt-6 flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--fn-border)] p-4">
+          <input
+            type="checkbox"
+            checked={availableNow}
+            onChange={(e) => setAvailableNow(e.target.checked)}
+            className="h-5 w-5 rounded border-[var(--fn-border)]"
+          />
+          <span className="text-sm font-medium">
+            {availableNow ? PROFILE_PAGE_LABELS.availableNow : PROFILE_PAGE_LABELS.notAvailable}
+          </span>
+        </label>
       </ProfileEditFields>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className={toggleVisible(!isEditing, 'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6')}>
+        <p className="text-sm font-medium text-[var(--fn-text-muted)]">{PROFILE_PAGE_LABELS.bio}</p>
+        <p className="mt-2 whitespace-pre-wrap text-[var(--fn-text)]">
+          {profile?.bio?.trim() ? profile.bio : PROFILE_PAGE_LABELS.bioUnset}
+        </p>
+      </div>
+
+      <div className={toggleVisible(!isEditing, 'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6')}>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--fn-surface-muted)] text-[var(--fn-primary)]">
+            <DollarSign size={20} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-[var(--fn-text-muted)]">{PROFILE_PAGE_LABELS.hourlyRate}</p>
+            <p className="text-lg font-bold text-[var(--fn-text)]">
+              {profile?.hourlyRate ? `$${profile.hourlyRate}` : PROFILE_PAGE_LABELS.hourlyRateUnset}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className={toggleVisible(!isEditing, 'grid gap-6 lg:grid-cols-2')}>
         <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-bold">{PROFILE_MENU_LABELS.disciplines}</h3>
-            <Button variant="ghost" size="sm" onClick={() => setEditingSports(!editingSports)}>
-              {editingSports ? GENERAL_LABELS.cancel : BUTTON_LABELS.edit}
-            </Button>
-          </div>
-          <div className={toggleVisible(editingSports, 'space-y-4')}>
-            <MultiSelect
-              label={PROFILE_MENU_LABELS.disciplines}
-              value={favoriteSports}
-              onChange={setFavoriteSports}
-              options={DISCIPLINES.map((d) => ({
-                value: d,
-                label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
-              }))}
-            />
-            <Button
-              onClick={() => {
-                updateProfile({ favoriteSports });
-                setEditingSports(false);
-              }}
-            >
-              {BUTTON_LABELS.save}
-            </Button>
-          </div>
-          <p className={toggleVisible(!editingSports, 'text-sm text-[var(--fn-text-muted)]')}>
+          <h3 className="mb-4 text-lg font-bold">{PROFILE_MENU_LABELS.disciplines}</h3>
+          <p className="text-sm text-[var(--fn-text-muted)]">
             {profile?.disciplines.length
-              ? profile.disciplines.join(' · ')
-              : user?.favoriteSports.join(' · ') || GENERAL_LABELS.none}
+              ? profile.disciplines
+                  .map((d) => DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] ?? d)
+                  .join(' · ')
+              : GENERAL_LABELS.none}
           </p>
         </div>
 
         <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-bold">{PROFILE_PAGE_LABELS.certifications}</h3>
-            <Button variant="ghost" size="sm" onClick={() => setEditingCerts(!editingCerts)}>
-              {editingCerts ? GENERAL_LABELS.cancel : BUTTON_LABELS.edit}
-            </Button>
-          </div>
-          <div className={toggleVisible(editingCerts, 'space-y-4')}>
-            <div className="grid gap-3 md:grid-cols-3">
-              <Input label="Certificación" value={newCertName} onChange={(e) => setNewCertName(e.target.value)} />
-              <Input label="Emisor" value={newCertIssuer} onChange={(e) => setNewCertIssuer(e.target.value)} />
-              <Input label="Año" type="number" value={newCertYear} onChange={(e) => setNewCertYear(e.target.value)} />
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (newCertName && newCertIssuer && newCertYear) {
-                  setCertifications([
-                    ...certifications,
-                    { name: newCertName, issuer: newCertIssuer, year: parseInt(newCertYear, 10) },
-                  ]);
-                  setNewCertName('');
-                  setNewCertIssuer('');
-                  setNewCertYear('');
-                }
-              }}
-            >
-              Agregar
-            </Button>
-            {certifications.map((cert, idx) => (
-              <div key={idx} className="flex items-center justify-between rounded-xl bg-[var(--fn-surface-muted)] p-3">
-                <span className="text-sm">
-                  <strong>{cert.name}</strong> · {cert.issuer} · {cert.year}
-                </span>
-                <Button variant="ghost" size="sm" onClick={() => setCertifications(certifications.filter((_, i) => i !== idx))}>
-                  Eliminar
-                </Button>
-              </div>
-            ))}
-            <Button
-              onClick={() => {
-                updateProfile({ instructorProfile: { certifications } });
-                setEditingCerts(false);
-              }}
-            >
-              {BUTTON_LABELS.save}
-            </Button>
-          </div>
-          <p className={toggleVisible(!editingCerts && certifications.length === 0, 'text-sm text-[var(--fn-text-muted)]')}>
-            No hay certificaciones agregadas.
-          </p>
-          <ul className={toggleVisible(!editingCerts && certifications.length > 0, 'space-y-2')}>
-            {certifications.map((cert, idx) => (
-              <li key={idx} className="rounded-xl border border-[var(--fn-border)] px-4 py-3 text-sm">
-                <span className="font-semibold">{cert.name}</span>
-                <span className="text-[var(--fn-text-muted)]"> · {cert.issuer} · {cert.year}</span>
-              </li>
-            ))}
-          </ul>
+          <h3 className="mb-4 text-lg font-bold">{PROFILE_PAGE_LABELS.certifications}</h3>
+          {profile?.certifications.length ? (
+            <ul className="space-y-2">
+              {profile.certifications.map((cert, idx) => (
+                <li key={idx} className="rounded-xl border border-[var(--fn-border)] px-4 py-3 text-sm">
+                  <span className="font-semibold">{cert.name}</span>
+                  <span className="text-[var(--fn-text-muted)]">
+                    {' '}
+                    · {cert.issuer} · {cert.year}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[var(--fn-text-muted)]">No hay certificaciones agregadas.</p>
+          )}
         </div>
       </div>
 

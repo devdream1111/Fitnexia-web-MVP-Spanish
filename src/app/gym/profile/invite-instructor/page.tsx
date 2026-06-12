@@ -1,37 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-import { PageHeader } from '@/components/layout/page-header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/auth-context';
-import { SCREEN_TITLES, GYM_LABELS } from '@/constants/labels';
+/** Legacy route — staff is managed from /gym/instructors */
+export default function InviteInstructorRedirectPage() {
+  const router = useRouter();
 
-export default function InviteInstructorPage() {
-  const { user, updateProfile } = useAuth();
-  const [email, setEmail] = useState('');
+  useEffect(() => {
+    router.replace('/gym/instructors');
+  }, [router]);
 
-  const send = () => {
-    if (!email.trim()) return;
-    const invites = user?.institutionProfile?.pendingInvites ?? [];
-    updateProfile({
-      institutionProfile: {
-        pendingInvites: [
-          ...invites,
-          { id: `inv-${Date.now()}`, email: email.trim(), sentAt: new Date().toISOString(), status: 'pending' },
-        ],
-      },
-    });
-    alert(GYM_LABELS.instructors.inviteSent);
-    setEmail('');
-  };
-
-  return (
-    <div>
-      <PageHeader title={SCREEN_TITLES.inviteInstructor} showBack />
-      <Input label={GYM_LABELS.instructors.email} value={email} onChange={(e) => setEmail(e.target.value)} />
-      <Button title={GYM_LABELS.instructors.sendInvite} onClick={send} />
-    </div>
-  );
+  return null;
 }

@@ -3,7 +3,8 @@
 import { PageHeader } from '@/components/layout/page-header';
 import { TAB_LABELS } from '@/constants/labels';
 import { useClasses } from '@/contexts/classes-context';
-import { MOCK_BOOKINGS, formatMoney } from '@/data/mock';
+import { MOCK_BOOKINGS } from '@/data/mock';
+import { formatMoney } from '@/utils/format';
 import { Badge } from '@/components/ui/badge';
 import type { BookingStatus } from '@/types/api';
 

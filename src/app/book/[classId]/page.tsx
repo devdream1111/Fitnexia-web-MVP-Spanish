@@ -8,9 +8,9 @@ import { PageHeader } from '@/components/layout/page-header';
 import { useClasses } from '@/contexts/classes-context';
 import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
-import { usePayments } from '@/contexts/payments-context';
-import { useNotifications } from '@/contexts/notifications-context';
-import { formatMoney, createMercadoPagoPreference } from '@/data/mock';
+import { ApiClientError } from '@/services/api-client';
+import { apiGetPaymentsConfig } from '@/services/api';
+import { formatMoney } from '@/utils/format';
 import { BUTTON_LABELS, SCREEN_TITLES, GENERAL_LABELS } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
 
@@ -26,16 +26,14 @@ function BookContent() {
   const { classId } = useParams<{ classId: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { getClassById } = useClasses();
-  const { addBooking } = useBookings();
+  const { getClassById, fetchClassById } = useClasses();
+  const { createBooking } = useBookings();
   const { user } = useAuth();
-  const { addPayment } = usePayments();
-  const { addNotification: addNotificationContext } = useNotifications();
   const waitlistEnabled = useFeature('waitlist');
-  const integratedPayments = useFeature('integratedPayments');
-  const cls = getClassById(classId ?? '');
+  const [cls, setCls] = useState(getClassById(classId ?? ''));
   const [loading, setLoading] = useState(false);
-  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false);
+  const [error, setError] = useState('');
   const isWaitlist = searchParams.get('waitlist') === '1' && waitlistEnabled;
 
   useEffect(() => {
@@ -43,6 +41,16 @@ function BookContent() {
       router.replace(`/book/${classId}`);
     }
   }, [searchParams, waitlistEnabled, classId, router]);
+
+  useEffect(() => {
+    apiGetPaymentsConfig().then((cfg) => setPaymentsEnabled(cfg.enabled));
+  }, []);
+
+  useEffect(() => {
+    if (!classId) return;
+    if (cls) return;
+    fetchClassById(classId).then((c) => setCls(c ?? undefined));
+  }, [classId, cls, fetchClassById]);
 
   if (!cls) {
     return (
@@ -53,63 +61,28 @@ function BookContent() {
     );
   }
 
-  const confirm = () => {
-    if (!user) return;
-    
-    if (!isWaitlist) {
-        setShowPaymentOptions(true);
-      } else {
-        // Handle waitlist
-        setLoading(true);
-        setTimeout(() => {
-          addNotificationContext({
-            type: 'booking_confirmed',
-            title: GENERAL_LABELS.joinedWaitlistTitle,
-            body: GENERAL_LABELS.joinedWaitlistBody.replace('{classTitle}', cls.title),
-            read: false,
-          });
-          setLoading(false);
-          alert(GENERAL_LABELS.onWaitlistAlert);
-          router.push('/athlete/bookings');
-        }, 1000);
-      }
-  };
+  const confirm = async () => {
+    if (!user) {
+      router.push('/auth/login');
+      return;
+    }
 
-  const completePayment = (paymentMethod: string) => {
-    if (!user || !cls) return;
-    
+    if (isWaitlist) return;
+
     setLoading(true);
-    setTimeout(() => {
-      // Create booking
-      const booking = addBooking({
-        status: 'confirmed',
-        classId: cls.id,
-        userId: user.id,
-        price: cls.price,
-      });
-      
-      // Create payment record
-      addPayment({
-        bookingId: booking.id,
-        userId: user.id,
-        amount: cls.price,
-        status: 'paid',
-        paymentMethod,
-      });
-      
-      // Send confirmation notification
-      addNotificationContext({
-        type: 'booking_confirmed',
-        title: GENERAL_LABELS.bookingConfirmedTitle,
-        body: GENERAL_LABELS.bookingConfirmedBody.replace('{classTitle}', cls.title),
-        read: false,
-        
-      });
-      
-      setLoading(false);
-      alert(GENERAL_LABELS.paymentSuccessfulAlert);
+    setError('');
+    try {
+      const result = await createBooking(cls.id);
+      if (result.checkoutUrl && paymentsEnabled) {
+        window.location.href = result.checkoutUrl;
+        return;
+      }
       router.push('/athlete/bookings');
-    }, 2000);
+    } catch (e) {
+      setError(e instanceof ApiClientError ? e.message : 'No se pudo completar la reserva');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -128,57 +101,27 @@ function BookContent() {
           </div>
         ) : null}
       </div>
-      
-      {!showPaymentOptions ? (
-        <>
-          {!integratedPayments && !isWaitlist ? (
-            <div className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200">
-              <p className="text-sm text-blue-800">
-                {GENERAL_LABELS.paymentIntegrationDemo}
-              </p>
-            </div>
-          ) : null}
-          <Button
-            title={
-              isWaitlist
-                ? BUTTON_LABELS.joinWaitlistShort
-                : integratedPayments
-                  ? BUTTON_LABELS.payAndConfirm
-                  : BUTTON_LABELS.confirmBooking
-            }
-            loading={loading}
-            className="mt-8 w-full"
-            onClick={confirm}
-          />
-        </>
-      ) : (
-        <div className="mt-6 space-y-4">
-          <p className="text-lg font-bold">{GENERAL_LABELS.selectPaymentMethod}</p>
-          
-          <Button
-            title={GENERAL_LABELS.mercadoPago}
-            className="w-full"
-            onClick={() => completePayment(GENERAL_LABELS.mercadoPago)}
-            loading={loading}
-          />
-          
-          <Button
-            title={GENERAL_LABELS.creditCard}
-            variant="outline"
-            className="w-full"
-            onClick={() => completePayment(GENERAL_LABELS.creditCard)}
-            loading={loading}
-          />
-          
-          <Button
-            title={GENERAL_LABELS.debitCard}
-            variant="outline"
-            className="w-full"
-            onClick={() => completePayment(GENERAL_LABELS.debitCard)}
-            loading={loading}
-          />
+
+      {error ? <p className="mt-4 text-sm text-[var(--fn-error)]">{error}</p> : null}
+
+      {!paymentsEnabled && !isWaitlist ? (
+        <div className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200">
+          <p className="text-sm text-blue-800">{GENERAL_LABELS.paymentIntegrationDemo}</p>
         </div>
-      )}
+      ) : null}
+
+      <Button
+        title={
+          isWaitlist
+            ? BUTTON_LABELS.joinWaitlistShort
+            : paymentsEnabled
+              ? BUTTON_LABELS.payAndConfirm
+              : BUTTON_LABELS.confirmBooking
+        }
+        loading={loading}
+        className="mt-8 w-full"
+        onClick={confirm}
+      />
     </div>
   );
 }

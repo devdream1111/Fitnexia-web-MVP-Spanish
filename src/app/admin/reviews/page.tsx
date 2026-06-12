@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { StarRating } from '@/components/admin/star-rating';
 import { TAB_LABELS, ADMIN_LABELS } from '@/constants/labels';
 import { useAdmin } from '@/contexts/admin-context';
-import { useReviews } from '@/contexts/reviews-context';
+import { MOCK_REVIEWS } from '@/data/mock';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle } from 'lucide-react';
@@ -15,12 +15,16 @@ type Tab = 'all' | 'reported';
 
 export default function AdminReviewsPage() {
   const [tab, setTab] = useState<Tab>('reported');
-  const { reviews, removeReview } = useReviews();
   const { reportedReviews, dismissReportedReview, removeReportedReview } = useAdmin();
+  const [allReviews, setAllReviews] = useState(MOCK_REVIEWS);
 
   const handleRemoveReported = (id: string) => {
     const reviewId = removeReportedReview(id);
-    if (reviewId) removeReview(reviewId);
+    if (reviewId) setAllReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
+
+  const removeReview = (id: string) => {
+    setAllReviews((prev) => prev.filter((r) => r.id !== id));
   };
 
   return (
@@ -43,7 +47,7 @@ export default function AdminReviewsPage() {
           size="sm"
           onClick={() => setTab('all')}
         >
-          {TAB_LABELS.admin.reviews} ({reviews.length})
+          {TAB_LABELS.admin.reviews} ({allReviews.length})
         </Button>
       </div>
 
@@ -94,10 +98,10 @@ export default function AdminReviewsPage() {
               </div>
             ))
           )
-        ) : reviews.length === 0 ? (
+        ) : allReviews.length === 0 ? (
           <p className="p-8 text-center text-[var(--fn-text-muted)]">No hay reseñas publicadas</p>
         ) : (
-          reviews.map((review) => (
+          allReviews.map((review) => (
             <div
               key={review.id}
               className="border-b border-[var(--fn-border)] p-4 last:border-b-0 hover:bg-[var(--fn-surface-muted)]"

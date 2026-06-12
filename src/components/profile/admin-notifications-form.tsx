@@ -5,6 +5,7 @@ import {
   DEFAULT_ADMIN_NOTIFICATIONS,
   type AdminNotificationPreferences,
 } from '@/contexts/auth-context';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { ADMIN_LABELS, ALERT_LABELS, BUTTON_LABELS } from '@/constants/labels';
 import { Button } from '@/components/ui/button';
 import { ToggleButton } from '@/components/ui/toggle-button';
@@ -38,6 +39,7 @@ const PREFS: { key: keyof AdminNotificationPreferences; label: string }[] = [
 
 export function AdminNotificationsForm() {
   const { user, updateProfile } = useAuth();
+  const { showNotice } = useNoticeModal();
   const prefs = user?.adminNotificationPreferences ?? DEFAULT_ADMIN_NOTIFICATIONS;
 
   const toggle = (key: keyof AdminNotificationPreferences) => {
@@ -61,7 +63,13 @@ export function AdminNotificationsForm() {
       </div>
       <Button
         title={BUTTON_LABELS.save}
-        onClick={() => alert(`${ALERT_LABELS.savedTitle}: ${ADMIN_LABELS.profile.preferencesSaved}`)}
+        onClick={() =>
+          showNotice({
+            title: ALERT_LABELS.savedTitle,
+            message: ADMIN_LABELS.profile.preferencesSaved,
+            variant: 'success',
+          })
+        }
       />
     </div>
   );

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/auth-context';
+import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
 import { BUTTON_LABELS, SCREEN_TITLES } from '@/constants/labels';
 
 export default function InstructorEditProfilePage() {
@@ -14,10 +14,20 @@ export default function InstructorEditProfilePage() {
   const { user, updateProfile } = useAuth();
   const [displayName, setDisplayName] = useState(user?.instructorProfile?.displayName ?? '');
   const [bio, setBio] = useState(user?.instructorProfile?.bio ?? '');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const save = () => {
-    updateProfile({ instructorProfile: { displayName, bio } });
-    router.back();
+  const save = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await updateProfile({ instructorProfile: { displayName, bio } });
+      router.back();
+    } catch (e) {
+      setError(getAuthErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,7 +43,8 @@ export default function InstructorEditProfilePage() {
           onChange={(e) => setBio(e.target.value)}
         />
       </label>
-      <Button title={BUTTON_LABELS.saveChanges} onClick={save} />
+      {error ? <p className="mb-2 text-sm text-[var(--fn-error)]">{error}</p> : null}
+      <Button title={BUTTON_LABELS.saveChanges} loading={loading} onClick={save} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 import {
   AuthDivider,
@@ -15,14 +15,15 @@ import {
 } from '@/components/auth/auth-ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/auth-context';
+import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
 import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
 import type { UserRole } from '@/types/api';
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
-  const googleSignIn = useFeature('googleSignIn');
+  const searchParams = useSearchParams();
+  const googleSignInEnabled = useFeature('googleSignIn');
   const { register } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -31,7 +32,27 @@ export default function RegisterPage() {
   const [role, setRole] = useState<Exclude<UserRole, 'admin'>>('athlete');
   const [institutionName, setInstitutionName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const googleError = searchParams.get('googleError');
+    if (googleError) setError(googleError);
+  }, [searchParams]);
+
+  const startGoogleRegister = () => {
+    if (role === 'institution' && !institutionName.trim()) {
+      setError(ALERT_LABELS.gymNameRequired);
+      return;
+    }
+
+    setGoogleLoading(true);
+    const params = new URLSearchParams({ mode: 'register', role });
+    if (role === 'institution') {
+      params.set('institutionName', institutionName.trim());
+    }
+    window.location.href = `/api/auth/google?${params.toString()}`;
+  };
 
   const submit = async () => {
     setError('');
@@ -52,13 +73,21 @@ export default function RegisterPage() {
         password,
         role,
         firstName: role === 'institution' ? institutionName.trim() : firstName.trim(),
-        lastName: role === 'institution' ? '' : lastName.trim(),
+        lastName: role === 'institution' ? 'Admin' : lastName.trim(),
         avatarUri: null,
         favoriteSports: [],
         disciplines: [],
         institutionName: role === 'institution' ? institutionName.trim() : undefined,
       });
-      router.replace('/');
+      const home =
+        role === 'instructor'
+          ? '/instructor/dashboard'
+          : role === 'institution'
+            ? '/gym/dashboard'
+            : '/athlete/home';
+      router.replace(home);
+    } catch (e) {
+      setError(getAuthErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -71,11 +100,12 @@ export default function RegisterPage() {
 
         <RoleTileSelector value={role} onChange={setRole} label={AUTH_LABELS.chooseProfile} />
 
-        {googleSignIn ? (
+        {googleSignInEnabled ? (
           <>
             <GoogleSignInButton
               label={`${GENERAL_LABELS.continueWith} ${GENERAL_LABELS.google}`}
-              onClick={() => alert('Registro con Google — conecta cuando el backend esté listo.')}
+              onClick={startGoogleRegister}
+              loading={googleLoading}
             />
             <AuthDivider label={GENERAL_LABELS.orContinueWith} />
           </>
@@ -148,5 +178,13 @@ export default function RegisterPage() {
         />
       </div>
     </AuthShell>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

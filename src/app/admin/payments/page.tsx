@@ -2,7 +2,8 @@
 
 import { PageHeader } from '@/components/layout/page-header';
 import { TAB_LABELS } from '@/constants/labels';
-import { MOCK_PAYMENTS, formatMoney } from '@/data/mock';
+import { formatMoney } from '@/utils/format';
+import { MOCK_PAYMENTS } from '@/data/mock';
 import { Badge } from '@/components/ui/badge';
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {

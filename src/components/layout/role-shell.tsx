@@ -33,6 +33,7 @@ const GYM_NAV: NavItem[] = [
   { href: '/gym/dashboard', label: TAB_LABELS.gym.dashboard, icon: <BarChart3 size={18} /> },
   { href: '/gym/instructors', label: TAB_LABELS.gym.staff, icon: <Users size={18} /> },
   { href: '/gym/classes', label: TAB_LABELS.gym.classes, icon: <BookOpen size={18} /> },
+  { href: '/gym/earnings', label: TAB_LABELS.gym.earnings, icon: <DollarSign size={18} /> },
 ];
 
 const ADMIN_NAV: NavItem[] = [
@@ -105,10 +106,10 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setDropdownOpen(false);
     const isAdmin = user.role === 'admin';
-    logout();
+    await logout();
     router.replace(isAdmin ? '/admin' : '/auth/login');
   };
 

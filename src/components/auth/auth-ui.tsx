@@ -60,11 +60,26 @@ export function AuthDivider({ label }: { label: string }) {
   );
 }
 
-export function GoogleSignInButton({ onClick, label }: { onClick: () => void; label: string }) {
+export function GoogleSignInButton({
+  label,
+  onClick,
+  disabled,
+  loading,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
   return (
-    <button type="button" onClick={onClick} className="fn-auth-google-btn">
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={`fn-auth-google-btn w-full${disabled || loading ? ' opacity-60' : ''}`}
+    >
       <GoogleIcon />
-      <span>{label}</span>
+      <span>{loading ? '...' : label}</span>
     </button>
   );
 }

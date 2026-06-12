@@ -4,10 +4,17 @@ import Link from 'next/link';
 
 import { ClassCard } from '@/components/class-card';
 import { Button } from '@/components/ui/button';
+import {
+  DashboardClassGrid,
+  DashboardHero,
+  DashboardPage,
+  DashboardSection,
+  DASHBOARD_GRADIENTS,
+} from '@/components/dashboard/dashboard-ui';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { resolveInstitutionId } from '@/utils/gym-classes';
-import { GYM_LABELS, INSTRUCTOR_LABELS, BUTTON_LABELS } from '@/constants/labels';
+import { GYM_LABELS } from '@/constants/labels';
 
 export default function GymClassesPage() {
   const { user } = useAuth();
@@ -16,16 +23,42 @@ export default function GymClassesPage() {
   const gymClasses = classes.filter((c) => c.institution?.id === institutionId);
 
   return (
-    <div>
-      <div className="mb-6 flex justify-between">
-        <h1 className="text-3xl font-extrabold">{GYM_LABELS.classes.yourClasses}</h1>
-        <Link href="/instructor/create-class">
-          <Button title={GYM_LABELS.classes.addClass} size="sm" />
+    <DashboardPage>
+      <DashboardHero
+        gradient={DASHBOARD_GRADIENTS.gym}
+        eyebrow={GYM_LABELS.classes.yourClasses}
+        title="Clases grupales de tu gimnasio"
+      >
+        <Link href="/gym/create-class">
+          <Button title={GYM_LABELS.classes.addClass} className="shadow-lg shadow-black/20" />
         </Link>
-      </div>
-      {gymClasses.map((c) => (
-        <ClassCard key={c.id} item={c} />
-      ))}
-    </div>
+      </DashboardHero>
+
+      <DashboardSection
+        title={`${gymClasses.length} ${gymClasses.length === 1 ? 'clase programada' : 'clases programadas'}`}
+        action={
+          <Link href="/gym/create-class">
+            <Button title={GYM_LABELS.classes.addClass} variant="outline" size="sm" />
+          </Link>
+        }
+      >
+        {gymClasses.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-6 py-14 text-center">
+            <p className="text-[var(--fn-text-muted)]">
+              Publica tu primera clase grupal con un instructor vinculado.
+            </p>
+            <Link href="/gym/create-class" className="mt-4 inline-block">
+              <Button title={GYM_LABELS.classes.addClass} />
+            </Link>
+          </div>
+        ) : (
+          <DashboardClassGrid>
+            {gymClasses.map((c) => (
+              <ClassCard key={c.id} item={c} />
+            ))}
+          </DashboardClassGrid>
+        )}
+      </DashboardSection>
+    </DashboardPage>
   );
 }

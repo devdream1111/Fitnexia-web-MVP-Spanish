@@ -1,9 +1,11 @@
 'use client';
 
-import { FEATURES, isFeatureEnabled, type FeatureKey } from '@/constants/features';
+import { useAppConfig } from '@/contexts/app-config-context';
+import { FEATURES, type FeatureKey } from '@/constants/features';
 
-/** Read a product feature flag (static for MVP; replace with API config later). */
+/** Read a product feature flag (server config when available, else static defaults). */
 export function useFeature(key: FeatureKey): boolean {
+  const { isFeatureEnabled } = useAppConfig();
   return isFeatureEnabled(key);
 }
 
