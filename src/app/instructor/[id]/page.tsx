@@ -25,6 +25,7 @@ export default function InstructorPublicPage() {
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
+    setInstructor(null);
     setLoading(true);
     apiGetInstructor(id)
       .then((data) => {

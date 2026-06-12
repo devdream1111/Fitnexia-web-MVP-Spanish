@@ -17,7 +17,6 @@ export function ClassDetailModal({ classId }: { classId: string }) {
   useEffect(() => {
     if (!isClassRoute) return;
 
-    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -26,10 +25,16 @@ export function ClassDetailModal({ classId }: { classId: string }) {
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = '';
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [close, isClassRoute]);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   if (!isClassRoute) {
     return null;

@@ -211,6 +211,7 @@ export function ClassDetailView({
                     rating={instructor!.averageRating}
                     viewProfileLabel={BUTTON_LABELS.viewProfile}
                     showProfileLink={showInstructorProfileLink}
+                    replaceNavigation={Boolean(onClose)}
                   />
                 </ClassDetailSection>
               ) : null}

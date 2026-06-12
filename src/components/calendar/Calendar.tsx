@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
-import { formatClassDate, formatMoney } from '@/utils/format';
+import { formatClassDate, formatMoney, isClassOnCalendarDay, parseClassStartAt } from '@/utils/format';
 import type { ClassListItem } from '@/types/api';
 
 interface CalendarProps {
   classes: ClassListItem[];
   onDateClick?: (date: Date) => void;
   showSidePanel?: boolean;
+  /** Jump the calendar to the month of the first booking when data loads */
+  focusDate?: Date;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -23,18 +25,29 @@ function uniqueClassesById(items: ClassListItem[]): ClassListItem[] {
   });
 }
 
-export function Calendar({ classes, onDateClick, showSidePanel = true }: CalendarProps) {
+export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate }: CalendarProps) {
   const [view, setView] = useState<'month' | 'week'>('month');
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => focusDate ?? new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!focusDate) return;
+    setCurrentDate((prev) => {
+      if (
+        prev.getFullYear() === focusDate.getFullYear() &&
+        prev.getMonth() === focusDate.getMonth()
+      ) {
+        return prev;
+      }
+      return new Date(focusDate.getFullYear(), focusDate.getMonth(), 1);
+    });
+  }, [focusDate]);
 
   const getClassesForDate = (date: Date) => {
     return uniqueClassesById(
       classes.filter((c) => {
         if (!c?.startAt) return false;
-        const cDate = new Date(c.startAt);
-        if (Number.isNaN(cDate.getTime())) return false;
-        return cDate.toDateString() === date.toDateString();
+        return isClassOnCalendarDay(c.startAt, date);
       }),
     );
   };
@@ -139,7 +152,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true }: Calenda
                     <div key={hour} className="h-12 border-b border-[var(--fn-border)]"></div>
                   ))}
                   {dayClasses.map((c) => {
-                    const start = new Date(c.startAt);
+                    const start = parseClassStartAt(c.startAt);
                     const hourOffset = start.getHours();
                     const top = hourOffset * 48 + (start.getMinutes() * (48 / 60));
                     const duration = c.durationMinutes ?? 60;

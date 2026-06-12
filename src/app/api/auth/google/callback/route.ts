@@ -11,7 +11,7 @@ import {
 } from '@/lib/google-oauth-server';
 
 function redirectWithError(state: GoogleOAuthState | null, message: string): NextResponse {
-  const origin = state?.returnOrigin ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const origin = state?.returnOrigin ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://svganchordev.net/fitnexia-api/v1';
   const path = state?.mode === 'register' ? '/auth/register' : '/auth/login';
   return NextResponse.redirect(`${origin}${path}?googleError=${encodeURIComponent(message)}`);
 }

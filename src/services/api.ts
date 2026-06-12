@@ -39,6 +39,8 @@ export interface RegisterBody {
 export interface BookingRecord extends Booking {
   checkoutUrl?: string;
   paymentId?: string;
+  /** Populated by some API responses — used for calendar without an extra class fetch */
+  class?: ClassListItem;
 }
 
 export interface ReviewEligibility {

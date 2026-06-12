@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -10,14 +10,14 @@ import { useClasses } from '@/contexts/classes-context';
 import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
-import { formatClassDate, formatMoney } from '@/utils/format';
+import { formatClassDate, formatMoney, isClassOnCalendarDay, parseClassStartAt } from '@/utils/format';
 import { canCancelBooking, getRefundAmount } from '@/utils/booking';
 import { GENERAL_LABELS } from '@/constants/labels';
 import type { ClassListItem } from '@/types/api';
 import type { BookingRecord } from '@/services/api';
 
 export default function BookingsPage() {
-  const { getClassById, fetchClassById } = useClasses();
+  const { classes, getClassById, fetchClassById } = useClasses();
   const { bookings, cancelBooking, syncPayment, refreshBookings } = useBookings();
   const { user } = useAuth();
   const { showNotice } = useNoticeModal();
@@ -32,18 +32,38 @@ export default function BookingsPage() {
     refreshBookings();
   }, [refreshBookings]);
 
+  const resolveClass = useCallback(
+    (booking: BookingRecord): ClassListItem | undefined =>
+      booking.class ?? getClassById(booking.classId) ?? classCache[booking.classId],
+    [classCache, getClassById],
+  );
+
   useEffect(() => {
-    bookings.forEach((b) => {
-      if (!classCache[b.classId] && !getClassById(b.classId)) {
-        fetchClassById(b.classId).then((c) => {
-          if (c) setClassCache((prev) => ({ ...prev, [c.id]: c }));
-        });
+    let cancelled = false;
+    const missingIds = [
+      ...new Set(
+        bookings
+          .filter((b) => !b.class && !getClassById(b.classId) && !classCache[b.classId])
+          .map((b) => b.classId),
+      ),
+    ];
+    if (missingIds.length === 0) return;
+
+    Promise.all(missingIds.map((id) => fetchClassById(id))).then((results) => {
+      if (cancelled) return;
+      const next: Record<string, ClassListItem> = {};
+      results.forEach((cls) => {
+        if (cls) next[cls.id] = cls;
+      });
+      if (Object.keys(next).length > 0) {
+        setClassCache((prev) => ({ ...prev, ...next }));
       }
     });
-  }, [bookings, classCache, getClassById, fetchClassById]);
 
-  const resolveClass = (classId: string): ClassListItem | undefined =>
-    getClassById(classId) ?? classCache[classId];
+    return () => {
+      cancelled = true;
+    };
+  }, [bookings, classCache, fetchClassById, getClassById]);
 
   const userBookings = user ? bookings.filter((b) => b.userId === user.id) : [];
 
@@ -57,23 +77,32 @@ export default function BookingsPage() {
   const entries = useMemo(() => {
     return list
       .map((booking) => {
-        const cls = resolveClass(booking.classId);
+        const cls = resolveClass(booking);
         if (!cls) return null;
         return { booking, cls };
       })
       .filter((e): e is { booking: BookingRecord; cls: ClassListItem } => e !== null);
-  }, [list, classCache, getClassById]);
+  }, [list, resolveClass]);
 
   const bookedClasses = useMemo(() => {
     const byId = new Map<string, ClassListItem>();
     for (const booking of userBookings) {
-      const cls = resolveClass(booking.classId);
+      const cls = resolveClass(booking);
       if (cls?.startAt && !byId.has(cls.id)) {
         byId.set(cls.id, cls);
       }
     }
     return Array.from(byId.values());
-  }, [userBookings, classCache, getClassById]);
+  }, [userBookings, resolveClass, classes]);
+
+  const calendarFocusDate = useMemo(() => {
+    const dates = bookedClasses
+      .map((c) => parseClassStartAt(c.startAt))
+      .filter((d) => !Number.isNaN(d.getTime()));
+    if (dates.length === 0) return undefined;
+    dates.sort((a, b) => a.getTime() - b.getTime());
+    return dates[0];
+  }, [bookedClasses]);
 
   const handleCancel = (bookingId: string) => {
     setShowCancelConfirm(bookingId);
@@ -81,7 +110,7 @@ export default function BookingsPage() {
 
   const confirmCancel = async (bookingId: string) => {
     const booking = bookings.find((b) => b.id === bookingId);
-    const cls = booking ? resolveClass(booking.classId) : null;
+    const cls = booking ? resolveClass(booking) : null;
 
     setCancellingId(bookingId);
     try {
@@ -114,10 +143,7 @@ export default function BookingsPage() {
   };
 
   const getBookingsForDate = (date: Date) => {
-    return entries.filter(({ cls }) => {
-      const clsDate = new Date(cls.startAt);
-      return clsDate.toDateString() === date.toDateString();
-    });
+    return entries.filter(({ cls }) => isClassOnCalendarDay(cls.startAt, date));
   };
 
   return (
@@ -142,6 +168,7 @@ export default function BookingsPage() {
         <div className="mb-8">
           <Calendar
             classes={bookedClasses}
+            focusDate={calendarFocusDate}
             onDateClick={(date) => setSelectedDate(date)}
             showSidePanel={false}
           />

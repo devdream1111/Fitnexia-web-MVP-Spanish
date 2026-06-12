@@ -112,6 +112,7 @@ export function ClassDetailInstructorCard({
   rating,
   viewProfileLabel,
   showProfileLink = true,
+  replaceNavigation = false,
 }: {
   href: string;
   name: string;
@@ -119,7 +120,10 @@ export function ClassDetailInstructorCard({
   rating?: number;
   viewProfileLabel: string;
   showProfileLink?: boolean;
+  /** Use router.replace — required when navigating from an intercepted class modal */
+  replaceNavigation?: boolean;
 }) {
+  const router = useRouter();
   const initials = name
     .split(' ')
     .map((part) => part.charAt(0))
@@ -157,6 +161,21 @@ export function ClassDetailInstructorCard({
     'flex items-center gap-4 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 transition';
 
   if (showProfileLink) {
+    if (replaceNavigation) {
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            document.body.style.overflow = '';
+            router.replace(href);
+          }}
+          className={`${className} w-full text-left hover:border-[var(--fn-primary)]/40`}
+        >
+          {inner}
+        </button>
+      );
+    }
+
     return (
       <Link href={href} className={`${className} hover:border-[var(--fn-primary)]/40`}>
         {inner}
