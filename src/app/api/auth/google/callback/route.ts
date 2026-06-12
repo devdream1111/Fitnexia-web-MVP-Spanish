@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/v1';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'https://svganchordev.net/fitnexia-api/v1';
     const body: Record<string, string> = { idToken: tokenData.id_token };
     if (stored.mode === 'register' && stored.role) {
       body.role = stored.role;
