@@ -5,6 +5,7 @@ import type {
   AuthResponse,
   Booking,
   Class,
+  ClassBookingPaymentOptions,
   ClassListItem,
   CreateBookingRequest,
   CreateBookingResponse,
@@ -12,10 +13,10 @@ import type {
   Institution,
   Instructor,
   PaginatedResponse,
-  PaymentModel,
   User,
   UserRole,
 } from '@/types/api';
+import { buildFallbackPaymentOptions } from '@/utils/booking-payments';
 import type { NotificationPreferences } from '@/contexts/auth-context';
 
 export interface MeResponse {
@@ -144,6 +145,7 @@ export interface AppConfig {
     integratedPayments: boolean;
     waitlist: boolean;
     loyaltyCredits: boolean;
+    subscriptionPaymentModels?: boolean;
   };
   currency: string;
 }
@@ -397,6 +399,19 @@ export function apiGetClass(id: string) {
   return apiRequest<Class>(`/classes/${id}`, { auth: false });
 }
 
+export async function apiGetClassBookingPaymentOptions(
+  classItem: ClassListItem,
+): Promise<ClassBookingPaymentOptions> {
+  try {
+    return await apiRequest<ClassBookingPaymentOptions>(
+      `/classes/${classItem.id}/booking-payment-options`,
+      { auth: false },
+    );
+  } catch {
+    return buildFallbackPaymentOptions(classItem);
+  }
+}
+
 export function apiGetMyClasses() {
   return apiRequest<{ data: ClassListItem[] }>('/classes/mine');
 }
@@ -427,8 +442,7 @@ export function apiGetHomeFeed() {
 
 // --- Bookings ---
 
-export function apiCreateBooking(classId: string, paymentModel: PaymentModel = 'per_class') {
-  const body: CreateBookingRequest = { classId, paymentModel };
+export function apiCreateBooking(body: CreateBookingRequest) {
   return apiRequest<CreateBookingResponse>('/bookings', {
     method: 'POST',
     body: JSON.stringify(body),

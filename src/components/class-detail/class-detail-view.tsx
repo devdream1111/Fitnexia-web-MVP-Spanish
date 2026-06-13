@@ -22,6 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
+import { useInstructors, instructorFromSummary } from '@/contexts/instructors-context';
 import { useReviews } from '@/contexts/reviews-context';
 import { apiGetClass, apiGetInstructor } from '@/services/api';
 import { formatClassDate, formatMoney } from '@/utils/format';
@@ -49,6 +50,7 @@ export function ClassDetailView({
   const router = useRouter();
   const { user } = useAuth();
   const { getClassById, fetchClassById } = useClasses();
+  const { cacheInstructor } = useInstructors();
   const { getReviewsForInstructor, fetchInstructorReviews } = useReviews();
   const waitlistEnabled = useFeature('waitlist');
   const [cls, setCls] = useState<Class | undefined>(() => {
@@ -69,11 +71,15 @@ export function ClassDetailView({
       if (cancelled) return;
       if (classData) {
         setCls(classData as Class);
+        cacheInstructor(instructorFromSummary(classData.instructor));
         const [inst] = await Promise.all([
           apiGetInstructor(classData.instructor.id).catch(() => null),
           fetchInstructorReviews(classData.instructor.id),
         ]);
-        if (!cancelled && inst) setInstructor(inst);
+        if (!cancelled && inst) {
+          setInstructor(inst);
+          cacheInstructor(inst);
+        }
       }
       setLoading(false);
     }
@@ -81,7 +87,7 @@ export function ClassDetailView({
     return () => {
       cancelled = true;
     };
-  }, [classId, fetchClassById, fetchInstructorReviews, getClassById]);
+  }, [cacheInstructor, classId, fetchClassById, fetchInstructorReviews, getClassById]);
 
   const reviews = cls ? getReviewsForInstructor(cls.instructor.id) : [];
   const isModal = variant === 'modal';
@@ -90,7 +96,18 @@ export function ClassDetailView({
   const isInstructorView = role === 'instructor';
   const isGymView = role === 'institution';
   const showBookingActions = isAthleteView;
-  const showInstructorSection = Boolean(instructor) && !isInstructorView;
+  const displayInstructor =
+    instructor ?? (cls ? instructorFromSummary(cls.instructor) : null);
+  const showInstructorSection = Boolean(displayInstructor) && !isInstructorView;
+  const cacheInstructorForProfile = () => {
+    if (instructor) {
+      cacheInstructor(instructor);
+      return;
+    }
+    if (cls) {
+      cacheInstructor(instructorFromSummary(cls.instructor));
+    }
+  };
   const showInstructorProfileLink = !isInstructorView;
   const showBookingSidebar = isAthleteView || isGymView;
   const showInstructorPriceSidebar = isInstructorView && isModal;
@@ -205,13 +222,14 @@ export function ClassDetailView({
               {showInstructorSection ? (
                 <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
                   <ClassDetailInstructorCard
-                    href={`/instructor/${instructor!.id}`}
-                    name={instructor!.displayName}
-                    verified={instructor!.verified}
-                    rating={instructor!.averageRating}
+                    href={`/instructor/${displayInstructor!.id}`}
+                    name={displayInstructor!.displayName}
+                    verified={displayInstructor!.verified}
+                    rating={displayInstructor!.averageRating}
                     viewProfileLabel={BUTTON_LABELS.viewProfile}
                     showProfileLink={showInstructorProfileLink}
                     replaceNavigation={Boolean(onClose)}
+                    onProfileNavigate={cacheInstructorForProfile}
                   />
                 </ClassDetailSection>
               ) : null}
@@ -242,12 +260,13 @@ export function ClassDetailView({
             {showInstructorSection ? (
               <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
                 <ClassDetailInstructorCard
-                  href={`/instructor/${instructor!.id}`}
-                  name={instructor!.displayName}
-                  verified={instructor!.verified}
-                  rating={instructor!.averageRating}
+                  href={`/instructor/${displayInstructor!.id}`}
+                  name={displayInstructor!.displayName}
+                  verified={displayInstructor!.verified}
+                  rating={displayInstructor!.averageRating}
                   viewProfileLabel={BUTTON_LABELS.viewProfile}
                   showProfileLink={showInstructorProfileLink}
+                  onProfileNavigate={cacheInstructorForProfile}
                 />
               </ClassDetailSection>
             ) : null}

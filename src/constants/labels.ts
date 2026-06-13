@@ -324,6 +324,14 @@ export const GENERAL_LABELS = {
   book: 'Reservar',
   total: 'Total',
   paymentIntegrationDemo: 'Demo de integración de pago: Simularemos un checkout de Mercado Pago.',
+  choosePaymentModel: 'Elegí cómo querés pagar',
+  paymentModelPerClass: 'Pago por clase',
+  paymentModelMonthlyUnlimited: 'Plan mensual ilimitado',
+  paymentModelPerPeriod: 'Pago por período',
+  billingPeriodWeekly: 'Semanal',
+  billingPeriodMonthly: 'Mensual',
+  billingPeriodQuarterly: 'Trimestral',
+  subscriptionCoversBooking: 'Tu plan mensual cubre esta reserva. Confirmá sin cargo adicional.',
   selectPaymentMethod: 'Seleccionar método de pago',
   mercadoPago: 'Mercado Pago',
   creditCard: 'Tarjeta de crédito',
@@ -543,13 +551,13 @@ export const LANDING_LABELS = {
     { value: '4.8★', label: 'Valoración media' },
   ],
   ctaTitle: '¿Listo para tu próximo entrenamiento?',
-  ctaSubtitle: 'Únete a Fitnexia y descubre clases, instructores y gimnasios en toda España.',
+  ctaSubtitle: 'Únete a Fitnexia y descubre clases, instructores y gimnasios en toda Uruguay.',
   ctaButton: 'Crear cuenta gratis',
   ctaNote: '¿Ya tienes cuenta? Inicia sesión y continúa donde lo dejaste.',
 } as const;
 
 export const ONBOARDING_LABELS = {
-  intro: 'El marketplace que conecta atletas, instructores y gimnasios en toda España.',
+  intro: 'El marketplace que conecta atletas, instructores y gimnasios en toda Uruguay.',
   tagline: 'Tu próximo entrenamiento empieza aquí.',
   slides: [
     {

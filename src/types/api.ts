@@ -21,6 +21,9 @@ export type BookingStatus =
 
 export type PaymentModel = 'per_class' | 'monthly_unlimited' | 'per_period';
 
+/** F-23 — billing cadence when paymentModel is per_period */
+export type BillingPeriod = 'weekly' | 'monthly' | 'quarterly';
+
 export type InstructorPlan = 'basic' | 'pro' | 'institutional';
 
 export type ClientPlatform = 'web' | 'ios' | 'android';
@@ -187,8 +190,26 @@ export interface Class extends ClassListItem {
 export interface CreateBookingRequest {
   classId: string;
   paymentModel: PaymentModel;
+  /** Required when paymentModel is per_period (F-23) */
+  billingPeriod?: BillingPeriod;
   useCredits?: boolean;
   promoCode?: string | null;
+}
+
+export interface BookingPaymentOption {
+  paymentModel: PaymentModel;
+  billingPeriod?: BillingPeriod;
+  label: string;
+  description: string;
+  price: Money;
+  /** When true the athlete already has coverage (e.g. active monthly pass) */
+  coveredBySubscription?: boolean;
+}
+
+export interface ClassBookingPaymentOptions {
+  classId: string;
+  options: BookingPaymentOption[];
+  currency: string;
 }
 
 export interface Booking {
@@ -197,6 +218,8 @@ export interface Booking {
   classId: string;
   userId: string;
   price: Money;
+  paymentModel?: PaymentModel;
+  billingPeriod?: BillingPeriod;
   createdAt: string;
 }
 

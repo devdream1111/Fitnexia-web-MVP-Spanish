@@ -11,6 +11,7 @@ import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { formatClassDate, formatMoney, isClassOnCalendarDay, parseClassStartAt } from '@/utils/format';
+import { formatBookingPaymentLabel } from '@/utils/booking-payments';
 import { canCancelBooking, getRefundAmount } from '@/utils/booking';
 import { GENERAL_LABELS } from '@/constants/labels';
 import type { ClassListItem } from '@/types/api';
@@ -205,8 +206,13 @@ export default function BookingsPage() {
                     className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-4"
                   >
                     <p className="font-semibold text-[var(--fn-text)]">{cls.title}</p>
-                    <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
-                    <p className="text-sm text-[var(--fn-primary)]">{formatMoney(booking.price)}</p>
+                  <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
+                  <p className="text-sm text-[var(--fn-primary)]">{formatMoney(booking.price)}</p>
+                  {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod) ? (
+                    <p className="text-xs text-[var(--fn-text-muted)]">
+                      {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod)}
+                    </p>
+                  ) : null}
                     <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
                       {GENERAL_LABELS.status}: {booking.status}
                     </p>
@@ -257,6 +263,11 @@ export default function BookingsPage() {
                   <p className="mt-2 text-sm">
                     {formatMoney(booking.price)} · {booking.status}
                   </p>
+                  {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod) ? (
+                    <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
+                      {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod)}
+                    </p>
+                  ) : null}
                 </div>
                 {['confirmed', 'pending_payment'].includes(booking.status) && tab === 'upcoming' ? (
                   <div className="flex flex-col gap-2">

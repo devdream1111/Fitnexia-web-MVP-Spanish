@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowLeft,
@@ -113,6 +114,7 @@ export function ClassDetailInstructorCard({
   viewProfileLabel,
   showProfileLink = true,
   replaceNavigation = false,
+  onProfileNavigate,
 }: {
   href: string;
   name: string;
@@ -122,8 +124,15 @@ export function ClassDetailInstructorCard({
   showProfileLink?: boolean;
   /** Use router.replace — required when navigating from an intercepted class modal */
   replaceNavigation?: boolean;
+  /** Called synchronously before modal navigation so profile data is cached */
+  onProfileNavigate?: () => void;
 }) {
   const router = useRouter();
+
+  useEffect(() => {
+    if (showProfileLink && href) router.prefetch(href);
+  }, [href, router, showProfileLink]);
+
   const initials = name
     .split(' ')
     .map((part) => part.charAt(0))
@@ -167,6 +176,7 @@ export function ClassDetailInstructorCard({
           type="button"
           onClick={() => {
             document.body.style.overflow = '';
+            onProfileNavigate?.();
             router.replace(href);
           }}
           className={`${className} w-full text-left hover:border-[var(--fn-primary)]/40`}
@@ -177,7 +187,11 @@ export function ClassDetailInstructorCard({
     }
 
     return (
-      <Link href={href} className={`${className} hover:border-[var(--fn-primary)]/40`}>
+      <Link
+        href={href}
+        className={`${className} hover:border-[var(--fn-primary)]/40`}
+        onClick={() => onProfileNavigate?.()}
+      >
         {inner}
       </Link>
     );

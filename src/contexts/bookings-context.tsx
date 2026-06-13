@@ -17,14 +17,14 @@ import {
   apiSyncBookingPayment,
   type BookingRecord,
 } from '@/services/api';
-import type { PaymentModel } from '@/types/api';
+import type { CreateBookingRequest } from '@/types/api';
 
 interface BookingsContextValue {
   bookings: BookingRecord[];
   loading: boolean;
   error: string | null;
   refreshBookings: () => Promise<void>;
-  createBooking: (classId: string, paymentModel?: PaymentModel) => Promise<BookingRecord>;
+  createBooking: (body: CreateBookingRequest) => Promise<BookingRecord>;
   cancelBooking: (bookingId: string) => Promise<BookingRecord>;
   syncPayment: (bookingId: string) => Promise<BookingRecord>;
   getUserBookings: (userId: string) => BookingRecord[];
@@ -63,18 +63,15 @@ export function BookingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user?.id, user?.role, refreshBookings]);
 
-  const createBooking = useCallback(
-    async (classId: string, paymentModel: PaymentModel = 'per_class') => {
-      const result = await apiCreateBooking(classId, paymentModel);
-      const record: BookingRecord = {
-        ...result.booking,
-        checkoutUrl: result.payment?.checkoutUrl,
-      };
-      setBookings((prev) => [record, ...prev]);
-      return record;
-    },
-    [],
-  );
+  const createBooking = useCallback(async (body: CreateBookingRequest) => {
+    const result = await apiCreateBooking(body);
+    const record: BookingRecord = {
+      ...result.booking,
+      checkoutUrl: result.payment?.checkoutUrl,
+    };
+    setBookings((prev) => [record, ...prev]);
+    return record;
+  }, []);
 
   const cancelBooking = useCallback(async (bookingId: string) => {
     const updated = await apiCancelBooking(bookingId);

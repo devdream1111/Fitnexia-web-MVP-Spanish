@@ -19,6 +19,7 @@ type ServerFeatures = Partial<{
   integratedPayments: boolean;
   waitlist: boolean;
   loyaltyCredits: boolean;
+  subscriptionPaymentModels: boolean;
 }>;
 
 interface AppConfigContextValue {
@@ -35,6 +36,7 @@ const SERVER_FEATURE_MAP: Partial<Record<FeatureKey, keyof ServerFeatures>> = {
   integratedPayments: 'integratedPayments',
   waitlist: 'waitlist',
   loyaltyCredits: 'loyaltyCredits',
+  subscriptionPaymentModels: 'subscriptionPaymentModels',
 };
 
 export function AppConfigProvider({ children }: { children: React.ReactNode }) {
