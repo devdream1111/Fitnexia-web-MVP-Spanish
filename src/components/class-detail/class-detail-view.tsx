@@ -26,6 +26,7 @@ import { useInstructors, instructorFromSummary } from '@/contexts/instructors-co
 import { useReviews } from '@/contexts/reviews-context';
 import { apiGetClass, apiGetInstructor } from '@/services/api';
 import { formatClassDate, formatMoney } from '@/utils/format';
+import { hasAssignedInstructor } from '@/utils/class-instructor';
 import {
   BUTTON_LABELS,
   CLASS_DETAIL_LABELS,
@@ -71,14 +72,18 @@ export function ClassDetailView({
       if (cancelled) return;
       if (classData) {
         setCls(classData as Class);
-        cacheInstructor(instructorFromSummary(classData.instructor));
-        const [inst] = await Promise.all([
-          apiGetInstructor(classData.instructor.id).catch(() => null),
-          fetchInstructorReviews(classData.instructor.id),
-        ]);
-        if (!cancelled && inst) {
-          setInstructor(inst);
-          cacheInstructor(inst);
+        if (hasAssignedInstructor(classData)) {
+          cacheInstructor(instructorFromSummary(classData.instructor!));
+          const [inst] = await Promise.all([
+            apiGetInstructor(classData.instructor!.id).catch(() => null),
+            fetchInstructorReviews(classData.instructor!.id),
+          ]);
+          if (!cancelled && inst) {
+            setInstructor(inst);
+            cacheInstructor(inst);
+          }
+        } else {
+          setInstructor(null);
         }
       }
       setLoading(false);
@@ -89,7 +94,8 @@ export function ClassDetailView({
     };
   }, [cacheInstructor, classId, fetchClassById, fetchInstructorReviews, getClassById]);
 
-  const reviews = cls ? getReviewsForInstructor(cls.instructor.id) : [];
+  const reviews =
+    cls && hasAssignedInstructor(cls) ? getReviewsForInstructor(cls.instructor!.id) : [];
   const isModal = variant === 'modal';
   const role = user?.role;
   const isAthleteView = !role || role === 'athlete';
@@ -97,15 +103,17 @@ export function ClassDetailView({
   const isGymView = role === 'institution';
   const showBookingActions = isAthleteView;
   const displayInstructor =
-    instructor ?? (cls ? instructorFromSummary(cls.instructor) : null);
-  const showInstructorSection = Boolean(displayInstructor) && !isInstructorView;
+    instructor ??
+    (cls && hasAssignedInstructor(cls) ? instructorFromSummary(cls.instructor!) : null);
+  const showInstructorSection =
+    Boolean(cls) && hasAssignedInstructor(cls!) && Boolean(displayInstructor) && !isInstructorView;
   const cacheInstructorForProfile = () => {
     if (instructor) {
       cacheInstructor(instructor);
       return;
     }
-    if (cls) {
-      cacheInstructor(instructorFromSummary(cls.instructor));
+    if (cls && hasAssignedInstructor(cls)) {
+      cacheInstructor(instructorFromSummary(cls.instructor!));
     }
   };
   const showInstructorProfileLink = !isInstructorView;

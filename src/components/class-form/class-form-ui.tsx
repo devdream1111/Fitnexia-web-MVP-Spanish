@@ -44,7 +44,7 @@ export function ClassFormSection({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+    <section className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
       <div className="border-b border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-5 py-4 md:px-6">
         <div className="flex items-start gap-3">
           {Icon ? (

@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { apiGetReviewEligibility } from '@/services/api';
 import { formatClassDate } from '@/utils/format';
+import { classHostLabel } from '@/utils/class-instructor';
 import { ALERT_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import type { ClassListItem } from '@/types/api';
 
@@ -80,7 +81,7 @@ export default function ReviewPage() {
     <div className="fn-layout-narrow px-6 py-12">
       <PageHeader title={GENERAL_LABELS.leaveAReview} showBack />
       <p className="font-bold">{cls.title}</p>
-      <p className="mb-6 text-sm text-[var(--fn-text-muted)]">{cls.instructor.displayName}</p>
+      <p className="mb-6 text-sm text-[var(--fn-text-muted)]">{classHostLabel(cls)}</p>
       <p className="mb-2 text-sm font-medium">{GENERAL_LABELS.rating}</p>
       <div className="mb-4 flex gap-2">
         {[1, 2, 3, 4, 5].map((n) => (

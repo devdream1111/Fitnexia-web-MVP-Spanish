@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { useClasses } from '@/contexts/classes-context';
 import { MOCK_BOOKINGS } from '@/data/mock';
 import { formatClassDate, formatMoney } from '@/utils/format';
+import { hasAssignedInstructor } from '@/utils/class-instructor';
 import {
   CLASS_DETAIL_LABELS,
   modalityBadgeLabel,
@@ -60,14 +61,16 @@ export default function AdminClassDetailPage() {
               {classSpotsLabel(cls.spotsLeft ?? cls.capacity ?? 0, cls.capacity ?? 0)}
             </dd>
           </div>
-          <div>
-            <dt className="text-sm text-[var(--fn-text-muted)]">Instructor</dt>
-            <dd className="font-medium">
-              <Link href={`/instructor/${cls.instructor.id}`} className="text-[var(--fn-primary)]">
-                {cls.instructor.displayName}
-              </Link>
-            </dd>
-          </div>
+          {hasAssignedInstructor(cls) ? (
+            <div>
+              <dt className="text-sm text-[var(--fn-text-muted)]">Instructor</dt>
+              <dd className="font-medium">
+                <Link href={`/instructor/${cls.instructor!.id}`} className="text-[var(--fn-primary)]">
+                  {cls.instructor!.displayName}
+                </Link>
+              </dd>
+            </div>
+          ) : null}
           {cls.institution && (
             <div>
               <dt className="text-sm text-[var(--fn-text-muted)]">Institución</dt>

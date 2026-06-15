@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BADGE_LABELS, CLASS_CARD_LABELS, classFormatBadgeLabel, modalityLocationLabel, BUTTON_LABELS } from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/utils/format';
+import { classHostLabel } from '@/utils/class-instructor';
 import type { ClassListItem } from '@/types/api';
 
 function ClassCardInner({ item, compact, showEdit, editHref }: { 
@@ -40,7 +41,7 @@ function ClassCardInner({ item, compact, showEdit, editHref }: {
         <p className="text-sm text-[var(--fn-text-muted)] truncate">
           {item.discipline} · {classFormatBadgeLabel(item.classFormat)} · {formatClassDate(item.startAt)}
         </p>
-        <p className="text-sm text-[var(--fn-text-secondary)] truncate">{item.instructor.displayName}</p>
+        <p className="text-sm text-[var(--fn-text-secondary)] truncate">{classHostLabel(item)}</p>
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <span className="flex items-center gap-2 text-sm text-[var(--fn-text-muted)] min-w-0 flex-1">
             {item.modality === 'online' ? <Video size={16} className="shrink-0" /> : <MapPin size={16} className="shrink-0" />}

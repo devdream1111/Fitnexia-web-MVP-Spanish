@@ -74,7 +74,7 @@ export function filterClasses(
       const haystack = [
         item.title,
         item.discipline,
-        item.instructor.displayName,
+        item.instructor?.displayName,
         item.institution?.name,
         item.location?.label,
       ]

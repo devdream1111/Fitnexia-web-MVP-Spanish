@@ -1,8 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { CalendarClock, ClipboardList, Users, Wallet } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -29,9 +29,12 @@ import {
 } from '@/constants/labels';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { apiListLinkedInstructors, type LinkedInstructor } from '@/services/api';
+import { resolveInstitutionId } from '@/utils/gym-classes';
 import { combineDateAndTime, dateToTimeString, defaultClassStart, timeStringToDate } from '@/utils/schedule';
 import { ApiClientError } from '@/services/api-client';
 import type { Modality } from '@/types/api';
+
+type AssignmentModel = 'model_a' | 'model_b';
 
 export default function GymCreateClassPage() {
   const router = useRouter();
@@ -40,9 +43,12 @@ export default function GymCreateClassPage() {
   const { showNotice } = useNoticeModal();
   const defaults = defaultClassStart();
   const segmentOptions = classFormatModalityOptions();
+  const institutionId = resolveInstitutionId(user);
+  const institutionName = user?.institutionProfile?.name ?? 'Gimnasio';
 
   const [linkedInstructors, setLinkedInstructors] = useState<LinkedInstructor[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
+  const [assignmentModel, setAssignmentModel] = useState<AssignmentModel>('model_a');
   const [instructorId, setInstructorId] = useState('');
   const [title, setTitle] = useState('');
   const [discipline, setDiscipline] = useState<string>(DISCIPLINES[0]);
@@ -58,10 +64,7 @@ export default function GymCreateClassPage() {
   useEffect(() => {
     if (user?.role !== 'institution') return;
     apiListLinkedInstructors()
-      .then((res) => {
-        setLinkedInstructors(res.data);
-        if (res.data[0]) setInstructorId(res.data[0].id);
-      })
+      .then((res) => setLinkedInstructors(res.data))
       .finally(() => setLoadingStaff(false));
   }, [user?.role]);
 
@@ -80,10 +83,22 @@ export default function GymCreateClassPage() {
     label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
   }));
 
-  const instructorOptions = linkedInstructors.map((i) => ({
+  const linkedInstructorOptions = linkedInstructors.map((i) => ({
     value: i.id,
     label: i.displayName,
   }));
+
+  const previewInstructorName =
+    assignmentModel === 'model_b' && selectedInstructor
+      ? selectedInstructor.displayName
+      : GYM_LABELS.classes.gymHostedClass;
+
+  const handleAssignmentModelChange = (model: AssignmentModel) => {
+    setAssignmentModel(model);
+    if (model === 'model_a') {
+      setInstructorId('');
+    }
+  };
 
   const publish = async () => {
     if (!title.trim()) {
@@ -94,10 +109,10 @@ export default function GymCreateClassPage() {
       });
       return;
     }
-    if (!instructorId || !selectedInstructor) {
+    if (assignmentModel === 'model_b' && !selectedInstructor) {
       showNotice({
         title: ALERT_LABELS.missingInfoTitle,
-        message: GYM_LABELS.classes.noLinkedInstructors,
+        message: GYM_LABELS.classes.modelBInstructorRequired,
         variant: 'error',
       });
       return;
@@ -120,10 +135,14 @@ export default function GymCreateClassPage() {
         price: { amount: priceAmount, currency: 'UYU' },
         capacity: cap,
         spotsLeft: cap,
-        instructor: { id: instructorId, displayName: selectedInstructor.displayName },
+        instructor:
+          assignmentModel === 'model_b' && selectedInstructor
+            ? { id: instructorId, displayName: selectedInstructor.displayName }
+            : undefined,
+        institution: { id: institutionId, name: institutionName },
         location:
           modality === 'in_person'
-            ? { lat: -34.6, lng: -58.38, label: user?.institutionProfile?.name ?? 'Gimnasio' }
+            ? { lat: -34.6, lng: -58.38, label: institutionName }
             : undefined,
       });
       showNotice({
@@ -148,21 +167,6 @@ export default function GymCreateClassPage() {
     );
   }
 
-  if (linkedInstructors.length === 0) {
-    return (
-      <ClassFormShell>
-        <PageHeader title={GYM_LABELS.classes.addClass} showBack />
-        <div className="rounded-2xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-6 py-14 text-center">
-          <Users size={40} className="mx-auto mb-4 text-[var(--fn-primary)]" />
-          <p className="text-[var(--fn-text-muted)]">{GYM_LABELS.classes.noLinkedInstructors}</p>
-          <Link href="/gym/instructors" className="mt-6 inline-block">
-            <Button title={GYM_LABELS.classes.goToInstructors} />
-          </Link>
-        </div>
-      </ClassFormShell>
-    );
-  }
-
   return (
     <ClassFormShell>
       <PageHeader title={GYM_LABELS.classes.addClass} showBack />
@@ -175,16 +179,50 @@ export default function GymCreateClassPage() {
         main={
           <>
             <ClassFormSection
-              title={GYM_LABELS.classes.pickInstructor}
-              description={GYM_LABELS.classes.pickInstructorHint}
+              title={GYM_LABELS.classes.assignmentMode}
+              description={GYM_LABELS.classes.assignmentModeHint}
               icon={Users}
             >
-              <Select
-                label={GYM_LABELS.classes.pickInstructor}
-                value={instructorId}
-                onChange={setInstructorId}
-                options={instructorOptions}
+              <ClassFormSegment
+                label={GYM_LABELS.classes.assignmentMode}
+                value={assignmentModel}
+                onChange={handleAssignmentModelChange}
+                options={[
+                  {
+                    value: 'model_a',
+                    label: GYM_LABELS.classes.modelA,
+                    hint: GYM_LABELS.classes.modelAHint,
+                  },
+                  {
+                    value: 'model_b',
+                    label: GYM_LABELS.classes.modelB,
+                    hint: GYM_LABELS.classes.modelBHint,
+                  },
+                ]}
               />
+
+              {assignmentModel === 'model_b' ? (
+                linkedInstructors.length > 0 ? (
+                  <Select
+                    label={GYM_LABELS.classes.pickInstructor}
+                    value={instructorId}
+                    onChange={setInstructorId}
+                    options={linkedInstructorOptions}
+                    placeholder="Elegí un instructor"
+                  />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/50 px-4 py-5 text-center">
+                    <p className="text-sm text-[var(--fn-text-muted)]">
+                      {GYM_LABELS.classes.noLinkedInstructors}
+                    </p>
+                    <Link href="/gym/instructors" className="mt-3 inline-block">
+                      <Button title={GYM_LABELS.classes.goToInstructors} variant="outline" size="sm" />
+                    </Link>
+                  </div>
+                )
+              ) : (
+                <p className="text-sm text-[var(--fn-text-muted)]">{GYM_LABELS.classes.modelAHint}</p>
+              )}
             </ClassFormSection>
 
             <ClassFormSection
@@ -281,7 +319,7 @@ export default function GymCreateClassPage() {
               durationMinutes={parseInt(duration, 10) || 0}
               priceAmount={Math.round(parseFloat(price || '0') * 100)}
               capacity={parseInt(capacity, 10) || 0}
-              instructorName={selectedInstructor?.displayName ?? ''}
+              instructorName={previewInstructorName}
             />
             {error ? <p className="text-sm text-[var(--fn-error)]">{error}</p> : null}
             <Button

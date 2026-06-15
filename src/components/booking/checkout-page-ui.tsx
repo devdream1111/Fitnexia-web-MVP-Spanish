@@ -19,10 +19,12 @@ import { Badge } from '@/components/ui/badge';
 import {
   classFormatBadgeLabel,
   DISCIPLINE_LABELS,
+  CLASS_DETAIL_LABELS,
   GENERAL_LABELS,
   modalityBadgeLabel,
 } from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/utils/format';
+import { hasAssignedInstructor, classHostLabel } from '@/utils/class-instructor';
 import type {
   BillingPeriod,
   ClassBookingPaymentOptions,
@@ -166,7 +168,19 @@ export function CheckoutPageUI({
                   label="Duración"
                   value={`${cls.durationMinutes} ${GENERAL_LABELS.min}`}
                 />
-                <CheckoutMetaRow icon={UserRound} label="Instructor" value={cls.instructor.displayName} />
+                {hasAssignedInstructor(cls) ? (
+                  <CheckoutMetaRow
+                    icon={UserRound}
+                    label="Instructor"
+                    value={cls.instructor!.displayName}
+                  />
+                ) : (
+                  <CheckoutMetaRow
+                    icon={UserRound}
+                    label={CLASS_DETAIL_LABELS.hostedBy}
+                    value={classHostLabel(cls)}
+                  />
+                )}
                 <CheckoutMetaRow
                   icon={cls.modality === 'online' ? Video : MapPin}
                   label="Ubicación"

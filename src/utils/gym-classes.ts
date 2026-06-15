@@ -12,7 +12,7 @@ export function canManageGymClass(
   instructorId?: string,
 ): boolean {
   if (cls.institution?.id === institutionId) return true;
-  if (instructorId && cls.instructor.id === instructorId) return true;
+  if (instructorId && cls.instructor?.id === instructorId) return true;
   return false;
 }
 

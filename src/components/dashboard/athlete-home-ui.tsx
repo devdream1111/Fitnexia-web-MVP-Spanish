@@ -6,6 +6,7 @@ import { Dumbbell, MapPin, Sparkles, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel } from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/utils/format';
+import { classHostLabel } from '@/utils/class-instructor';
 import type { ClassListItem } from '@/types/api';
 
 export function AthleteHomeShell({ children }: { children: React.ReactNode }) {
@@ -115,7 +116,7 @@ export function AthleteHomeRailCard({ item, index }: { item: ClassListItem; inde
           {item.discipline} · {formatClassDate(item.startAt)}
         </p>
         <p className="m-0 text-[0.8125rem] font-semibold leading-snug text-[var(--fn-text-secondary)]">
-          {item.instructor.displayName}
+          {classHostLabel(item)}
         </p>
         <div className="mt-auto flex flex-col gap-2 border-t border-dashed border-[var(--fn-border)] pt-3">
           <span className="flex items-center gap-1.5 text-xs text-[var(--fn-text-muted)]">
@@ -182,7 +183,7 @@ export function AthleteHomeFeatureCard({
           {item.discipline} · {formatClassDate(item.startAt)}
         </p>
         <p className="m-0 text-[0.8125rem] font-semibold text-[var(--fn-text-secondary)]">
-          {item.instructor.displayName}
+          {classHostLabel(item)}
         </p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--fn-border)] pt-3">
           <span className="flex items-center gap-1.5 text-xs text-[var(--fn-text-muted)]">

@@ -90,7 +90,7 @@ export default function EditClassPage() {
   }, [isPrivate]);
 
   const instructorName =
-    cls?.instructor.displayName ??
+    cls?.instructor?.displayName ??
     user?.instructorProfile?.displayName ??
     `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim();
 

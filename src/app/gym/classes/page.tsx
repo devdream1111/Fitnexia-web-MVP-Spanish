@@ -44,9 +44,7 @@ export default function GymClassesPage() {
       >
         {gymClasses.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-6 py-14 text-center">
-            <p className="text-[var(--fn-text-muted)]">
-              Publica tu primera clase grupal con un instructor vinculado.
-            </p>
+            <p className="text-[var(--fn-text-muted)]">{GYM_LABELS.classes.emptyClassesHint}</p>
             <Link href="/gym/create-class" className="mt-4 inline-block">
               <Button title={GYM_LABELS.classes.addClass} />
             </Link>

@@ -108,7 +108,7 @@ export function ClassesProvider({ children }: { children: React.ReactNode }) {
 
   const getClassesByInstructor = useCallback(
     (instructorId: string) =>
-      sortByStartAt(classes.filter((c) => c.instructor.id === instructorId)),
+      sortByStartAt(classes.filter((c) => c.instructor?.id === instructorId)),
     [classes],
   );
 
@@ -157,13 +157,17 @@ export function ClassesProvider({ children }: { children: React.ReactNode }) {
         price: input.price,
         capacity: input.capacity,
         location: input.location,
-        instructorId: user?.role === 'institution' ? input.instructor.id : undefined,
+        instructorId:
+          user?.role === 'institution' && input.instructor?.id
+            ? input.instructor.id
+            : undefined,
+        institutionId: user?.role === 'institution' ? user.institutionId : undefined,
       };
       const created = await apiCreateClass(body);
       setClasses((prev) => upsertCache(prev, [created]));
       return created;
     },
-    [user?.role],
+    [user?.role, user?.institutionId],
   );
 
   const updateClass = useCallback(async (id: string, updates: Partial<ClassListItem> & { description?: string }) => {
