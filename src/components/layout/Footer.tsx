@@ -181,18 +181,18 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm text-[#94A3B8]">
                 <MapPin size={18} className="shrink-0 text-[#60A5FA]" />
-                <span>Buenos Aires, Argentina</span>
+                <span>Punta del Este, Uruguay</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-[#94A3B8]">
                 <Mail size={18} className="shrink-0 text-[#60A5FA]" />
                 <a href="mailto:hola@fitnexia.com" className="transition hover:text-[#60A5FA]">
-                  hola@fitnexia.com
+                  info@fitnexia.fit
                 </a>
               </li>
               <li className="flex items-center gap-3 text-sm text-[#94A3B8]">
                 <Phone size={18} className="shrink-0 text-[#60A5FA]" />
                 <a href="tel:+541112345678" className="transition hover:text-[#60A5FA]">
-                  +54 11 1234-5678
+                  +598 99558911
                 </a>
               </li>
             </ul>

@@ -466,7 +466,7 @@ export const LANDING_LABELS = {
   whatEyebrow: '¿Qué es?',
   whatTitle: 'La plataforma que conecta profesionales del fitness, usuarios y gimnasios en un solo lugar.',
   whatBody:
-    'Fitnexia es el ecosistema digital del fitness en España: descubre clases, reserva con instructores verificados y gestiona tu centro o tu marca personal desde una sola web.',
+    'Fitnexia es el ecosistema digital del fitness en Uruguay: descubre clases, reserva con instructores verificados y gestiona tu centro o tu marca personal desde una sola web.',
   trust: ['Instructores verificados', 'Reservas en minutos', 'Pagos transparentes'],
   whoEyebrow: 'Para quién es',
   whoTitle: '¿Para quién es Fitnexia?',
@@ -564,7 +564,7 @@ export const LANDING_LABELS = {
     ],
   },
   launchBadge: 'Ya disponible · MVP',
-  launchTitle: 'El fitness español, conectado',
+  launchTitle: 'El fitness uruguayo, conectado',
   launchSubtitle: 'Explora la plataforma hoy mismo. Sin listas de espera — crea tu cuenta y empieza a entrenar.',
   stats: [
     { value: '150+', label: 'Usuarios activos' },
