@@ -185,13 +185,13 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-sm text-[#94A3B8]">
                 <Mail size={18} className="shrink-0 text-[#60A5FA]" />
-                <a href="mailto:hola@fitnexia.com" className="transition hover:text-[#60A5FA]">
+                <a href="mailto:info@fitnexia.fit" className="transition hover:text-[#60A5FA]">
                   info@fitnexia.fit
                 </a>
               </li>
               <li className="flex items-center gap-3 text-sm text-[#94A3B8]">
                 <Phone size={18} className="shrink-0 text-[#60A5FA]" />
-                <a href="tel:+541112345678" className="transition hover:text-[#60A5FA]">
+                <a href="tel:+59899558911" className="transition hover:text-[#60A5FA]">
                   +598 99558911
                 </a>
               </li>
