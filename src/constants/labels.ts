@@ -572,13 +572,13 @@ export const LANDING_LABELS = {
     { value: '4.8★', label: 'Valoración media' },
   ],
   ctaTitle: '¿Listo para tu próximo entrenamiento?',
-  ctaSubtitle: 'Únete a Fitnexia y descubre clases, instructores y gimnasios en toda Uruguay.',
+  ctaSubtitle: 'Únete a Fitnexia y descubre clases, instructores y gimnasios en TODO Uruguay.',
   ctaButton: 'Crear cuenta gratis',
   ctaNote: '¿Ya tienes cuenta? Inicia sesión y continúa donde lo dejaste.',
 } as const;
 
 export const ONBOARDING_LABELS = {
-  intro: 'El marketplace que conecta atletas, instructores y gimnasios en toda Uruguay.',
+  intro: 'El marketplace que conecta atletas, instructores y gimnasios en TODO Uruguay.',
   tagline: 'Tu próximo entrenamiento empieza aquí.',
   slides: [
     {
