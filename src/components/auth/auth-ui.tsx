@@ -104,7 +104,7 @@ function AuthBrandPanel({ variant }: { variant: 'login' | 'register' }) {
   const headline =
     variant === 'login'
       ? 'Vuelve a entrenar con los mejores profesionales'
-      : 'Únete a la comunidad fitness que está transformando España';
+      : 'Únete a la comunidad fitness que está transformando Uruguay';
 
   return (
     <aside className="fn-auth-brand">
@@ -176,7 +176,7 @@ export function AuthShell({
               <Logo href="/" size="md" className="!mx-0 mb-3 brightness-0 invert" />
               <h2 className="text-xl font-extrabold text-white">
                 {variant === 'login'
-                  ? 'Tu plataforma fitness en España'
+                  ? 'Tu plataforma fitness en Uruguay'
                   : 'Crea tu cuenta en minutos'}
               </h2>
             </div>

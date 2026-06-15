@@ -334,7 +334,7 @@ export const MOCK_GYM_WEEKLY_METRICS: GymWeeklyMetrics = {
 };
 
 export function formatMoney(m: { amount: number; currency: string }): string {
-  const amount = new Intl.NumberFormat('es-AR', {
+  const amount = new Intl.NumberFormat('es-UY', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(m.amount / 100);
@@ -344,7 +344,7 @@ export function formatMoney(m: { amount: number; currency: string }): string {
 
 export function formatClassDate(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString('es-AR', {
+  return d.toLocaleDateString('es-UY', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

@@ -39,7 +39,7 @@ export default function AdminPaymentsPage() {
                 {payment.paymentMethod} · Reserva {payment.bookingId}
               </p>
               <p className="text-xs text-[var(--fn-text-muted)]">
-                {new Date(payment.createdAt).toLocaleDateString('es-AR')}
+                {new Date(payment.createdAt).toLocaleDateString('es-UY')}
               </p>
             </div>
             <div className="flex items-center gap-3">

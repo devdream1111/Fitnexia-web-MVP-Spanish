@@ -32,7 +32,7 @@ export function NotificationList({
               <p className="font-bold text-[var(--fn-text)]">{notification.title}</p>
               <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{notification.body}</p>
               <p className="mt-2 text-xs text-[var(--fn-text-muted)]">
-                {new Date(notification.createdAt).toLocaleDateString('es-ES', {
+                {new Date(notification.createdAt).toLocaleDateString('es-UY', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',

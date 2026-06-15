@@ -68,7 +68,7 @@ export default function AdminReviewsPage() {
                     <Badge label={`${review.reportCount} reportes`} variant="danger" />
                   </div>
                   <span className="text-xs text-[var(--fn-text-muted)]">
-                    {new Date(review.createdAt).toLocaleDateString('es-AR')}
+                    {new Date(review.createdAt).toLocaleDateString('es-UY')}
                   </span>
                 </div>
                 <p className="mb-1 text-xs text-[var(--fn-text-muted)]">
@@ -113,7 +113,7 @@ export default function AdminReviewsPage() {
                   {review.verified && <Badge label="Verificada" variant="success" />}
                 </div>
                 <span className="text-xs text-[var(--fn-text-muted)]">
-                  {new Date(review.createdAt).toLocaleDateString('es-AR')}
+                  {new Date(review.createdAt).toLocaleDateString('es-UY')}
                 </span>
               </div>
               <p className="text-sm text-[var(--fn-text-muted)]">{review.comment}</p>

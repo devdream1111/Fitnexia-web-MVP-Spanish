@@ -48,7 +48,7 @@ function PaymentEntry({
             <p className="mt-2 text-lg font-bold text-[var(--fn-primary)]">{formatMoney(amount)}</p>
             {payment?.provider ? (
               <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
-                {payment.provider} · {new Date(payment.createdAt).toLocaleDateString('es-ES')}
+                {payment.provider} · {new Date(payment.createdAt).toLocaleDateString('es-UY')}
               </p>
             ) : null}
           </div>

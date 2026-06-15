@@ -1,15 +1,14 @@
 /** ISO 3166-1 alpha-2 codes supported in institution profiles */
 export const COUNTRY_OPTIONS = [
-  { value: 'ES', label: 'España' },
-  { value: 'AR', label: 'Argentina' },
   { value: 'UY', label: 'Uruguay' },
+  { value: 'AR', label: 'Argentina' },
   { value: 'MX', label: 'México' },
   { value: 'CL', label: 'Chile' },
   { value: 'CO', label: 'Colombia' },
   { value: 'PE', label: 'Perú' },
 ] as const;
 
-export const DEFAULT_COUNTRY_CODE = 'ES';
+export const DEFAULT_COUNTRY_CODE = 'UY';
 
 export function normalizeCountryCode(value?: string | null): string | null {
   if (!value) return null;

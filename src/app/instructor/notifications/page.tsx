@@ -94,7 +94,7 @@ export default function InstructorNotificationsPage() {
                               GYM_LABELS.instructors.inviteBody(invite.institutionName)}
                           </p>
                           <p className="mt-2 text-xs text-[var(--fn-text-muted)]">
-                            {new Date(invite.sentAt).toLocaleDateString('es-ES', {
+                            {new Date(invite.sentAt).toLocaleDateString('es-UY', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric',

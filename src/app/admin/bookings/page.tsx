@@ -48,7 +48,7 @@ export default function AdminBookingsPage() {
                   Reserva #{booking.id} · Usuario {booking.userId}
                 </p>
                 <p className="text-xs text-[var(--fn-text-muted)]">
-                  {new Date(booking.createdAt).toLocaleDateString('es-AR')}
+                  {new Date(booking.createdAt).toLocaleDateString('es-UY')}
                 </p>
               </div>
               <div className="flex items-center gap-3">

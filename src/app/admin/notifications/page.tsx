@@ -34,7 +34,7 @@ export default function AdminNotificationsPage() {
                 {!n.read && <Badge label="Nueva" variant="warning" size="sm" />}
               </div>
               <p className="mt-2 text-xs text-[var(--fn-text-muted)]">
-                {new Date(n.createdAt).toLocaleString('es-AR')}
+                {new Date(n.createdAt).toLocaleString('es-UY')}
               </p>
             </button>
           ))

@@ -37,7 +37,7 @@ export default function InstructorCalendarPage() {
           <div className="fn-layout-narrow w-full rounded-2xl bg-[var(--fn-surface)] p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">
-                {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                {selectedDate.toLocaleDateString('es-UY', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </h2>
               <button
                 type="button"

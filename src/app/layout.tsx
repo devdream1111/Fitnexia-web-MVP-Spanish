@@ -7,7 +7,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Fitnexia',
-  description: 'Marketplace connecting athletes, instructors, and gyms',
+  description: 'Marketplace fitness que conecta atletas, instructores y gimnasios en Uruguay',
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
   modal: React.ReactNode;
 }) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es-UY" suppressHydrationWarning>
       <body className="antialiased">
         <AppProviders>
           <PageBackground>{children}</PageBackground>

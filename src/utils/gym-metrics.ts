@@ -20,7 +20,7 @@ export function formatRevenueCompact(cents: number, currency = 'UYU'): string {
   if (cents >= 100000) {
     return `$${(cents / 100000).toFixed(1)}k`;
   }
-  return new Intl.NumberFormat('es-AR', {
+  return new Intl.NumberFormat('es-UY', {
     style: 'currency',
     currency: currency === 'UYU' ? 'USD' : currency,
     maximumFractionDigits: 0,

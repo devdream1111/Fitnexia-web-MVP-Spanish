@@ -1,7 +1,9 @@
 import type { Money } from '@/types/api';
 
+export const APP_LOCALE = 'es-UY';
+
 export function formatMoney(m: { amount: number; currency: string }): string {
-  const amount = new Intl.NumberFormat('es-AR', {
+  const amount = new Intl.NumberFormat(APP_LOCALE, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(m.amount / 100);
@@ -31,7 +33,7 @@ export function isClassOnCalendarDay(iso: string, day: Date): boolean {
 
 export function formatClassDate(iso: string): string {
   const d = parseClassStartAt(iso);
-  return d.toLocaleDateString('es-AR', {
+  return d.toLocaleDateString(APP_LOCALE, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

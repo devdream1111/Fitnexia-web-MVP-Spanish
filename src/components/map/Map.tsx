@@ -163,7 +163,7 @@ function toMapPoints(classes: ClassListItem[], markers: MapMarker[]): MapPoint[]
       lng: m.lng,
       title: m.title,
       priceLabel: formatMoneyFromCents(m.price.amount, m.price.currency),
-      subtitle: new Date(m.startAt).toLocaleString('es-ES', {
+      subtitle: new Date(m.startAt).toLocaleString('es-UY', {
         weekday: 'short',
         day: 'numeric',
         month: 'short',

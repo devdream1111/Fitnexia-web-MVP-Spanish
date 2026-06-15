@@ -171,7 +171,7 @@ export function EarningsDashboard({
                     </td>
                     <td className="px-4 py-3 capitalize text-[var(--fn-text-muted)]">{p.status}</td>
                     <td className="px-4 py-3 text-[var(--fn-text-muted)]">
-                      {new Date(p.createdAt).toLocaleDateString('es-ES')}
+                      {new Date(p.createdAt).toLocaleDateString('es-UY')}
                     </td>
                   </tr>
                 ))}

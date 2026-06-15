@@ -455,7 +455,7 @@ export const ROLE_DESCRIPTIONS = {
 } as const;
 
 export const LANDING_LABELS = {
-  badge: 'MVP · España',
+  badge: 'MVP · Uruguay',
   nav: {
     what: '¿Qué es?',
     howItWorks: 'Cómo funciona',

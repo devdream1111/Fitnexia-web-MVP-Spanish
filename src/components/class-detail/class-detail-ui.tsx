@@ -247,7 +247,7 @@ export function ClassDetailReviews({
               <p className="mt-3 text-sm leading-relaxed text-[var(--fn-text-muted)]">{review.comment}</p>
             ) : null}
             <p className="mt-3 text-xs text-[var(--fn-text-muted)]">
-              {new Date(review.createdAt).toLocaleDateString('es-ES', {
+              {new Date(review.createdAt).toLocaleDateString('es-UY', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
