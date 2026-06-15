@@ -8,6 +8,7 @@ import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui/button';
 import { BUTTON_LABELS, LANDING_LABELS } from '@/constants/labels';
 import { useAppTheme } from '@/contexts/theme-context';
+import { handleHashLinkClick } from '@/utils/smooth-scroll';
 
 export function LandingHeader() {
   const { isDark, toggleDarkMode } = useAppTheme();
@@ -29,22 +30,35 @@ export function LandingHeader() {
             size="md"
             className={scrolled ? '' : 'brightness-0 invert drop-shadow-md'}
           />
-          {!scrolled ? (
-            <span className="hidden fn-uy-header-badge sm:inline">{LANDING_LABELS.badge}</span>
-          ) : null}
         </div>
 
         <nav className="hidden items-center gap-5 lg:flex" aria-label="Principal">
-          <a href="#que-es" className="fn-landing-nav-link">
+          <a
+            href="#que-es"
+            className="fn-landing-nav-link"
+            onClick={(e) => handleHashLinkClick(e, '#que-es')}
+          >
             {LANDING_LABELS.nav.what}
           </a>
-          <a href="#como-funciona" className="fn-landing-nav-link">
+          <a
+            href="#como-funciona"
+            className="fn-landing-nav-link"
+            onClick={(e) => handleHashLinkClick(e, '#como-funciona')}
+          >
             {LANDING_LABELS.nav.howItWorks}
           </a>
-          <a href="#para-quien" className="fn-landing-nav-link">
+          <a
+            href="#para-quien"
+            className="fn-landing-nav-link"
+            onClick={(e) => handleHashLinkClick(e, '#para-quien')}
+          >
             {LANDING_LABELS.nav.whoIsItFor}
           </a>
-          <a href="#beneficios" className="fn-landing-nav-link">
+          <a
+            href="#beneficios"
+            className="fn-landing-nav-link"
+            onClick={(e) => handleHashLinkClick(e, '#beneficios')}
+          >
             {LANDING_LABELS.nav.benefits}
           </a>
         </nav>

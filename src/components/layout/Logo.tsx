@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { useAppTheme } from '@/contexts/theme-context';
+import { smoothScrollToTop } from '@/utils/smooth-scroll';
 
 export function Logo({
   className = '',
@@ -14,6 +16,7 @@ export function Logo({
   href?: string;
 }) {
   const { isDark } = useAppTheme();
+  const pathname = usePathname();
 
   const sizeClasses = {
     sm: 'h-8',
@@ -33,9 +36,19 @@ export function Logo({
   );
 
   if (href) {
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+      const targetPath = href.split('#')[0] || '/';
+      const currentPath = pathname || '/';
+      if (targetPath === currentPath) {
+        event.preventDefault();
+        smoothScrollToTop();
+      }
+    };
+
     return (
       <Link
         href={href}
+        onClick={handleClick}
         className={`${wrapperClass} shrink-0 transition-opacity hover:opacity-90`}
         aria-label="Volver al inicio"
       >

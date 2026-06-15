@@ -266,6 +266,19 @@ export const AUTH_LABELS = {
   password: 'Contraseña',
   logoPhoto: 'Logo / foto',
   profilePhoto: 'Foto de perfil',
+  acceptTermsPrefix: 'He leído y acepto los',
+  termsAndConditions: 'Términos y condiciones',
+  acceptTermsMiddle: 'y la',
+  privacyPolicy: 'Política de privacidad',
+} as const;
+
+export const LEGAL_LABELS = {
+  tableOfContents: 'Contenido',
+  lastUpdated: 'Última actualización',
+  relatedDocuments: 'Documentos relacionados',
+  termsLink: 'Términos y condiciones',
+  privacyLink: 'Política de privacidad',
+  backToHome: 'Volver al inicio',
 } as const;
 
 export const ALERT_LABELS = {
@@ -275,6 +288,7 @@ export const ALERT_LABELS = {
   missingInfoTitle: 'Información faltante',
   fillAllFields: 'Por favor, completa todos los campos.',
   gymNameRequired: 'El nombre del gimnasio / escuela es obligatorio.',
+  acceptTermsRequired: 'Debes aceptar los términos y condiciones y la política de privacidad.',
   savedTitle: 'Guardado',
 } as const;
 
@@ -321,6 +335,8 @@ export const GENERAL_LABELS = {
   reviews: 'Reseñas',
   min: 'min',
   loading: 'Cargando…',
+  preparingAccount: 'Preparando tu cuenta…',
+  loadingYourData: 'Cargando tu contenido…',
   book: 'Reservar',
   total: 'Total',
   paymentIntegrationDemo: 'Demo de integración de pago: Simularemos un checkout de Mercado Pago.',
@@ -332,6 +348,10 @@ export const GENERAL_LABELS = {
   billingPeriodMonthly: 'Mensual',
   billingPeriodQuarterly: 'Trimestral',
   subscriptionCoversBooking: 'Tu plan mensual cubre esta reserva. Confirmá sin cargo adicional.',
+  secureCheckout: 'Checkout seguro',
+  orderSummary: 'Resumen del pedido',
+  classDetails: 'Detalles de la clase',
+  waitlistNote: 'Te avisaremos si se libera un lugar en esta clase.',
   selectPaymentMethod: 'Seleccionar método de pago',
   mercadoPago: 'Mercado Pago',
   creditCard: 'Tarjeta de crédito',

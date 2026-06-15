@@ -9,6 +9,7 @@ import {
   AuthFormHeader,
   AuthFormIntro,
   AuthShell,
+  AuthTermsCheckbox,
   GoogleSignInButton,
   PasswordInput,
   RoleTileSelector,
@@ -33,6 +34,7 @@ function RegisterPageContent() {
   const [institutionName, setInstitutionName] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -41,6 +43,10 @@ function RegisterPageContent() {
   }, [searchParams]);
 
   const startGoogleRegister = () => {
+    if (!acceptTerms) {
+      setError(ALERT_LABELS.acceptTermsRequired);
+      return;
+    }
     if (role === 'institution' && !institutionName.trim()) {
       setError(ALERT_LABELS.gymNameRequired);
       return;
@@ -56,6 +62,10 @@ function RegisterPageContent() {
 
   const submit = async () => {
     setError('');
+    if (!acceptTerms) {
+      setError(ALERT_LABELS.acceptTermsRequired);
+      return;
+    }
     if (role === 'institution') {
       if (!institutionName.trim() || !email.trim() || !password.trim()) {
         setError(ALERT_LABELS.fillAllFields);
@@ -78,6 +88,7 @@ function RegisterPageContent() {
         favoriteSports: [],
         disciplines: [],
         institutionName: role === 'institution' ? institutionName.trim() : undefined,
+        acceptTerms: true,
       });
       const home =
         role === 'instructor'
@@ -151,19 +162,18 @@ function RegisterPageContent() {
           placeholder="Mínimo 8 caracteres"
         />
 
+        <AuthTermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} />
+
         {error ? (
           <p className="rounded-xl border border-[var(--fn-error)]/30 bg-red-50 px-4 py-2.5 text-sm text-[var(--fn-error)] dark:bg-red-950/30">
             {error}
           </p>
         ) : null}
 
-        <p className="text-xs leading-relaxed text-[var(--fn-text-muted)]">
-          Al crear una cuenta aceptas nuestros términos de uso y política de privacidad (simulado en MVP).
-        </p>
-
         <Button
           title={BUTTON_LABELS.createAccount}
           loading={loading}
+          disabled={!acceptTerms}
           className="w-full"
           size="md"
           onClick={submit}

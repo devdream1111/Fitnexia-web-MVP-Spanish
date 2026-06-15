@@ -14,6 +14,8 @@ import {
 import { PageHeader } from '@/components/layout/page-header';
 import { PhotoGallery } from '@/components/profile/PhotoGallery';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
 import {
   ProfileHero,
   ProfileStatCard,
@@ -28,6 +30,7 @@ import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useClasses } from '@/contexts/classes-context';
 import { resolveInstitutionId } from '@/utils/gym-classes';
+import { COUNTRY_OPTIONS, getCountryLabel, resolveCountryCode } from '@/constants/countries';
 import {
   ALERT_LABELS,
   AUTH_LABELS,
@@ -50,6 +53,9 @@ export default function GymProfilePage() {
   const [email, setEmail] = useState(user?.email ?? '');
   const [address, setAddress] = useState(institutionProfile?.address ?? '');
   const [city, setCity] = useState(institutionProfile?.city ?? '');
+  const [country, setCountry] = useState(() =>
+    resolveCountryCode(institutionProfile?.country),
+  );
   const [description, setDescription] = useState(institutionProfile?.description ?? '');
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
   const [gallery, setGallery] = useState<string[]>(institutionProfile?.gallery ?? []);
@@ -60,6 +66,7 @@ export default function GymProfilePage() {
       setEmail(user?.email ?? '');
       setAddress(user?.institutionProfile?.address ?? '');
       setCity(user?.institutionProfile?.city ?? '');
+      setCountry(resolveCountryCode(user?.institutionProfile?.country));
       setDescription(user?.institutionProfile?.description ?? '');
       setAvatarUri(user?.avatarUri ?? null);
       setGallery(user?.institutionProfile?.gallery ?? []);
@@ -77,7 +84,7 @@ export default function GymProfilePage() {
       await updateProfile({
         email,
         avatarUri,
-        institutionProfile: { name, address, city, description, gallery },
+        institutionProfile: { name, address, city, country, description, gallery },
       });
       setIsEditing(false);
       showNotice({
@@ -99,6 +106,7 @@ export default function GymProfilePage() {
     setEmail(user?.email ?? '');
     setAddress(institutionProfile?.address ?? '');
     setCity(institutionProfile?.city ?? '');
+    setCountry(resolveCountryCode(institutionProfile?.country));
     setDescription(institutionProfile?.description ?? '');
     setAvatarUri(user?.avatarUri ?? null);
     setGallery(institutionProfile?.gallery ?? []);
@@ -153,21 +161,31 @@ export default function GymProfilePage() {
           <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
           <Input label="Dirección" value={address} onChange={(e) => setAddress(e.target.value)} />
           <Input label="Ciudad" value={city} onChange={(e) => setCity(e.target.value)} />
-          <Input
-            label="Descripción"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="md:col-span-2"
+          <Select
+            label="País"
+            value={country}
+            onChange={setCountry}
+            options={[...COUNTRY_OPTIONS]}
+            placeholder="Seleccionar país"
           />
         </div>
+        <Textarea
+          label="Descripción"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={12}
+          placeholder="Presenta tu gimnasio: instalaciones, servicios, horarios y lo que os hace únicos…"
+          className="min-h-[280px] resize-y text-base leading-relaxed"
+        />
         <div className="mt-6">
-          <h4 className="mb-4 flex items-center gap-2 text-base font-bold">
-            <Image size={20} className="text-[var(--fn-primary)]" />
+          <h4 className="mb-3 flex items-center gap-2 text-base font-bold">
+            <Image size={18} className="text-[var(--fn-primary)]" />
             {PROFILE_PAGE_LABELS.photoGallery}
           </h4>
           <PhotoGallery
             images={gallery}
             editable
+            compact
             onAddImage={(uri) => setGallery([...gallery, uri])}
             onRemoveImage={(idx) => setGallery(gallery.filter((_, i) => i !== idx))}
           />
@@ -181,7 +199,7 @@ export default function GymProfilePage() {
         )}
       >
         <h3 className="mb-2 text-lg font-bold">Sobre el gimnasio</h3>
-        <p className="text-sm leading-relaxed text-[var(--fn-text-muted)]">
+        <p className="whitespace-pre-wrap text-base leading-relaxed text-[var(--fn-text-secondary)]">
           {institutionProfile?.description || '—'}
         </p>
         <p
@@ -191,7 +209,7 @@ export default function GymProfilePage() {
           )}
         >
           <MapPin size={16} className="text-[var(--fn-primary)]" />
-          {[institutionProfile?.address, institutionProfile?.city, institutionProfile?.country]
+          {[institutionProfile?.address, institutionProfile?.city, getCountryLabel(institutionProfile?.country)]
             .filter(Boolean)
             .join(', ')}
         </p>
@@ -203,11 +221,11 @@ export default function GymProfilePage() {
           'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6',
         )}
       >
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
-          <Image size={20} className="text-[var(--fn-primary)]" />
+        <h3 className="mb-3 flex items-center gap-2 text-lg font-bold">
+          <Image size={18} className="text-[var(--fn-primary)]" />
           {PROFILE_PAGE_LABELS.photoGallery}
         </h3>
-        <PhotoGallery images={institutionProfile?.gallery ?? []} editable={false} />
+        <PhotoGallery images={institutionProfile?.gallery ?? []} editable={false} compact />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

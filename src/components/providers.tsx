@@ -10,6 +10,7 @@ import { NotificationsProvider } from '@/contexts/notifications-context';
 import { PaymentsProvider } from '@/contexts/payments-context';
 import { ReviewsProvider } from '@/contexts/reviews-context';
 import { ThemeProvider } from '@/contexts/theme-context';
+import { GlobalLoadingOverlay } from '@/components/layout/global-loading-overlay';
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -22,7 +23,10 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
           <BookingsProvider>
           <PaymentsProvider>
           <NotificationsProvider>
-            <ReviewsProvider>{children}</ReviewsProvider>
+            <ReviewsProvider>
+              {children}
+              <GlobalLoadingOverlay />
+            </ReviewsProvider>
           </NotificationsProvider>
           </PaymentsProvider>
         </BookingsProvider>

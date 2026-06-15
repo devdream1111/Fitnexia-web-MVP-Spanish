@@ -14,7 +14,7 @@ import { useClasses } from '@/contexts/classes-context';
 import { GENERAL_LABELS } from '@/constants/labels';
 
 export default function AthleteHomePage() {
-  const { homeFeed, fetchHomeFeed, loading } = useClasses();
+  const { homeFeed, fetchHomeFeed } = useClasses();
 
   useEffect(() => {
     fetchHomeFeed();
@@ -22,14 +22,6 @@ export default function AthleteHomePage() {
 
   const nearby = homeFeed?.nearby ?? [];
   const recommended = homeFeed?.recommended ?? [];
-
-  if (loading && !homeFeed) {
-    return (
-      <AthleteHomeShell>
-        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
-      </AthleteHomeShell>
-    );
-  }
 
   return (
     <AthleteHomeShell>

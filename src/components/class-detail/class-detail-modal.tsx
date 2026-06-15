@@ -41,7 +41,7 @@ export function ClassDetailModal({ classId }: { classId: string }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-8">
+    <div className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center sm:p-8">
       <button
         type="button"
         className="absolute inset-0 bg-[var(--fn-text)]/40 backdrop-blur-[2px]"

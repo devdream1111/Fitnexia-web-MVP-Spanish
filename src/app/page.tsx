@@ -23,20 +23,8 @@ export default function HomePage() {
     router.replace(homeForRole(user.role));
   }, [user, isLoading, router]);
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--fn-primary)] border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--fn-primary)] border-t-transparent" />
-      </div>
-    );
+  if (isLoading || user) {
+    return null;
   }
 
   return <LandingPage />;

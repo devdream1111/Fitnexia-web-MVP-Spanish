@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { FullScreenLoader } from '@/components/ui/full-screen-loader';
+import { GENERAL_LABELS } from '@/constants/labels';
 import { useAuth } from '@/contexts/auth-context';
 import { setTokens } from '@/services/api-client';
 import type { UserRole } from '@/types/api';
@@ -62,9 +64,5 @@ export default function GoogleCompletePage() {
     );
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center px-6 text-[var(--fn-text-muted)]">
-      Completando inicio de sesión con Google...
-    </div>
-  );
+  return <FullScreenLoader message={GENERAL_LABELS.preparingAccount} />;
 }

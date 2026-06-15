@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 
+import { DEFAULT_COUNTRY_CODE, resolveCountryCode } from '@/constants/countries';
 import type { Certification, UserRole, WeeklySchedule } from '@/types/api';
 import { ApiClientError } from '@/services/api-client';
 import {
@@ -143,7 +144,7 @@ export function defaultInstitutionProfile(name: string): InstitutionProfileData 
     description: '',
     address: '',
     city: '',
-    country: '',
+    country: DEFAULT_COUNTRY_CODE,
     verified: false,
     gallery: [],
     instructorIds: [],
@@ -161,6 +162,7 @@ export type RegisterParams = {
   favoriteSports?: string[];
   disciplines?: string[];
   institutionName?: string;
+  acceptTerms?: boolean;
 };
 
 export type UpdateProfileParams = Partial<
@@ -177,6 +179,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   hasSeenOnboarding: boolean;
   isLoading: boolean;
+  isAuthenticating: boolean;
   completeOnboarding: () => void;
   login: (email: string, password: string, role?: UserRole) => Promise<AuthUser>;
   register: (params: RegisterParams) => Promise<void>;
@@ -205,6 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const refreshUser = useCallback(async () => {
     const me = await apiGetMe();
@@ -261,6 +265,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string, role: UserRole = 'athlete') => {
+    setIsAuthenticating(true);
+    try {
     if (role === 'admin') {
         const adminUser = createMockAdminUser(email);
         setUser(adminUser);
@@ -279,11 +285,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const nextUser = { ...mapped, notificationPreferences: prefs };
       setUser(nextUser);
       return nextUser;
+    } finally {
+      setIsAuthenticating(false);
+    }
     },
     [],
   );
 
   const register = useCallback(async (params: RegisterParams) => {
+    setIsAuthenticating(true);
+    try {
     if (params.role === 'admin') {
       throw new Error('Cannot register as admin');
     }
@@ -302,7 +313,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       disciplines: params.disciplines,
       institutionName: params.institutionName,
       photoUrl,
-      acceptTerms: true,
+      acceptTerms: params.acceptTerms ?? true,
     };
 
     const auth = await apiRegister(body);
@@ -313,6 +324,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const mapped = mapMeToAuthUser(me);
     const prefs = await loadNotificationPrefs();
     setUser({ ...mapped, notificationPreferences: prefs });
+    } finally {
+      setIsAuthenticating(false);
+    }
   }, []);
 
   const googleSignIn = useCallback(
@@ -321,6 +335,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role?: Exclude<UserRole, 'admin'>;
       institutionName?: string;
     }) => {
+      setIsAuthenticating(true);
+      try {
       const auth = await apiGoogleOAuth({
         idToken: params.idToken,
         role: params.role,
@@ -335,6 +351,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const nextUser = { ...mapped, notificationPreferences: prefs };
       setUser(nextUser);
       return nextUser;
+      } finally {
+        setIsAuthenticating(false);
+      }
     },
     [],
   );
@@ -455,11 +474,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (logoUrl) body.logoUrl = logoUrl;
         }
         if (ip && (ip.address !== undefined || ip.city !== undefined || ip.country !== undefined)) {
-          body.location = {
-            address: ip.address ?? user.institutionProfile?.address ?? '',
-            city: ip.city ?? user.institutionProfile?.city ?? '',
-            country: ip.country ?? user.institutionProfile?.country ?? '',
-          };
+          const countryCode = resolveCountryCode(ip.country ?? user.institutionProfile?.country);
+          if (countryCode) {
+            body.location = {
+              address: ip.address ?? user.institutionProfile?.address ?? '',
+              city: ip.city ?? user.institutionProfile?.city ?? '',
+              country: countryCode,
+            };
+          }
         }
         if (Object.keys(body).length > 0) {
           await apiUpdateInstitution(body);
@@ -500,6 +522,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       hasSeenOnboarding,
       isLoading,
+      isAuthenticating,
       completeOnboarding,
       login,
       register,
@@ -513,6 +536,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       hasSeenOnboarding,
       isLoading,
+      isAuthenticating,
       completeOnboarding,
       login,
       register,

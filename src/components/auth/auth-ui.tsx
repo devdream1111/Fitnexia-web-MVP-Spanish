@@ -20,7 +20,7 @@ import {
 import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui/button';
 import { PAGE_BACKGROUNDS } from '@/constants/backgrounds';
-import { GENERAL_LABELS } from '@/constants/labels';
+import { GENERAL_LABELS, AUTH_LABELS } from '@/constants/labels';
 import { useAppTheme } from '@/contexts/theme-context';
 import type { UserRole } from '@/types/api';
 
@@ -219,6 +219,63 @@ export function AuthFooterLink({
         {linkLabel}
       </Link>
     </p>
+  );
+}
+
+export function AuthTermsCheckbox({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/50 px-3.5 py-3 transition hover:border-[var(--fn-primary-muted)]">
+      <span
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition ${
+          checked
+            ? 'border-[var(--fn-primary)] bg-[var(--fn-primary)] text-white'
+            : 'border-[var(--fn-border)] bg-[var(--fn-surface)]'
+        }`}
+      >
+        {checked ? (
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path
+              d="M2.5 6L5 8.5L9.5 3.5"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : null}
+      </span>
+      <span className="text-sm leading-relaxed text-[var(--fn-text-secondary)]">
+        {AUTH_LABELS.acceptTermsPrefix}{' '}
+        <Link
+          href="/legal/terms"
+          className="font-semibold text-[var(--fn-primary)] hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {AUTH_LABELS.termsAndConditions}
+        </Link>{' '}
+        {AUTH_LABELS.acceptTermsMiddle}{' '}
+        <Link
+          href="/legal/privacy"
+          className="font-semibold text-[var(--fn-primary)] hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {AUTH_LABELS.privacyPolicy}
+        </Link>
+        .
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sr-only"
+      />
+    </label>
   );
 }
 

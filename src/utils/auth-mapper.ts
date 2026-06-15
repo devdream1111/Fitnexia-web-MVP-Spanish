@@ -8,6 +8,7 @@ import {
 } from '@/contexts/auth-context';
 import { defaultWeeklySchedule } from '@/utils/schedule';
 import type { MeResponse } from '@/services/api';
+import { resolveCountryCode } from '@/constants/countries';
 
 export function mapMeToAuthUser(data: MeResponse): AuthUser {
   const { user, profile } = data;
@@ -71,7 +72,7 @@ export function mapMeToAuthUser(data: MeResponse): AuthUser {
         description: p.description ?? '',
         address: p.location?.address ?? '',
         city: p.location?.city ?? '',
-        country: p.location?.country ?? '',
+        country: resolveCountryCode(p.location?.country),
         verified: p.verified,
         gallery: p.gallery ?? [],
         instructorIds: (p.instructors ?? []).map((i) => i.id),

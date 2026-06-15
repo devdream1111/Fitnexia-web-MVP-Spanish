@@ -48,11 +48,7 @@ export default function AdminLoginPage() {
   };
 
   if (isLoading || user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--fn-primary)] border-t-transparent" />
-      </div>
-    );
+    return null;
   }
 
   return (

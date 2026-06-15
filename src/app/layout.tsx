@@ -21,10 +21,8 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className="antialiased">
         <AppProviders>
-          <PageBackground>
-            {children}
-            {modal}
-          </PageBackground>
+          <PageBackground>{children}</PageBackground>
+          {modal}
         </AppProviders>
       </body>
     </html>
