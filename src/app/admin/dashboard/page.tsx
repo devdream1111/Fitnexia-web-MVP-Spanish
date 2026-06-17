@@ -22,6 +22,7 @@ import { useClasses } from '@/contexts/classes-context';
 import { useAdmin } from '@/contexts/admin-context';
 import { useReviews } from '@/contexts/reviews-context';
 import { MOCK_BOOKINGS, MOCK_PAYMENTS } from '@/data/mock';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { formatMoney } from '@/utils/format';
 import { ADMIN_LABELS, ROLE_TITLES, TAB_LABELS } from '@/constants/labels';
 import { ClassCard } from '@/components/class-card';
@@ -126,7 +127,7 @@ export default function AdminDashboardPage() {
         <Stat label={ADMIN_LABELS.dashboard.totalBookings} value={totalBookings} icon={Calendar} />
         <Stat
           label={ADMIN_LABELS.dashboard.totalRevenue}
-          value={formatMoney({ amount: totalRevenueCents, currency: 'USD' })}
+          value={formatMoney({ amount: totalRevenueCents, currency: DEFAULT_CURRENCY })}
           icon={DollarSign}
         />
       </div>

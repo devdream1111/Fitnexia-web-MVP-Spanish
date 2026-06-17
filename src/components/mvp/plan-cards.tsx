@@ -3,6 +3,7 @@
 import { Check } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { formatMoneyFromCents } from '@/utils/format';
 import type { PlanOption } from '@/services/api';
 
@@ -36,7 +37,7 @@ export function PlanCards({
             <p className="mt-2 text-3xl font-black text-[var(--fn-primary)]">
               {plan.monthlyFeeCents === 0
                 ? 'Gratis'
-                : formatMoneyFromCents(plan.monthlyFeeCents, 'UYU')}
+                : formatMoneyFromCents(plan.monthlyFeeCents, DEFAULT_CURRENCY)}
               {plan.monthlyFeeCents > 0 ? (
                 <span className="text-sm font-medium text-[var(--fn-text-muted)]"> /mes</span>
               ) : null}

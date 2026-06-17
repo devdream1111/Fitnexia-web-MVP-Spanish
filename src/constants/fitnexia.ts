@@ -110,6 +110,15 @@ export const Radius = {
   full: 999,
 };
 
+/** ISO 4217 default for prices, payouts, and admin totals */
+export const DEFAULT_CURRENCY = 'UYU' as const;
+
+/** Reference FX rate used when migrating list prices from USD to UYU (1 USD ≈ 40 UYU). */
+export const USD_TO_UYU_RATE = 40;
+
+/** Default class price in UYU major units for create-class forms (≈ former USD 25). */
+export const DEFAULT_CLASS_PRICE_UYU = 25 * USD_TO_UYU_RATE;
+
 export const DISCIPLINES = [
   'Yoga',
   'CrossFit',
@@ -141,9 +150,9 @@ export const MOCK_LOCATION_AREAS = [
 
 export const PRICE_RANGES = [
   { id: 'any', label: 'Cualquier precio', min: 0, max: Infinity },
-  { id: 'budget', label: 'Menos de $20', min: 0, max: 2000 },
-  { id: 'mid', label: '$20 – $35', min: 2000, max: 3500 },
-  { id: 'premium', label: '$35+', min: 3500, max: Infinity },
+  { id: 'budget', label: 'Menos de 800 UYU', min: 0, max: 80000 },
+  { id: 'mid', label: '800 – 1.400 UYU', min: 80000, max: 140000 },
+  { id: 'premium', label: 'Más de 1.400 UYU', min: 140000, max: Infinity },
 ] as const;
 
 export type ScheduleFilter =

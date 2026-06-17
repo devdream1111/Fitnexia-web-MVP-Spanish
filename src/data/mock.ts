@@ -14,6 +14,10 @@ import type {
   Money,
 } from '@/types/api';
 
+import { usdCentsToUyuCents } from '@/utils/currency';
+
+export { formatClassDate, formatMoney } from '@/utils/format';
+
 // Mock Users
 export const MOCK_USERS: AdminUser[] = [
   { id: '1', email: 'maria@example.com', role: 'athlete', firstName: 'Maria', lastName: 'Garcia', verified: true },
@@ -35,7 +39,7 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
     averageRating: 4.9,
     reviewCount: 124,
     plan: 'pro',
-    hourlyRate: { amount: 5000, currency: 'USD' },
+    hourlyRate: { amount: usdCentsToUyuCents(5000), currency: 'UYU' },
     certifications: [
       { name: 'Certificado PTR', issuer: 'PTR', year: 2018 },
       { name: 'Psicología del Deporte', issuer: 'ITF', year: 2020 },
@@ -52,7 +56,7 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
     averageRating: 4.8,
     reviewCount: 89,
     plan: 'basic',
-    hourlyRate: { amount: 3500, currency: 'USD' },
+    hourlyRate: { amount: usdCentsToUyuCents(3500), currency: 'UYU' },
     certifications: [{ name: 'RYT-500', issuer: 'Yoga Alliance', year: 2019 }],
   },
   {
@@ -135,7 +139,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
     modality: 'in_person',
     startAt: '2026-06-10T08:00:00Z',
     durationMinutes: 60,
-    price: { amount: 2500, currency: 'USD' },
+    price: { amount: usdCentsToUyuCents(2500), currency: 'UYU' },
     capacity: 12,
     spotsLeft: 4,
     instructor: {
@@ -152,7 +156,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
     modality: 'in_person',
     startAt: '2026-06-11T10:00:00Z',
     durationMinutes: 90,
-    price: { amount: 4500, currency: 'USD' },
+    price: { amount: usdCentsToUyuCents(4500), currency: 'UYU' },
     capacity: 4,
     spotsLeft: 1,
     instructor: {
@@ -169,7 +173,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
     modality: 'online',
     startAt: '2026-06-12T18:00:00Z',
     durationMinutes: 45,
-    price: { amount: 1500, currency: 'USD' },
+    price: { amount: usdCentsToUyuCents(1500), currency: 'UYU' },
     capacity: 30,
     spotsLeft: 12,
     instructor: {
@@ -185,7 +189,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
     modality: 'in_person',
     startAt: '2026-06-13T07:00:00Z',
     durationMinutes: 55,
-    price: { amount: 2000, currency: 'USD' },
+    price: { amount: usdCentsToUyuCents(2000), currency: 'UYU' },
     capacity: 20,
     spotsLeft: 0,
     instructor: {
@@ -203,7 +207,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
     modality: 'in_person',
     startAt: '2026-06-14T19:00:00Z',
     durationMinutes: 50,
-    price: { amount: 2800, currency: 'USD' },
+    price: { amount: usdCentsToUyuCents(2800), currency: 'UYU' },
     capacity: 10,
     spotsLeft: 6,
     instructor: {
@@ -221,7 +225,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     status: 'confirmed',
     classId: 'class-1',
     userId: 'me',
-    price: { amount: 2500, currency: 'USD' },
+    price: { amount: usdCentsToUyuCents(2500), currency: 'UYU' },
     createdAt: '2026-05-28T10:00:00Z',
   },
   {
@@ -229,7 +233,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     status: 'completed',
     classId: 'class-2',
     userId: 'me',
-    price: { amount: 4500, currency: 'USD' },
+    price: { amount: usdCentsToUyuCents(4500), currency: 'UYU' },
     createdAt: '2026-05-01T10:00:00Z',
   },
 ];
@@ -295,7 +299,7 @@ export const MOCK_CREDITS: CreditBalance = {
   expiresAt: '2027-06-01T00:00:00Z',
   lastBookingAt: '2026-05-28T10:00:00Z',
   freeClassEligible: false,
-  maxFreeClassValue: { amount: 3000, currency: 'USD' },
+  maxFreeClassValue: { amount: usdCentsToUyuCents(3000), currency: 'UYU' },
 };
 
 export type GymDayMetric = {
@@ -317,41 +321,21 @@ export type GymWeeklyMetrics = {
 
 export const MOCK_GYM_WEEKLY_METRICS: GymWeeklyMetrics = {
   bookings: 47,
-  revenueCents: 284000,
+  revenueCents: usdCentsToUyuCents(284000),
   attendanceRate: 0.82,
   bookingsChangePct: 0.12,
   revenueChangePct: 0.08,
   attendanceChangePct: 0.05,
   daily: [
-    { label: 'Lun', bookings: 6, revenueCents: 36000, attendancePct: 0.65 },
-    { label: 'Mar', bookings: 8, revenueCents: 48000, attendancePct: 0.82 },
-    { label: 'Mié', bookings: 5, revenueCents: 30000, attendancePct: 0.45 },
-    { label: 'Jue', bookings: 9, revenueCents: 54000, attendancePct: 0.9 },
-    { label: 'Vie', bookings: 8, revenueCents: 48000, attendancePct: 0.78 },
-    { label: 'Sáb', bookings: 7, revenueCents: 42000, attendancePct: 0.95 },
-    { label: 'Dom', bookings: 4, revenueCents: 26000, attendancePct: 0.55 },
+    { label: 'Lun', bookings: 6, revenueCents: usdCentsToUyuCents(36000), attendancePct: 0.65 },
+    { label: 'Mar', bookings: 8, revenueCents: usdCentsToUyuCents(48000), attendancePct: 0.82 },
+    { label: 'Mié', bookings: 5, revenueCents: usdCentsToUyuCents(30000), attendancePct: 0.45 },
+    { label: 'Jue', bookings: 9, revenueCents: usdCentsToUyuCents(54000), attendancePct: 0.9 },
+    { label: 'Vie', bookings: 8, revenueCents: usdCentsToUyuCents(48000), attendancePct: 0.78 },
+    { label: 'Sáb', bookings: 7, revenueCents: usdCentsToUyuCents(42000), attendancePct: 0.95 },
+    { label: 'Dom', bookings: 4, revenueCents: usdCentsToUyuCents(26000), attendancePct: 0.55 },
   ],
 };
-
-export function formatMoney(m: { amount: number; currency: string }): string {
-  const amount = new Intl.NumberFormat('es-UY', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(m.amount / 100);
-  const symbol = m.currency === 'USD' || m.currency === 'ARS' ? '$' : m.currency;
-  return `${amount}${symbol}`;
-}
-
-export function formatClassDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString('es-UY', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 export function getClassById(id: string): ClassListItem | undefined {
   return MOCK_CLASSES.find((c) => c.id === id);
@@ -453,7 +437,7 @@ export const MOCK_PAYMENTS: Payment[] = [
     id: 'pay-1',
     bookingId: 'book-1',
     userId: 'me',
-    amount: { amount: 2500, currency: 'USD' },
+    amount: { amount: usdCentsToUyuCents(2500), currency: 'UYU' },
     status: 'paid',
     paymentMethod: 'Tarjeta de Crédito (Visa)',
     createdAt: '2026-05-28T10:00:00Z',
@@ -463,7 +447,7 @@ export const MOCK_PAYMENTS: Payment[] = [
     id: 'pay-2',
     bookingId: 'book-2',
     userId: 'me',
-    amount: { amount: 4500, currency: 'USD' },
+    amount: { amount: usdCentsToUyuCents(4500), currency: 'UYU' },
     status: 'paid',
     paymentMethod: 'Mercado Pago',
     createdAt: '2026-05-01T10:00:00Z',

@@ -1,15 +1,36 @@
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
+import { isUyuCurrency, usdCentsToUyuCents } from '@/utils/currency';
 import type { Money } from '@/types/api';
 
 export const APP_LOCALE = 'es-UY';
 
-export function formatMoney(m: { amount: number; currency: string }): string {
-  const amount = new Intl.NumberFormat(APP_LOCALE, {
+function formatAmountMajorUnits(amountMajor: number, currency: string): string {
+  const formatted = new Intl.NumberFormat(APP_LOCALE, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amountMajor);
+
+  if (isUyuCurrency(currency)) {
+    return `${formatted} UYU`;
+  }
+
+  return new Intl.NumberFormat(APP_LOCALE, {
+    style: 'currency',
+    currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(m.amount / 100);
-  const symbol =
-    m.currency === 'USD' || m.currency === 'ARS' || m.currency === 'UYU' ? '$' : m.currency;
-  return `${symbol}${amount}`;
+  }).format(amountMajor);
+}
+
+export function formatMoney(m: Pick<Money, 'amount' | 'currency'>): string {
+  const currency = (m.currency || DEFAULT_CURRENCY).toUpperCase();
+  let amountCents = m.amount;
+
+  if (currency === 'USD') {
+    return formatAmountMajorUnits(usdCentsToUyuCents(amountCents) / 100, DEFAULT_CURRENCY);
+  }
+
+  return formatAmountMajorUnits(amountCents / 100, currency);
 }
 
 /** Parse API class startAt as a local calendar instant (handles date-only strings). */
@@ -42,6 +63,16 @@ export function formatClassDate(iso: string): string {
   });
 }
 
-export function formatMoneyFromCents(cents: number, currency = 'UYU'): string {
+export function formatMoneyFromCents(
+  cents: number,
+  currency: string = DEFAULT_CURRENCY,
+): string {
   return formatMoney({ amount: cents, currency });
+}
+
+export function formatCompactUyu(cents: number): string {
+  if (cents >= 100000) {
+    return `${(cents / 100000).toFixed(1)}k UYU`;
+  }
+  return formatMoneyFromCents(cents, DEFAULT_CURRENCY);
 }

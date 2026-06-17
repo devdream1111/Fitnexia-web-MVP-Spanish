@@ -19,7 +19,7 @@ import {
 } from '@/components/class-form/class-form-ui';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
-import { DISCIPLINES } from '@/constants/fitnexia';
+import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DISCIPLINES } from '@/constants/fitnexia';
 import {
   ALERT_LABELS,
   DISCIPLINE_LABELS,
@@ -56,7 +56,7 @@ export default function GymCreateClassPage() {
   const [startDate, setStartDate] = useState(() => defaults.date.toISOString().slice(0, 10));
   const [startTime, setStartTime] = useState(() => dateToTimeString(defaults.time));
   const [duration, setDuration] = useState('60');
-  const [price, setPrice] = useState('25');
+  const [price, setPrice] = useState(String(DEFAULT_CLASS_PRICE_UYU));
   const [capacity, setCapacity] = useState('12');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -132,7 +132,7 @@ export default function GymCreateClassPage() {
         classFormat: 'group',
         startAt,
         durationMinutes,
-        price: { amount: priceAmount, currency: 'UYU' },
+        price: { amount: priceAmount, currency: DEFAULT_CURRENCY },
         capacity: cap,
         spotsLeft: cap,
         instructor:

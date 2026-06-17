@@ -288,7 +288,7 @@ export default function InstructorProfilePage() {
           <div>
             <p className="text-sm font-medium text-[var(--fn-text-muted)]">{PROFILE_PAGE_LABELS.hourlyRate}</p>
             <p className="text-lg font-bold text-[var(--fn-text)]">
-              {profile?.hourlyRate ? `$${profile.hourlyRate}` : PROFILE_PAGE_LABELS.hourlyRateUnset}
+              {profile?.hourlyRate ? `${profile.hourlyRate} UYU` : PROFILE_PAGE_LABELS.hourlyRateUnset}
             </p>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 
 import { DEFAULT_COUNTRY_CODE, resolveCountryCode } from '@/constants/countries';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import type { Certification, UserRole, WeeklySchedule } from '@/types/api';
 import { ApiClientError } from '@/services/api-client';
 import {
@@ -438,7 +439,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (ip?.hourlyRate !== undefined && ip.hourlyRate !== '') {
           body.hourlyRate = {
             amount: Math.round(parseFloat(ip.hourlyRate) * 100),
-            currency: 'UYU',
+            currency: DEFAULT_CURRENCY,
           };
         }
         if (updates.avatarUri !== undefined) {

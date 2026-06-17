@@ -2,6 +2,7 @@
 
 import { PageHeader } from '@/components/layout/page-header';
 import { TAB_LABELS } from '@/constants/labels';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { formatMoney } from '@/utils/format';
 import { MOCK_PAYMENTS } from '@/data/mock';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +24,7 @@ export default function AdminPaymentsPage() {
       <div className="rounded-xl bg-[var(--fn-surface)] p-6">
         <p className="text-sm text-[var(--fn-text-muted)]">Ingresos totales (simulado)</p>
         <p className="text-3xl font-extrabold text-[var(--fn-text)]">
-          {formatMoney({ amount: totalCents, currency: 'USD' })}
+          {formatMoney({ amount: totalCents, currency: DEFAULT_CURRENCY })}
         </p>
       </div>
 

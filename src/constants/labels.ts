@@ -435,9 +435,9 @@ export const SCHEDULE_FILTER_LABELS = {
 
 export const PRICE_RANGE_LABELS = {
   'Any price': 'Cualquier precio',
-  'Under $20': 'Menos de $20',
-  '$20 – $35': '$20 – $35',
-  '$35+': '$35+',
+  'Under 800 UYU': 'Menos de 800 UYU',
+  '800 – 1.400 UYU': '800 – 1.400 UYU',
+  'Over 1.400 UYU': 'Más de 1.400 UYU',
 } as const;
 
 export const ROLE_TITLES = {
@@ -676,7 +676,7 @@ export const INSTRUCTOR_LABELS = {
     date: 'Fecha (AAAA-MM-DD)',
     time: 'Hora (HH:MM)',
     duration: 'Duración (min)',
-    price: 'Precio (USD)',
+    price: 'Precio (UYU)',
     capacity: 'Capacidad',
     publishClass: 'Publicar clase',
     updateClass: 'Actualizar clase',

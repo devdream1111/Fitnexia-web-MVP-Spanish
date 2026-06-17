@@ -17,9 +17,9 @@ import {
   classFormatModalityOptions,
 } from '@/components/class-form/class-form-ui';
 import { useAuth } from '@/contexts/auth-context';
-import { ClassCancelPanel } from '@/components/class-form/class-cancel-panel';
 import { useClasses } from '@/contexts/classes-context';
-import { DISCIPLINES } from '@/constants/fitnexia';
+import { ClassCancelPanel } from '@/components/class-form/class-cancel-panel';
+import { DEFAULT_CURRENCY, DISCIPLINES } from '@/constants/fitnexia';
 import {
   ALERT_LABELS,
   BUTTON_LABELS,
@@ -151,7 +151,10 @@ export default function EditClassPage() {
         classFormat,
         startAt,
         durationMinutes: parseInt(duration, 10),
-        price: { amount: Math.round(parseFloat(price) * 100), currency: cls.price.currency },
+        price: {
+          amount: Math.round(parseFloat(price) * 100),
+          currency: cls.price.currency || DEFAULT_CURRENCY,
+        },
         capacity: cap,
       });
       showNotice({

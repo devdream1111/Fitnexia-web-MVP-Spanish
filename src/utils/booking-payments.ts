@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY, USD_TO_UYU_RATE } from '@/constants/fitnexia';
 import { GENERAL_LABELS } from '@/constants/labels';
 import type {
   BillingPeriod,
@@ -8,8 +9,8 @@ import type {
   PaymentModel,
 } from '@/types/api';
 
-/** Fallback monthly unlimited price (F-21) when API does not return options */
-export const DEFAULT_MONTHLY_UNLIMITED_CENTS = 19900;
+/** Fallback monthly unlimited price (F-21) when API does not return options — ≈ former USD 199 */
+export const DEFAULT_MONTHLY_UNLIMITED_CENTS = 199 * USD_TO_UYU_RATE * 100;
 
 const PERIOD_MULTIPLIERS: Record<BillingPeriod, number> = {
   weekly: 3,
@@ -18,7 +19,7 @@ const PERIOD_MULTIPLIERS: Record<BillingPeriod, number> = {
 };
 
 export function buildFallbackPaymentOptions(cls: ClassListItem): ClassBookingPaymentOptions {
-  const currency = cls.price.currency;
+  const currency = cls.price.currency || DEFAULT_CURRENCY;
   const perClass = cls.price.amount;
 
   const option = (

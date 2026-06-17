@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { BookOpen, CalendarCheck, DollarSign } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { Button } from '@/components/ui/button';
 import {
   DashboardClassGrid,
@@ -30,7 +31,7 @@ export default function InstructorDashboardPage() {
   const today = new Date();
   const todayClasses = allClasses.filter((c) => isSameCalendarDay(new Date(c.startAt), today));
   const [weekNet, setWeekNet] = useState<number | null>(null);
-  const [currency, setCurrency] = useState('UYU');
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
 
   useEffect(() => {
     refreshMyClasses();

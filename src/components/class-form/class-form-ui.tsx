@@ -10,6 +10,7 @@ import {
   MODALITY_LABELS,
   modalityBadgeLabel,
 } from '@/constants/labels';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { formatClassDate, formatMoney } from '@/utils/format';
 import type { ClassFormat, Modality } from '@/types/api';
 
@@ -127,7 +128,7 @@ export function ClassFormPreview({
   capacity: number;
   instructorName: string;
 }) {
-  const price = formatMoney({ amount: priceAmount, currency: 'UYU' });
+  const price = formatMoney({ amount: priceAmount, currency: DEFAULT_CURRENCY });
   const disciplineLabel =
     DISCIPLINE_LABELS[discipline as keyof typeof DISCIPLINE_LABELS] ?? discipline;
 

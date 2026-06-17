@@ -1,3 +1,5 @@
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
+import { formatCompactUyu, formatMoneyFromCents } from '@/utils/format';
 import type { ClassListItem } from '@/types/api';
 
 export type GymMetricsView = {
@@ -16,15 +18,11 @@ export function formatGymChange(pct: number): string {
   return `${sign}${Math.round(pct * 100)}% vs last week`;
 }
 
-export function formatRevenueCompact(cents: number, currency = 'UYU'): string {
-  if (cents >= 100000) {
-    return `$${(cents / 100000).toFixed(1)}k`;
+export function formatRevenueCompact(cents: number, currency = DEFAULT_CURRENCY): string {
+  if (currency === DEFAULT_CURRENCY || !currency) {
+    return formatCompactUyu(cents);
   }
-  return new Intl.NumberFormat('es-UY', {
-    style: 'currency',
-    currency: currency === 'UYU' ? 'USD' : currency,
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
+  return formatMoneyFromCents(cents, currency);
 }
 
 export function getGymMetrics(institutionId: string, classes: ClassListItem[]): GymMetricsView {
