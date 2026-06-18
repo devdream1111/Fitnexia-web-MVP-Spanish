@@ -19,11 +19,11 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { ClassCancelPanel } from '@/components/class-form/class-cancel-panel';
-import { DEFAULT_CURRENCY, DISCIPLINES } from '@/constants/fitnexia';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
+import { coerceDiscipline, disciplineSelectOptions } from '@/utils/disciplines';
 import {
   ALERT_LABELS,
   BUTTON_LABELS,
-  DISCIPLINE_LABELS,
   INSTRUCTOR_LABELS,
   MODALITY_LABELS,
   SCREEN_TITLES,
@@ -51,7 +51,7 @@ export default function EditClassPage() {
 
   const [cls, setCls] = useState<ClassListItem | undefined>(getClassById(id ?? ''));
   const [title, setTitle] = useState(cls?.title ?? '');
-  const [discipline, setDiscipline] = useState(cls?.discipline ?? DISCIPLINES[0]);
+  const [discipline, setDiscipline] = useState(() => coerceDiscipline(cls?.discipline));
   const [modality, setModality] = useState<Modality>(cls?.modality ?? 'in_person');
   const [classFormat, setClassFormat] = useState<ClassFormat>(cls?.classFormat ?? 'group');
   const [startDate, setStartDate] = useState(() => (cls ? splitClassStart(cls.startAt).date : ''));
@@ -73,7 +73,7 @@ export default function EditClassPage() {
       if (!c) return;
       setCls(c);
       setTitle(c.title);
-      setDiscipline(c.discipline);
+      setDiscipline(coerceDiscipline(c.discipline));
       setModality(c.modality);
       setClassFormat(c.classFormat ?? 'group');
       const start = splitClassStart(c.startAt);
@@ -102,10 +102,7 @@ export default function EditClassPage() {
     }
   }, [startDate, startTime, cls?.startAt]);
 
-  const disciplineOptions = DISCIPLINES.map((d) => ({
-    value: d,
-    label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
-  }));
+  const disciplineOptions = disciplineSelectOptions();
 
   if (!cls) {
     return (
@@ -146,7 +143,7 @@ export default function EditClassPage() {
       const startAt = combineDateAndTime(new Date(startDate), timeStringToDate(startTime)).toISOString();
       await updateClass(cls.id, {
         title: title.trim(),
-        discipline,
+        discipline: coerceDiscipline(discipline),
         modality,
         classFormat,
         startAt,

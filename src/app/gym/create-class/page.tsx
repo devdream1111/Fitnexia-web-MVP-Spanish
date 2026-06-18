@@ -19,10 +19,10 @@ import {
 } from '@/components/class-form/class-form-ui';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
-import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DISCIPLINES } from '@/constants/fitnexia';
+import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DEFAULT_MAP_CENTER, DISCIPLINES } from '@/constants/fitnexia';
+import { coerceDiscipline, disciplineSelectOptions } from '@/utils/disciplines';
 import {
   ALERT_LABELS,
-  DISCIPLINE_LABELS,
   GYM_LABELS,
   INSTRUCTOR_LABELS,
   modalityBadgeLabel,
@@ -78,10 +78,7 @@ export default function GymCreateClassPage() {
     }
   }, [startDate, startTime]);
 
-  const disciplineOptions = DISCIPLINES.map((d) => ({
-    value: d,
-    label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
-  }));
+  const disciplineOptions = disciplineSelectOptions();
 
   const linkedInstructorOptions = linkedInstructors.map((i) => ({
     value: i.id,
@@ -127,7 +124,7 @@ export default function GymCreateClassPage() {
 
       await addClass({
         title: title.trim(),
-        discipline,
+        discipline: coerceDiscipline(discipline),
         modality,
         classFormat: 'group',
         startAt,
@@ -142,7 +139,7 @@ export default function GymCreateClassPage() {
         institution: { id: institutionId, name: institutionName },
         location:
           modality === 'in_person'
-            ? { lat: -34.6, lng: -58.38, label: institutionName }
+            ? { lat: DEFAULT_MAP_CENTER.lat, lng: DEFAULT_MAP_CENTER.lng, label: institutionName }
             : undefined,
       });
       showNotice({

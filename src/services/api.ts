@@ -31,7 +31,7 @@ import type {
   UserRole,
 } from '@/types/api';
 import { buildFallbackPaymentOptions } from '@/utils/booking-payments';
-import { normalizeClubMembersList } from '@/utils/club-members';
+import { normalizeClubMember, normalizeClubMembersList } from '@/utils/club-members';
 import type { NotificationPreferences } from '@/contexts/auth-context';
 
 export interface MeResponse {
@@ -647,10 +647,48 @@ export function apiRemoveClubMember(id: string) {
   });
 }
 
-/** Backend has no GET /members/{id}; resolve from list. */
+export async function apiGetClubMember(id: string): Promise<ClubMember | null> {
+  try {
+    const raw = await apiRequest<unknown>(`/institutions/me/members/${id}`);
+    return normalizeClubMember(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function apiUpdateClubMember(
+  id: string,
+  body: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    planId?: string;
+  },
+) {
+  return apiRequest<unknown>(`/institutions/me/members/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Prefer GET /members/{id}; fall back to paginated list scan. */
 export async function apiFindClubMember(memberId: string): Promise<ClubMember | null> {
-  const res = await apiListClubMembers({ limit: 200 });
-  return normalizeClubMembersList(res).find((m) => m.id === memberId) ?? null;
+  const direct = await apiGetClubMember(memberId);
+  if (direct) return direct;
+
+  let page = 1;
+  const limit = 100;
+  while (page <= 20) {
+    const res = await apiListClubMembers({ page, limit });
+    const members = normalizeClubMembersList(res);
+    const found = members.find((m) => m.id === memberId);
+    if (found) return found;
+    const totalPages = res.meta?.totalPages ?? 1;
+    if (page >= totalPages || members.length === 0) break;
+    page += 1;
+  }
+  return null;
 }
 
 // --- Membership invites (F-43) ---

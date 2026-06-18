@@ -19,8 +19,9 @@ import {
 } from '@/components/class-form/class-form-ui';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
-import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DISCIPLINES } from '@/constants/fitnexia';
-import { ALERT_LABELS, INSTRUCTOR_LABELS, DISCIPLINE_LABELS } from '@/constants/labels';
+import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DEFAULT_MAP_CENTER, DISCIPLINES } from '@/constants/fitnexia';
+import { ALERT_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
+import { coerceDiscipline, disciplineSelectOptions } from '@/utils/disciplines';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { getLinkedInstructorId } from '@/utils/instructor';
 import { combineDateAndTime, dateToTimeString, defaultClassStart, timeStringToDate } from '@/utils/schedule';
@@ -66,10 +67,7 @@ export default function CreateClassPage() {
     }
   }, [startDate, startTime]);
 
-  const disciplineOptions = DISCIPLINES.map((d) => ({
-    value: d,
-    label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
-  }));
+  const disciplineOptions = disciplineSelectOptions();
 
   const publish = async () => {
     if (!title.trim()) {
@@ -91,7 +89,7 @@ export default function CreateClassPage() {
       await addClass({
         title: title.trim(),
         description: description.trim() || undefined,
-        discipline,
+        discipline: coerceDiscipline(discipline),
         modality,
         classFormat,
         startAt,
@@ -102,7 +100,7 @@ export default function CreateClassPage() {
         instructor: { id: instructorId, displayName: instructorName },
         location:
           modality === 'in_person'
-            ? { lat: -34.6, lng: -58.38, label: 'Studio' }
+            ? { lat: DEFAULT_MAP_CENTER.lat, lng: DEFAULT_MAP_CENTER.lng, label: 'Studio' }
             : undefined,
       });
       showNotice({

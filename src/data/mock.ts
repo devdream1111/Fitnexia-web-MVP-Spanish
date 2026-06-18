@@ -15,6 +15,14 @@ import type {
 } from '@/types/api';
 
 import { usdCentsToUyuCents } from '@/utils/currency';
+import { DEFAULT_MAP_CENTER } from '@/constants/fitnexia';
+
+/** Punta del Este area coordinates for mock venues */
+const PDE = DEFAULT_MAP_CENTER;
+const PDE_STUDIO_WELLNESS = { lat: -34.958, lng: -54.94 } as const;
+const PDE_ESTUDIO_A = { lat: -34.9625, lng: -54.95 } as const;
+const PDE_CANCHAS = { lat: -34.965, lng: -54.955 } as const;
+const PDE_LOFT = { lat: -34.957, lng: -54.938 } as const;
 
 export { formatClassDate, formatMoney } from '@/utils/format';
 
@@ -96,15 +104,15 @@ export const MOCK_INSTITUTIONS: Institution[] = [
   {
     id: 'gym-1',
     name: 'FitHub Centro',
-    description: 'Estudio de fitness premium en el centro de la ciudad.',
+    description: 'Estudio de fitness premium en el centro de Punta del Este.',
     verified: true,
     plan: 'institutional',
     location: {
       address: 'Calle Principal 123',
-      city: 'Buenos Aires',
-      country: 'AR',
-      lat: -34.6037,
-      lng: -58.3816,
+      city: 'Punta del Este',
+      country: 'UY',
+      lat: PDE.lat,
+      lng: PDE.lng,
     },
     instructors: [
       { id: 'inst-1', displayName: 'Carlos Ruiz' },
@@ -120,10 +128,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     plan: 'institutional',
     location: {
       address: 'Avenida del Sol 456',
-      city: 'Buenos Aires',
-      country: 'AR',
-      lat: -34.595,
-      lng: -58.375,
+      city: 'Punta del Este',
+      country: 'UY',
+      lat: PDE_STUDIO_WELLNESS.lat,
+      lng: PDE_STUDIO_WELLNESS.lng,
     },
     instructors: [
       { id: 'inst-4', displayName: 'Lucia Gomez' },
@@ -146,7 +154,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
       id: 'inst-2',
       displayName: 'Mia Chen',
     },
-    location: { lat: -34.6, lng: -58.38, label: 'FitHub Estudio A' },
+    location: { lat: PDE_ESTUDIO_A.lat, lng: PDE_ESTUDIO_A.lng, label: 'FitHub Estudio A' },
     averageRating: 4.8,
   },
   {
@@ -163,7 +171,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
       id: 'inst-1',
       displayName: 'Carlos Ruiz',
     },
-    location: { lat: -34.61, lng: -58.39, label: 'Canchas Centrales' },
+    location: { lat: PDE_CANCHAS.lat, lng: PDE_CANCHAS.lng, label: 'Canchas Centrales' },
     averageRating: 4.9,
   },
   {
@@ -197,7 +205,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
       displayName: 'James Okonkwo',
     },
     institution: { id: 'gym-1', name: 'FitHub Centro' },
-    location: { lat: -34.6037, lng: -58.3816, label: 'FitHub Centro' },
+    location: { lat: PDE.lat, lng: PDE.lng, label: 'FitHub Centro' },
     averageRating: 4.7,
   },
   {
@@ -214,7 +222,7 @@ export const MOCK_CLASSES: ClassListItem[] = [
       id: 'inst-2',
       displayName: 'Mia Chen',
     },
-    location: { lat: -34.59, lng: -58.37, label: 'Loft de Bienestar' },
+    location: { lat: PDE_LOFT.lat, lng: PDE_LOFT.lng, label: 'Loft de Bienestar' },
     averageRating: 4.8,
   },
 ];
@@ -544,34 +552,34 @@ export function geocodeAddress(address: string): GeocodeResult {
   // Mock geocoding - in real life, use Google Maps or Mapbox API
   const mockLocations: Record<string, GeocodeResult> = {
     'Calle Principal 123': {
-      lat: -34.6037,
-      lng: -58.3816,
+      lat: PDE.lat,
+      lng: PDE.lng,
       address: 'Calle Principal 123',
-      city: 'Buenos Aires',
-      country: 'AR',
+      city: 'Punta del Este',
+      country: 'UY',
     },
     'Canchas Centrales': {
-      lat: -34.61,
-      lng: -58.39,
+      lat: PDE_CANCHAS.lat,
+      lng: PDE_CANCHAS.lng,
       address: 'Canchas Centrales',
-      city: 'Buenos Aires',
-      country: 'AR',
+      city: 'Punta del Este',
+      country: 'UY',
     },
     'Loft de Bienestar': {
-      lat: -34.59,
-      lng: -58.37,
+      lat: PDE_LOFT.lat,
+      lng: PDE_LOFT.lng,
       address: 'Loft de Bienestar',
-      city: 'Buenos Aires',
-      country: 'AR',
+      city: 'Punta del Este',
+      country: 'UY',
     },
   };
   
   return mockLocations[address] || {
-    lat: -34.6037,
-    lng: -58.3816,
+    lat: PDE.lat,
+    lng: PDE.lng,
     address: address,
-    city: 'Buenos Aires',
-    country: 'AR',
+    city: 'Punta del Este',
+    country: 'UY',
   };
 }
 
@@ -580,11 +588,11 @@ export function getCurrentLocation(): Promise<GeocodeResult> {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        lat: -34.6037,
-        lng: -58.3816,
+        lat: PDE.lat,
+        lng: PDE.lng,
         address: 'Tu Ubicación',
-        city: 'Buenos Aires',
-        country: 'AR',
+        city: 'Punta del Este',
+        country: 'UY',
       });
     }, 1000);
   });

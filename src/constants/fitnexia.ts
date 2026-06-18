@@ -120,24 +120,37 @@ export const USD_TO_UYU_RATE = 40;
 export const DEFAULT_CLASS_PRICE_UYU = 25 * USD_TO_UYU_RATE;
 
 export const DISCIPLINES = [
+  'Musculación',
+  'Entrenamiento Funcional',
+  'Entrenamiento Personalizado',
+  'Entrenamiento para adultos mayores',
+  'Entrenamiento para embarazadas',
+  'Zumba/Ritmos',
+  'Indoor Cycling',
+  'Pilates Mat/Reformer',
+  'Tenis',
+  'Pádel',
+  'Hidrogimnasia',
+  'Natación',
+  'Fútbol',
+  'Basquetbol',
+  'Voleibol',
+  'Hockey',
   'Yoga',
-  'CrossFit',
-  'Tennis',
-  'Padel',
-  'Swimming',
-  'HIIT',
-  'Pilates',
-  'Boxing',
-  'Running',
-  'Entrenamiento personal',
-  'Fuerza',
-  'Other',
+  'Crossfit',
+  'Otros',
 ] as const;
 
 export const ROLE_LABELS = {
   athlete: 'Atleta',
   instructor: 'Instructor',
   institution: 'Gimnasio / Escuela',
+} as const;
+
+/** Default map viewport — Punta del Este, Uruguay */
+export const DEFAULT_MAP_CENTER = {
+  lat: -34.9614,
+  lng: -54.9478,
 } as const;
 
 export const MOCK_LOCATION_AREAS = [

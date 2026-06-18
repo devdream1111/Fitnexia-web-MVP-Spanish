@@ -7,6 +7,7 @@ import type {
   ClubPlanCadence,
   AthleteClubMembership,
   Money,
+  PaginationMeta,
 } from '@/types/api';
 import { CLUB_LABELS } from '@/constants/labels';
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
@@ -69,7 +70,11 @@ function nestedProfile(record: Record<string, unknown>): Record<string, unknown>
     asRecord(record.athleteUser)?.profile,
     asRecord(record.memberUser)?.profile,
     asRecord(record.linkedUser)?.profile,
+    asRecord(record.linkedAthlete)?.profile,
     record.athleteProfile,
+    record.userProfile,
+    record.memberProfile,
+    record.profileSummary,
   ];
   for (const source of nestedSources) {
     const profile = asRecord(source);
@@ -83,6 +88,7 @@ function personRecord(record: Record<string, unknown>): Record<string, unknown> 
   const nestedUser =
     asRecord(record.user) ??
     asRecord(record.athlete) ??
+    asRecord(record.linkedAthlete) ??
     asRecord(record.athleteUser) ??
     asRecord(record.memberUser) ??
     asRecord(record.linkedUser) ??
@@ -91,7 +97,48 @@ function personRecord(record: Record<string, unknown>): Record<string, unknown> 
   return {
     ...(nestedUser ?? {}),
     ...(profile ?? {}),
+    ...(asRecord(record.userProfile) ?? {}),
+    ...(asRecord(record.memberProfile) ?? {}),
+    ...(asRecord(record.athleteProfile) ?? {}),
   };
+}
+
+/** When API wraps membership in `member`, keep sibling user/profile/plan from the root. */
+function flattenMemberRaw(raw: Record<string, unknown>): Record<string, unknown> {
+  const inner = asRecord(raw.member) ?? asRecord(raw.memberData);
+  if (!inner) return raw;
+
+  const siblingKeys = [
+    'user',
+    'profile',
+    'athlete',
+    'athleteProfile',
+    'userProfile',
+    'memberProfile',
+    'profileSummary',
+    'plan',
+    'membershipPlan',
+    'athleteUser',
+    'memberUser',
+    'linkedUser',
+    'linkedAthlete',
+    'contact',
+  ] as const;
+
+  const flat: Record<string, unknown> = { ...inner };
+  for (const key of siblingKeys) {
+    if (raw[key] !== undefined && flat[key] === undefined) {
+      flat[key] = raw[key];
+    }
+  }
+  if (!flat.id && raw.id) flat.id = raw.id;
+  if (!flat.memberId && raw.memberId) flat.memberId = raw.memberId;
+  return flat;
+}
+
+function pickNameField(record: Record<string, unknown>, camel: 'firstName' | 'lastName'): string {
+  const snake = camel === 'firstName' ? 'first_name' : 'last_name';
+  return pickString(record[camel], record[snake]);
 }
 
 function membershipRecord(record: Record<string, unknown>): Record<string, unknown> {
@@ -107,13 +154,19 @@ function pickPhotoValue(value: unknown): string {
 
 const PHOTO_FIELD_KEYS = [
   'photoUrl',
+  'photo_url',
   'avatarUrl',
+  'avatar_url',
   'avatarUri',
+  'avatar_uri',
   'avatar',
   'picture',
   'profilePicture',
+  'profile_picture',
   'profileImage',
+  'profile_image',
   'imageUrl',
+  'image_url',
   'photo',
   'image',
 ] as const;
@@ -130,7 +183,7 @@ function extractPhotoFromRecord(record: Record<string, unknown> | null): string 
 function collectPhotoSources(raw: Record<string, unknown>): Array<Record<string, unknown> | null> {
   const membership = asRecord(raw.membership) ?? asRecord(raw.memberRecord);
   const user = asRecord(raw.user);
-  const athlete = asRecord(raw.athlete);
+  const athlete = asRecord(raw.athlete) ?? asRecord(raw.linkedAthlete);
   const profile = nestedProfile(raw);
 
   return [
@@ -154,6 +207,20 @@ function collectPhotoSources(raw: Record<string, unknown>): Array<Record<string,
     asRecord(raw.contact),
     membership ? asRecord(membership.contact) : null,
   ];
+}
+
+function deepExtractPhoto(value: unknown, depth = 0): string {
+  if (depth > 8) return '';
+  const record = asRecord(value);
+  if (!record) return '';
+  const direct = extractPhotoFromRecord(record);
+  if (direct) return direct;
+  for (const nested of Object.values(record)) {
+    if (!nested || typeof nested !== 'object') continue;
+    const found = deepExtractPhoto(nested, depth + 1);
+    if (found) return found;
+  }
+  return '';
 }
 
 function pickPhotoUrl(...sources: Array<Record<string, unknown> | null>): string | undefined {
@@ -188,9 +255,10 @@ export function normalizeClubMember(raw: unknown): ClubMember | null {
   const root = asRecord(raw);
   if (!root) return null;
 
-  const container = asRecord(root.member) ?? asRecord(root.memberData) ?? root;
+  const container = flattenMemberRaw(root);
   const membership = membershipRecord(container);
   const person = personRecord(container);
+  const rootPerson = container === root ? person : personRecord(root);
   const contact = asRecord(container.contact) ?? asRecord(membership.contact);
   const plan =
     asRecord(container.plan) ??
@@ -198,7 +266,14 @@ export function normalizeClubMember(raw: unknown): ClubMember | null {
     asRecord(membership.plan) ??
     asRecord(membership.membershipPlan);
 
-  const id = pickString(container.id, container.memberId, root.id, root.memberId, membership.id, membership.memberId);
+  const id = pickString(
+    container.id,
+    container.memberId,
+    root.id,
+    root.memberId,
+    membership.id,
+    membership.memberId,
+  );
   if (!id) return null;
 
   const fullName = pickString(
@@ -214,6 +289,11 @@ export function normalizeClubMember(raw: unknown): ClubMember | null {
     person.fullName,
     person.displayName,
     person.name,
+    rootPerson.fullName,
+    rootPerson.displayName,
+    rootPerson.name,
+    container.memberName,
+    root.memberName,
   );
 
   let firstName = pickString(
@@ -221,12 +301,20 @@ export function normalizeClubMember(raw: unknown): ClubMember | null {
     root.firstName,
     membership.firstName,
     person.firstName,
+    rootPerson.firstName,
+    pickNameField(container, 'firstName'),
+    pickNameField(person, 'firstName'),
+    pickNameField(rootPerson, 'firstName'),
   );
   let lastName = pickString(
     container.lastName,
     root.lastName,
     membership.lastName,
     person.lastName,
+    rootPerson.lastName,
+    pickNameField(container, 'lastName'),
+    pickNameField(person, 'lastName'),
+    pickNameField(rootPerson, 'lastName'),
   );
 
   if (!firstName && !lastName && fullName) {
@@ -246,7 +334,10 @@ export function normalizeClubMember(raw: unknown): ClubMember | null {
     contact?.email,
   );
 
-  const rawPhoto = pickPhotoUrl(...collectPhotoSources(container), ...collectPhotoSources(root));
+  const rawPhoto =
+    pickPhotoUrl(...collectPhotoSources(container), ...(container === root ? [] : collectPhotoSources(root))) ||
+    deepExtractPhoto(root) ||
+    undefined;
   const photoUrl = resolveMediaUrl(rawPhoto) ?? rawPhoto;
 
   const planName = pickString(
@@ -318,8 +409,35 @@ export function formatClubMemberName(
   member: Pick<ClubMember, 'firstName' | 'lastName' | 'email'>,
 ): string {
   const name = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim();
-  if (name && !name.includes('undefined')) return name;
-  return member.email || 'Socio';
+  if (name && !name.includes('undefined') && !looksLikeEmail(name)) return name;
+  if (member.email) {
+    const fromEmail = humanizeEmailLocalPart(member.email);
+    if (fromEmail) return fromEmail;
+  }
+  return 'Socio';
+}
+
+function looksLikeEmail(value: string): boolean {
+  return value.includes('@');
+}
+
+function humanizeEmailLocalPart(email: string): string {
+  const local = email.split('@')[0] ?? '';
+  const cleaned = local.replace(/\d+/g, ' ').replace(/[._-]+/g, ' ').trim();
+  if (!cleaned) return '';
+  return cleaned
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+export function shouldShowMemberEmail(
+  member: Pick<ClubMember, 'firstName' | 'lastName' | 'email'>,
+): boolean {
+  if (!member.email?.trim()) return false;
+  const displayName = formatClubMemberName(member);
+  return displayName.toLowerCase() !== member.email.trim().toLowerCase();
 }
 
 export function clubMemberInitials(member: Pick<ClubMember, 'firstName' | 'lastName' | 'email'>): string {
@@ -340,7 +458,7 @@ export function clubMemberAvatarSrc(
 ): string {
   if (member.photoUrl && !options?.useGenerated) return member.photoUrl;
   const name = encodeURIComponent(formatClubMemberName(member));
-  return `https://ui-avatars.com/api/?name=${name}&background=6366f1&color=ffffff&size=128&bold=true&format=svg`;
+  return `https://ui-avatars.com/api/?name=${name}&background=6366f1&color=ffffff&size=128&bold=true&format=png`;
 }
 
 export function formatClubPlanLabel(
@@ -375,6 +493,54 @@ export function normalizeClubMembersList(payload: unknown): ClubMember[] {
   return extractMemberItems(payload)
     .map(normalizeClubMember)
     .filter((m): m is ClubMember => m !== null);
+}
+
+const EMPTY_PAGINATION: PaginationMeta = {
+  page: 1,
+  limit: 20,
+  total: 0,
+  totalPages: 1,
+};
+
+export function parseClubMembersPage(payload: unknown): {
+  members: ClubMember[];
+  meta: PaginationMeta;
+} {
+  const members = normalizeClubMembersList(payload);
+  if (!payload || typeof payload !== 'object') {
+    return { members, meta: { ...EMPTY_PAGINATION, total: members.length } };
+  }
+
+  const record = payload as Record<string, unknown>;
+  const metaRaw = asRecord(record.meta) ?? asRecord(asRecord(record.data)?.meta);
+  if (!metaRaw) {
+    return {
+      members,
+      meta: {
+        page: 1,
+        limit: members.length || EMPTY_PAGINATION.limit,
+        total: members.length,
+        totalPages: 1,
+      },
+    };
+  }
+
+  const total = Number(metaRaw.total) || members.length;
+  const limit = Number(metaRaw.limit) || EMPTY_PAGINATION.limit;
+  const page = Number(metaRaw.page) || 1;
+  const totalPages = Number(metaRaw.totalPages) || Math.max(1, Math.ceil(total / limit));
+
+  return {
+    members,
+    meta: { page, limit, total, totalPages },
+  };
+}
+
+export function normalizeUpdatedClubMember(payload: unknown): ClubMember | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const record = payload as Record<string, unknown>;
+  const nested = asRecord(record.data) ?? asRecord(record.member);
+  return normalizeClubMember(nested ?? payload);
 }
 
 export function normalizePlanList(payload: unknown): ClubMembershipPlan[] {

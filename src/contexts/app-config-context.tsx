@@ -11,7 +11,7 @@ import React, {
 
 import { DISCIPLINES as FALLBACK_DISCIPLINES } from '@/constants/fitnexia';
 import { FEATURES, type FeatureKey } from '@/constants/features';
-import { apiGetAppConfig, apiGetDisciplines } from '@/services/api';
+import { apiGetAppConfig } from '@/services/api';
 
 type ServerFeatures = Partial<{
   googleSignIn: boolean;
@@ -53,23 +53,17 @@ const SERVER_FEATURE_MAP: Partial<Record<FeatureKey, keyof ServerFeatures>> = {
 
 export function AppConfigProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = useState(false);
-  const [disciplines, setDisciplines] = useState<string[]>([...FALLBACK_DISCIPLINES]);
+  const [disciplines] = useState<string[]>([...FALLBACK_DISCIPLINES]);
   const [serverFeatures, setServerFeatures] = useState<ServerFeatures>({});
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const [appConfig, disciplinesRes] = await Promise.all([
-          apiGetAppConfig().catch(() => null),
-          apiGetDisciplines().catch(() => null),
-        ]);
+        const appConfig = await apiGetAppConfig().catch(() => null);
         if (cancelled) return;
         if (appConfig?.features) {
           setServerFeatures(appConfig.features as ServerFeatures);
-        }
-        if (disciplinesRes?.data?.length) {
-          setDisciplines(disciplinesRes.data);
         }
       } finally {
         if (!cancelled) setLoaded(true);

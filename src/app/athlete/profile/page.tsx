@@ -39,7 +39,7 @@ import {
   SCREEN_TITLES,
   TAB_LABELS,
 } from '@/constants/labels';
-import { DISCIPLINES } from '@/constants/fitnexia';
+import { disciplineSelectOptions, filterValidDisciplines } from '@/utils/disciplines';
 import { useFeature } from '@/hooks/use-feature';
 
 export default function AthleteProfilePage() {
@@ -54,7 +54,9 @@ export default function AthleteProfilePage() {
   const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
-  const [favoriteSports, setFavoriteSports] = useState<string[]>(user?.favoriteSports ?? []);
+  const [favoriteSports, setFavoriteSports] = useState<string[]>(
+    filterValidDisciplines(user?.favoriteSports ?? []),
+  );
 
   useEffect(() => {
     if (!isEditing) {
@@ -62,7 +64,7 @@ export default function AthleteProfilePage() {
       setLastName(user?.lastName ?? '');
       setEmail(user?.email ?? '');
       setAvatarUri(user?.avatarUri ?? null);
-      setFavoriteSports(user?.favoriteSports ?? []);
+      setFavoriteSports(filterValidDisciplines(user?.favoriteSports ?? []));
     }
   }, [user, isEditing]);
 
@@ -77,7 +79,13 @@ export default function AthleteProfilePage() {
 
   const handleSave = async () => {
     try {
-      await updateProfile({ firstName, lastName, email, avatarUri, favoriteSports });
+      await updateProfile({
+        firstName,
+        lastName,
+        email,
+        avatarUri,
+        favoriteSports: filterValidDisciplines(favoriteSports),
+      });
       setIsEditing(false);
       showNotice({
         title: ALERT_LABELS.savedTitle,
@@ -98,7 +106,7 @@ export default function AthleteProfilePage() {
     setLastName(user?.lastName ?? '');
     setEmail(user?.email ?? '');
     setAvatarUri(user?.avatarUri ?? null);
-    setFavoriteSports(user?.favoriteSports ?? []);
+    setFavoriteSports(filterValidDisciplines(user?.favoriteSports ?? []));
     setIsEditing(false);
   };
 
@@ -160,10 +168,7 @@ export default function AthleteProfilePage() {
             label={PROFILE_MENU_LABELS.favoriteSports}
             value={favoriteSports}
             onChange={setFavoriteSports}
-            options={DISCIPLINES.map((d) => ({
-              value: d,
-              label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
-            }))}
+            options={disciplineSelectOptions()}
           />
         </div>
       </ProfileEditFields>

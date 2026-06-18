@@ -43,7 +43,7 @@ import {
   PROFILE_PAGE_LABELS,
   ROLE_TITLES,
 } from '@/constants/labels';
-import { DISCIPLINES } from '@/constants/fitnexia';
+import { disciplineSelectOptions, filterValidDisciplines } from '@/utils/disciplines';
 
 export default function InstructorProfilePage() {
   const { user, updateProfile } = useAuth();
@@ -57,7 +57,9 @@ export default function InstructorProfilePage() {
   const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [hourlyRate, setHourlyRate] = useState(profile?.hourlyRate ?? '');
-  const [disciplines, setDisciplines] = useState<string[]>(profile?.disciplines ?? []);
+  const [disciplines, setDisciplines] = useState<string[]>(
+    filterValidDisciplines(profile?.disciplines ?? []),
+  );
   const [certifications, setCertifications] = useState<Certification[]>(profile?.certifications ?? []);
   const [availableNow, setAvailableNow] = useState(profile?.availableNow ?? false);
   const [newCertName, setNewCertName] = useState('');
@@ -71,7 +73,7 @@ export default function InstructorProfilePage() {
       setAvatarUri(user?.avatarUri ?? null);
       setHourlyRate(user?.instructorProfile?.hourlyRate ?? '');
       setBio(user?.instructorProfile?.bio ?? '');
-      setDisciplines(user?.instructorProfile?.disciplines ?? []);
+      setDisciplines(filterValidDisciplines(user?.instructorProfile?.disciplines ?? []));
       setCertifications(user?.instructorProfile?.certifications ?? []);
       setAvailableNow(user?.instructorProfile?.availableNow ?? false);
       setNewCertName('');
@@ -96,7 +98,7 @@ export default function InstructorProfilePage() {
           displayName,
           hourlyRate,
           bio,
-          disciplines,
+          disciplines: filterValidDisciplines(disciplines),
           certifications,
           availableNow,
         },
@@ -122,7 +124,7 @@ export default function InstructorProfilePage() {
     setAvatarUri(user?.avatarUri ?? null);
     setHourlyRate(profile?.hourlyRate ?? '');
     setBio(profile?.bio ?? '');
-    setDisciplines(profile?.disciplines ?? []);
+    setDisciplines(filterValidDisciplines(profile?.disciplines ?? []));
     setCertifications(profile?.certifications ?? []);
     setAvailableNow(profile?.availableNow ?? false);
     setNewCertName('');
@@ -229,10 +231,7 @@ export default function InstructorProfilePage() {
             label={PROFILE_MENU_LABELS.disciplines}
             value={disciplines}
             onChange={setDisciplines}
-            options={DISCIPLINES.map((d) => ({
-              value: d,
-              label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS],
-            }))}
+            options={disciplineSelectOptions()}
           />
         </div>
         <div className="mt-6 space-y-4">

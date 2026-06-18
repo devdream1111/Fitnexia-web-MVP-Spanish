@@ -15,8 +15,10 @@ import {
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { FilterChip } from '@/components/ui/filter-chip';
 import { Input } from '@/components/ui/input';
-import { CLUB_LABELS } from '@/constants/labels';
+import { Select } from '@/components/ui/select';
+import { CLUB_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
 import type {
   AthleteClubMembership,
@@ -24,6 +26,7 @@ import type {
   ClubMemberFeeStatus,
   ClubMemberInvite,
   ClubMembershipPlan,
+  PaginationMeta,
 } from '@/types/api';
 import {
   clubFeeStatusLabel,
@@ -32,6 +35,7 @@ import {
   clubPlanCadenceLabel,
   formatClubMemberName,
   formatClubPlanLabel,
+  shouldShowMemberEmail,
 } from '@/utils/club-members';
 import { formatClassDate, formatMoneyFromCents } from '@/utils/format';
 
@@ -115,7 +119,7 @@ export function ClubSection({
 
 export function ClubToolbar({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 shadow-sm">
+    <div className="relative z-20 overflow-visible rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 shadow-sm">
       {children}
     </div>
   );
@@ -160,6 +164,81 @@ export function ClubSearchBar({
         className="h-12 w-full shrink-0 px-6 sm:w-auto"
       />
     </form>
+  );
+}
+
+export function ClubMembersFilterBar({
+  feeFilters,
+  feeFilter,
+  onFeeFilterChange,
+  searchLabel,
+  searchPlaceholder,
+  query,
+  onQueryChange,
+  onSearch,
+  planFilterLabel,
+  planOptions,
+  planFilter,
+  onPlanFilterChange,
+  showPlanFilter,
+}: {
+  feeFilters: ReadonlyArray<{ id: ClubMemberFeeStatus | 'all'; label: string }>;
+  feeFilter: ClubMemberFeeStatus | 'all';
+  onFeeFilterChange: (id: ClubMemberFeeStatus | 'all') => void;
+  searchLabel: string;
+  searchPlaceholder: string;
+  query: string;
+  onQueryChange: (value: string) => void;
+  onSearch: () => void;
+  planFilterLabel: string;
+  planOptions: { value: string; label: string }[];
+  planFilter: string;
+  onPlanFilterChange: (value: string) => void;
+  showPlanFilter: boolean;
+}) {
+  return (
+    <ClubToolbar>
+      <div className="space-y-4">
+        <div>
+          <p className="mb-2 text-sm font-medium text-[var(--fn-text-secondary)]">
+            {CLUB_LABELS.members.columns.status}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {feeFilters.map((f) => (
+              <FilterChip
+                key={f.id}
+                label={f.label}
+                active={feeFilter === f.id}
+                onPress={() => onFeeFilterChange(f.id)}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 border-t border-[var(--fn-border)] pt-4 lg:flex-row lg:items-end">
+          <div className="min-w-0 flex-1">
+            <ClubSearchBar
+              label={searchLabel}
+              placeholder={searchPlaceholder}
+              value={query}
+              onChange={onQueryChange}
+              onSearch={onSearch}
+              searchLabel={searchLabel}
+            />
+          </div>
+          {showPlanFilter ? (
+            <div className="w-full shrink-0 lg:w-72">
+              <Select
+                compact
+                label={planFilterLabel}
+                value={planFilter}
+                onChange={onPlanFilterChange}
+                options={planOptions}
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </ClubToolbar>
   );
 }
 
@@ -322,6 +401,7 @@ export function ClubMemberRow({
 }) {
   const name = formatClubMemberName(member);
   const planLabel = formatClubPlanLabel(member);
+  const showEmail = shouldShowMemberEmail(member);
 
   return (
     <article className="group relative overflow-hidden border-b border-[var(--fn-border)] last:border-b-0 transition hover:bg-[var(--fn-surface-muted)]/50">
@@ -339,7 +419,7 @@ export function ClubMemberRow({
             >
               {name}
             </Link>
-            {member.email ? (
+            {showEmail ? (
               <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-[var(--fn-text-muted)]">
                 <Mail size={13} className="shrink-0 opacity-70" />
                 {member.email}
@@ -382,6 +462,7 @@ export function ClubMemberRow({
 
 export function ClubMemberDetailCard({ member }: { member: ClubMember }) {
   const name = formatClubMemberName(member);
+  const showEmail = shouldShowMemberEmail(member);
   return (
     <article className="relative overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
       <div
@@ -393,7 +474,7 @@ export function ClubMemberDetailCard({ member }: { member: ClubMember }) {
           <ClubMemberAvatar member={member} size="lg" />
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-black text-[var(--fn-text)]">{name}</h2>
-            {member.email ? (
+            {showEmail ? (
               <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{member.email}</p>
             ) : null}
             {member.phone ? <p className="text-sm text-[var(--fn-text-secondary)]">{member.phone}</p> : null}
@@ -588,5 +669,117 @@ export function ClubInfoNote({ children }: { children: React.ReactNode }) {
     <p className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/60 px-5 py-4 text-sm leading-relaxed text-[var(--fn-text-muted)]">
       {children}
     </p>
+  );
+}
+
+export function ClubPagination({
+  meta,
+  onPageChange,
+  loading,
+}: {
+  meta: PaginationMeta;
+  onPageChange: (page: number) => void;
+  loading?: boolean;
+}) {
+  if (meta.totalPages <= 1 && meta.total <= meta.limit) return null;
+
+  return (
+    <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 sm:flex-row">
+      <p className="text-sm text-[var(--fn-text-muted)]">
+        {CLUB_LABELS.members.pageOf(meta.page, meta.totalPages)}
+        {meta.total > 0 ? ` · ${meta.total} socios` : ''}
+      </p>
+      <div className="flex gap-2">
+        <Button
+          title={CLUB_LABELS.members.previousPage}
+          variant="outline"
+          size="sm"
+          disabled={loading || meta.page <= 1}
+          onClick={() => onPageChange(meta.page - 1)}
+        />
+        <Button
+          title={CLUB_LABELS.members.nextPage}
+          variant="outline"
+          size="sm"
+          disabled={loading || meta.page >= meta.totalPages}
+          onClick={() => onPageChange(meta.page + 1)}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function ClubMemberEditForm({
+  plans,
+  planId,
+  onPlanChange,
+  email,
+  onEmailChange,
+  firstName,
+  onFirstNameChange,
+  lastName,
+  onLastNameChange,
+  phone,
+  onPhoneChange,
+  onSubmit,
+  onCancel,
+  loading,
+}: {
+  plans: ClubMembershipPlan[];
+  planId: string;
+  onPlanChange: (value: string) => void;
+  email: string;
+  onEmailChange: (value: string) => void;
+  firstName: string;
+  onFirstNameChange: (value: string) => void;
+  lastName: string;
+  onLastNameChange: (value: string) => void;
+  phone: string;
+  onPhoneChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+  loading?: boolean;
+}) {
+  const planOptions = plans.map((p) => ({
+    value: p.id,
+    label: `${p.name} (${clubPlanCadenceLabel(p.cadence)})`,
+  }));
+
+  return (
+    <ClubSection title={CLUB_LABELS.members.edit} icon={UserPlus}>
+      <Select
+        label={CLUB_LABELS.invites.plan}
+        value={planId}
+        onChange={onPlanChange}
+        options={planOptions}
+      />
+      <Input
+        label={CLUB_LABELS.members.columns.email}
+        type="email"
+        value={email}
+        onChange={(e) => onEmailChange(e.target.value)}
+      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Input
+          label={CLUB_LABELS.members.columns.name}
+          value={firstName}
+          onChange={(e) => onFirstNameChange(e.target.value)}
+        />
+        <Input
+          label={GENERAL_LABELS.lastName}
+          value={lastName}
+          onChange={(e) => onLastNameChange(e.target.value)}
+        />
+      </div>
+      <Input
+        label={CLUB_LABELS.members.phone}
+        value={phone}
+        onChange={(e) => onPhoneChange(e.target.value)}
+      />
+      <div className="flex flex-wrap gap-2 pt-1">
+        <Button title={GENERAL_LABELS.saveChange} onClick={onSubmit} loading={loading} />
+        <Button title={GENERAL_LABELS.cancel} variant="outline" onClick={onCancel} />
+      </div>
+    </ClubSection>
   );
 }

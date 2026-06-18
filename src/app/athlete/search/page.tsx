@@ -16,12 +16,12 @@ const ClassMap = dynamic(() => import('@/components/map/Map').then((m) => m.Clas
 });
 import { FilterChip } from '@/components/ui/filter-chip';
 import {
-  DISCIPLINES,
   PRICE_RANGES,
   SCHEDULE_FILTERS,
   type ScheduleFilter,
 } from '@/constants/fitnexia';
-import { MODALITY_LABELS, modalityBadgeLabel, GENERAL_LABELS, DISCIPLINE_LABELS } from '@/constants/labels';
+import { MODALITY_LABELS, modalityBadgeLabel, GENERAL_LABELS } from '@/constants/labels';
+import { disciplineLabel, disciplineSelectOptions } from '@/utils/disciplines';
 import { useFeature } from '@/hooks/use-feature';
 import { useClasses } from '@/contexts/classes-context';
 import { apiGetClassMapMarkers, type MapMarker } from '@/services/api';
@@ -143,7 +143,7 @@ export default function SearchPage() {
       filters.push({
         type: 'discipline',
         value: discipline,
-        label: DISCIPLINE_LABELS[discipline as keyof typeof DISCIPLINE_LABELS] || discipline,
+        label: disciplineLabel(discipline),
       });
     if (modality)
       filters.push({ type: 'modality', value: modality, label: modalityBadgeLabel(modality) });
@@ -181,10 +181,7 @@ export default function SearchPage() {
 
   const disciplineOptions = [
     { value: '', label: GENERAL_LABELS.discipline },
-    ...DISCIPLINES.map((d) => ({
-      value: d,
-      label: DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] || d,
-    })),
+    ...disciplineSelectOptions(),
   ];
 
   const modalityOptions = [

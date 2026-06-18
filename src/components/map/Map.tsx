@@ -12,7 +12,9 @@ import { formatMoney, formatMoneyFromCents } from '@/utils/format';
 import type { MapMarker } from '@/services/api';
 import type { ClassListItem } from '@/types/api';
 
-const DEFAULT_CENTER: [number, number] = [-34.6037, -58.3816];
+import { DEFAULT_MAP_CENTER } from '@/constants/fitnexia';
+
+const DEFAULT_CENTER: [number, number] = [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng];
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 20;
 const DEFAULT_ZOOM = 13;
