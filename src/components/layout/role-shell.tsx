@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { 
-  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, Star, Building, CreditCard
+  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, Star, Building, CreditCard, IdCard
 } from 'lucide-react';
 
 import { Logo } from './Logo';
@@ -12,6 +12,7 @@ import { TAB_LABELS, DROPDOWN_LABELS, ROLE_TITLES } from '@/constants/labels';
 import { useAuth } from '@/contexts/auth-context';
 import { useAppTheme } from '@/contexts/theme-context';
 import { useNotifications } from '@/contexts/notifications-context';
+import { useFeature } from '@/hooks/use-feature';
 import type { UserRole } from '@/types/api';
 
 type NavItem = { href: string; label: string; icon: React.ReactNode };
@@ -29,12 +30,32 @@ const INSTRUCTOR_NAV: NavItem[] = [
   { href: '/instructor/earnings', label: TAB_LABELS.instructor.earnings, icon: <DollarSign size={18} /> },
 ];
 
-const GYM_NAV: NavItem[] = [
+const GYM_NAV_BASE: NavItem[] = [
   { href: '/gym/dashboard', label: TAB_LABELS.gym.dashboard, icon: <BarChart3 size={18} /> },
   { href: '/gym/instructors', label: TAB_LABELS.gym.staff, icon: <Users size={18} /> },
   { href: '/gym/classes', label: TAB_LABELS.gym.classes, icon: <BookOpen size={18} /> },
   { href: '/gym/earnings', label: TAB_LABELS.gym.earnings, icon: <DollarSign size={18} /> },
 ];
+
+const GYM_NAV_MEMBERS: NavItem = {
+  href: '/gym/members',
+  label: TAB_LABELS.gym.members,
+  icon: <IdCard size={18} />,
+};
+
+const GYM_NAV_PLANS: NavItem = {
+  href: '/gym/membership-plans',
+  label: TAB_LABELS.gym.membershipPlans,
+  icon: <CreditCard size={18} />,
+};
+
+function buildGymNav(showMembers: boolean, showPlans: boolean): NavItem[] {
+  const items = [...GYM_NAV_BASE];
+  const insertAt = 2;
+  if (showPlans) items.splice(insertAt, 0, GYM_NAV_PLANS);
+  if (showMembers) items.splice(insertAt, 0, GYM_NAV_MEMBERS);
+  return items;
+}
 
 const ADMIN_NAV: NavItem[] = [
   { href: '/admin/dashboard', label: TAB_LABELS.admin.dashboard, icon: <BarChart3 size={18} /> },
@@ -46,9 +67,12 @@ const ADMIN_NAV: NavItem[] = [
   { href: '/admin/payments', label: TAB_LABELS.admin.payments, icon: <CreditCard size={18} /> },
 ];
 
-function navForRole(role: UserRole): NavItem[] {
+function navForRole(
+  role: UserRole,
+  gymNav: NavItem[],
+): NavItem[] {
   if (role === 'instructor') return INSTRUCTOR_NAV;
-  if (role === 'institution') return GYM_NAV;
+  if (role === 'institution') return gymNav;
   if (role === 'admin') return ADMIN_NAV;
   return ATHLETE_NAV;
 }
@@ -73,6 +97,9 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
   const { user, logout, isLoading } = useAuth();
   const { isDark, toggleDarkMode } = useAppTheme();
   const { unreadCount } = useNotifications();
+  const showClubMembers = useFeature('clubMembers');
+  const showClubPlans = useFeature('clubMembershipPlans');
+  const gymNav = buildGymNav(showClubMembers, showClubPlans);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
@@ -109,7 +136,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
     router.replace(isAdmin ? '/admin' : '/auth/login');
   };
 
-  const nav = navForRole(user.role);
+  const nav = navForRole(user.role, gymNav);
   const profileLink = getProfileLink(user.role);
 
   return (

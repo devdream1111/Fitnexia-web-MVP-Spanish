@@ -106,17 +106,65 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 
   const text = await res.text();
-  const data = text ? (JSON.parse(text) as unknown) : null;
+  const data = parseResponseJson(text);
 
   if (!res.ok) {
     const err = data as ApiError | null;
     throw new ApiClientError(
       res.status,
       err?.error?.code ?? 'UNKNOWN',
-      err?.error?.message ?? res.statusText,
+      err?.error?.message ?? (text.trim() || res.statusText),
       err?.error?.details,
     );
   }
 
   return data as T;
+}
+
+function parseResponseJson(text: string): unknown | null {
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+function parseApiErrorMessage(text: string, fallback: string): string {
+  if (!text.trim()) return fallback;
+  try {
+    const parsed = JSON.parse(text) as ApiError;
+    return parsed.error?.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Authenticated binary download (CSV, etc.) without JSON parsing. */
+export async function apiFetchAuthenticatedBlob(path: string): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  const token = getAccessToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const url = `${API_BASE_URL}${path}`;
+  let res = await fetch(url, { headers });
+
+  if (res.status === 401) {
+    if (!refreshPromise) refreshPromise = tryRefresh();
+    const refreshed = await refreshPromise;
+    refreshPromise = null;
+
+    if (refreshed) {
+      const nextToken = getAccessToken();
+      if (nextToken) headers.Authorization = `Bearer ${nextToken}`;
+      res = await fetch(url, { headers });
+    }
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(parseApiErrorMessage(text, 'No se pudo exportar'));
+  }
+
+  return res.blob();
 }

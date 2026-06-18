@@ -4,11 +4,12 @@ import { type InputHTMLAttributes } from 'react';
 
 export function Input({
   label,
+  compact = false,
   className = '',
   ...rest
-}: InputHTMLAttributes<HTMLInputElement> & { label?: string }) {
+}: InputHTMLAttributes<HTMLInputElement> & { label?: string; compact?: boolean }) {
   return (
-    <label className="mb-4 block w-full">
+    <label className={`${compact ? 'mb-0' : 'mb-4'} block w-full`}>
       {label ? (
         <span className="mb-1.5 block text-sm font-medium text-[var(--fn-text-secondary)]">
           {label}

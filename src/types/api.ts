@@ -308,6 +308,120 @@ export interface HomeFeed {
   popular: ClassListItem[];
 }
 
+/** F-39 — club member fee status */
+export type ClubMemberFeeStatus = 'current' | 'pending' | 'overdue';
+
+/** F-40 — club-defined membership plan cadence */
+export type ClubPlanCadence = 'monthly' | 'quarterly' | 'annual';
+
+export interface ClubMembershipPlan {
+  id: string;
+  institutionId: string;
+  name: string;
+  cadence: ClubPlanCadence;
+  price: Money;
+  familySlots?: number;
+  active: boolean;
+  memberCount?: number;
+}
+
+export interface ClubMember {
+  id: string;
+  institutionId: string;
+  userId?: string | null;
+  email: string;
+  firstName: string;
+  lastName: string;
+  photoUrl?: string | null;
+  phone?: string | null;
+  planId: string;
+  planName?: string;
+  feeStatus: ClubMemberFeeStatus;
+  nextDueAt?: string | null;
+  subscriptionStatus?: 'none' | 'active' | 'past_due' | 'cancelled';
+  joinedAt: string;
+  leftAt?: string | null;
+}
+
+export interface ClubMembershipCharge {
+  id: string;
+  memberId: string;
+  amount: Money;
+  status: 'pending' | 'paid' | 'failed' | 'refunded';
+  periodStart: string;
+  periodEnd: string;
+  mpPaymentId?: string | null;
+  createdAt: string;
+}
+
+export interface ClubMemberInvite {
+  id: string;
+  email?: string | null;
+  code: string;
+  planId: string;
+  planName?: string;
+  status: 'pending' | 'accepted' | 'expired';
+  inviteUrl?: string;
+  sentAt: string;
+  expiresAt?: string | null;
+}
+
+export interface ClubInvitePreview {
+  code: string;
+  institutionId: string;
+  institutionName: string;
+  plan: Pick<ClubMembershipPlan, 'id' | 'name' | 'cadence' | 'price'>;
+  expiresAt?: string | null;
+  valid: boolean;
+}
+
+export interface ClubMembersSummary {
+  total: number;
+  current: number;
+  pending: number;
+  overdue: number;
+  collectionRate?: number;
+}
+
+export interface ClubMembershipStatement {
+  institutionId: string;
+  institutionName: string;
+  membershipId: string;
+  plan: Pick<ClubMembershipPlan, 'id' | 'name' | 'cadence' | 'price'>;
+  feeStatus: ClubMemberFeeStatus;
+  balanceDue: Money;
+  nextDueAt?: string | null;
+  subscriptionStatus?: 'none' | 'active' | 'past_due' | 'cancelled';
+  charges: ClubMembershipCharge[];
+}
+
+export interface AthleteClubMembership {
+  id: string;
+  institutionId: string;
+  institutionName: string;
+  planName: string;
+  feeStatus: ClubMemberFeeStatus;
+  nextDueAt?: string | null;
+  subscriptionStatus?: 'none' | 'active' | 'past_due' | 'cancelled';
+}
+
+/** F-40/F-41 — institution membership billing configuration */
+export interface MembershipBillingSettings {
+  reminderDaysBeforeDue?: number;
+  overdueAlertEnabled?: boolean;
+  autoRetryFailedCharges?: boolean;
+}
+
+export interface AcceptMembershipInviteResponse {
+  memberId: string;
+  member?: ClubMember;
+  checkoutUrl?: string;
+}
+
+export interface MembershipPaymentResponse {
+  checkoutUrl?: string;
+}
+
 /** Default API base — override per environment */
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ??

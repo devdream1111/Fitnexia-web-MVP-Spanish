@@ -32,6 +32,8 @@ export interface NotificationPreferences {
   classReminders: boolean;
   paymentUpdates: boolean;
   creditsExpiring: boolean;
+  membershipReminders: boolean;
+  memberDelinquencyAlerts: boolean;
   marketing: boolean;
 }
 
@@ -104,6 +106,8 @@ const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
   classReminders: true,
   paymentUpdates: true,
   creditsExpiring: true,
+  membershipReminders: true,
+  memberDelinquencyAlerts: true,
   marketing: false,
 };
 

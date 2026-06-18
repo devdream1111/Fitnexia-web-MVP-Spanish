@@ -39,6 +39,14 @@ export const FEATURES = {
   platformSupport: false,
   savedPaymentMethods: false,
   geolocationMap: true,
+
+  // F-39–F-44 — club membership & collections (MVP)
+  clubMembershipPlans: true,
+  clubMembers: true,
+  clubMemberInvites: true,
+  clubRecurringBilling: true,
+  clubMemberPortal: true,
+  clubDelinquencyAlerts: true,
 } as const;
 
 export type FeatureKey = keyof typeof FEATURES;
@@ -51,5 +59,7 @@ export function isFeatureEnabled(key: FeatureKey): boolean {
 export function isNotificationPrefVisible(key: string): boolean {
   if (key === 'creditsExpiring' && !FEATURES.loyaltyCredits) return false;
   if (key === 'paymentUpdates' && !FEATURES.integratedPayments) return false;
+  if (key === 'membershipReminders' && !FEATURES.clubDelinquencyAlerts) return false;
+  if (key === 'memberDelinquencyAlerts' && !FEATURES.clubDelinquencyAlerts) return false;
   return true;
 }

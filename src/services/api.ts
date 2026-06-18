@@ -1,4 +1,4 @@
-import { apiRequest, getAccessToken } from '@/services/api-client';
+import { apiFetchAuthenticatedBlob, apiRequest } from '@/services/api-client';
 import { API_BASE_URL } from '@/types/api';
 import type {
   AthleteProfile,
@@ -7,16 +7,31 @@ import type {
   Class,
   ClassBookingPaymentOptions,
   ClassListItem,
+  ClubInvitePreview,
+  ClubMember,
+  ClubMemberFeeStatus,
+  ClubMemberInvite,
+  ClubMembershipCharge,
+  ClubMembershipPlan,
+  ClubMembershipStatement,
+  ClubMembersSummary,
+  ClubPlanCadence,
+  AthleteClubMembership,
+  AcceptMembershipInviteResponse,
+  MembershipBillingSettings,
+  MembershipPaymentResponse,
   CreateBookingRequest,
   CreateBookingResponse,
   HomeFeed,
   Institution,
   Instructor,
+  Money,
   PaginatedResponse,
   User,
   UserRole,
 } from '@/types/api';
 import { buildFallbackPaymentOptions } from '@/utils/booking-payments';
+import { normalizeClubMembersList } from '@/utils/club-members';
 import type { NotificationPreferences } from '@/contexts/auth-context';
 
 export interface MeResponse {
@@ -506,18 +521,8 @@ export function apiListPayouts(params: { page?: number; limit?: number } = {}) {
   );
 }
 
-export async function apiDownloadPayoutsCsv(): Promise<Blob> {
-  const token = getAccessToken();
-  const res = await fetch(`${API_BASE_URL}/payouts/me/export.csv`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(
-      (body as { error?: { message?: string } })?.error?.message ?? 'No se pudo exportar',
-    );
-  }
-  return res.blob();
+export function apiDownloadPayoutsCsv(): Promise<Blob> {
+  return apiFetchAuthenticatedBlob('/payouts/me/export.csv');
 }
 
 export interface PlanOption {
@@ -545,6 +550,197 @@ export interface PaymentDetail {
 export function apiGetPayment(paymentId: string) {
   return apiRequest<PaymentDetail>(`/payments/${paymentId}`);
 }
+
+// --- Club membership plans (F-40) ---
+
+export function apiListClubMembershipPlans() {
+  return apiRequest<{ data: ClubMembershipPlan[] }>('/institutions/me/membership-plans');
+}
+
+export function apiCreateClubMembershipPlan(body: {
+  name: string;
+  cadence: ClubPlanCadence;
+  price: Money;
+  familySlots?: number;
+  active?: boolean;
+}) {
+  return apiRequest<ClubMembershipPlan>('/institutions/me/membership-plans', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiUpdateClubMembershipPlan(
+  id: string,
+  body: Partial<{
+    name: string;
+    cadence: ClubPlanCadence;
+    price: Money;
+    familySlots: number;
+    active: boolean;
+  }>,
+) {
+  return apiRequest<ClubMembershipPlan>(`/institutions/me/membership-plans/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiDeactivateClubMembershipPlan(id: string) {
+  return apiRequest<void>(`/institutions/me/membership-plans/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export function apiGetMembershipBillingSettings() {
+  return apiRequest<MembershipBillingSettings>('/institutions/me/membership-settings');
+}
+
+export function apiUpdateMembershipBillingSettings(body: Partial<MembershipBillingSettings>) {
+  return apiRequest<MembershipBillingSettings>('/institutions/me/membership-settings', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+// --- Club members (F-39) ---
+
+export interface ListClubMembersParams {
+  feeStatus?: ClubMemberFeeStatus;
+  planId?: string;
+  q?: string;
+  page?: number;
+  limit?: number;
+}
+
+export function apiListClubMembers(params: ListClubMembersParams = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') qs.set(k, String(v));
+  });
+  const query = qs.toString();
+  return apiRequest<PaginatedResponse<ClubMember>>(
+    `/institutions/me/members${query ? `?${query}` : ''}`,
+  );
+}
+
+export function apiGetClubMembersSummary() {
+  return apiRequest<ClubMembersSummary>('/institutions/me/members/summary');
+}
+
+export function apiCreateClubMember(body: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  planId: string;
+}) {
+  return apiRequest<ClubMember>('/institutions/me/members', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiRemoveClubMember(id: string) {
+  return apiRequest<void>(`/institutions/me/members/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+/** Backend has no GET /members/{id}; resolve from list. */
+export async function apiFindClubMember(memberId: string): Promise<ClubMember | null> {
+  const res = await apiListClubMembers({ limit: 200 });
+  return normalizeClubMembersList(res).find((m) => m.id === memberId) ?? null;
+}
+
+// --- Membership invites (F-43) ---
+
+export function apiCreateMembershipInvite(body: {
+  planId: string;
+  email?: string;
+  message?: string;
+}) {
+  return apiRequest<ClubMemberInvite>('/institutions/me/membership-invites', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiListMembershipInvites() {
+  return apiRequest<{ data: ClubMemberInvite[] }>('/institutions/me/membership-invites');
+}
+
+export function apiCancelMembershipInvite(id: string) {
+  return apiRequest<void>(`/institutions/me/membership-invites/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export function apiBulkCreateMembershipInvites(file: File) {
+  const form = new FormData();
+  form.append('file', file);
+  return apiRequest<{
+    imported: number;
+    failed: number;
+    errors: { row: number; reason: string }[];
+  }>('/institutions/me/membership-invites/bulk', {
+    method: 'POST',
+    body: form,
+  });
+}
+
+export function apiGetMembershipInvitePreview(code: string) {
+  return apiRequest<ClubInvitePreview>(`/memberships/invites/${encodeURIComponent(code)}`, {
+    auth: false,
+  });
+}
+
+export function apiAcceptMembershipInvite(code: string) {
+  return apiRequest<AcceptMembershipInviteResponse>(
+    `/memberships/invites/${encodeURIComponent(code)}/accept`,
+    { method: 'POST' },
+  );
+}
+
+// --- Athlete memberships (F-41/F-42) ---
+
+export function apiListMyClubMemberships() {
+  return apiRequest<{ data: AthleteClubMembership[] }>('/memberships/me');
+}
+
+export function apiGetMembershipStatement(memberId: string) {
+  return apiRequest<ClubMembershipStatement>(`/memberships/me/${memberId}/statement`);
+}
+
+export function apiAuthorizeMembership(memberId: string) {
+  return apiRequest<MembershipPaymentResponse>(`/memberships/me/${memberId}/authorize`, {
+    method: 'POST',
+  });
+}
+
+export function apiPayMembershipDebt(memberId: string) {
+  return apiRequest<MembershipPaymentResponse>(`/memberships/me/${memberId}/pay-debt`, {
+    method: 'POST',
+  });
+}
+
+// --- Legacy aliases (deprecated paths) ---
+/** @deprecated Use apiRemoveClubMember */
+export const apiDeactivateClubMember = apiRemoveClubMember;
+/** @deprecated Use apiCreateMembershipInvite */
+export const apiCreateClubMemberInvite = apiCreateMembershipInvite;
+/** @deprecated Use apiListMembershipInvites */
+export const apiListClubMemberInvites = apiListMembershipInvites;
+/** @deprecated Use apiBulkCreateMembershipInvites */
+export const apiBulkImportClubMembers = apiBulkCreateMembershipInvites;
+/** @deprecated Use apiGetMembershipInvitePreview */
+export const apiGetClubInvitePreview = apiGetMembershipInvitePreview;
+/** @deprecated Use apiAcceptMembershipInvite */
+export const apiAcceptClubInvite = apiAcceptMembershipInvite;
+/** @deprecated Use apiGetMembershipStatement */
+export const apiGetClubMembershipStatement = apiGetMembershipStatement;
+/** @deprecated Use apiPayMembershipDebt */
+export const apiPayClubMembershipBalance = apiPayMembershipDebt;
 
 // --- Notifications preferences ---
 

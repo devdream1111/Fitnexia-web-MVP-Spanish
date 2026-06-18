@@ -8,6 +8,7 @@ import {
   CreditCard,
   Bell,
   Dumbbell,
+  Building2,
 } from 'lucide-react';
 
 import { PageHeader } from '@/components/layout/page-header';
@@ -35,6 +36,7 @@ import {
   PROFILE_MENU_LABELS,
   PROFILE_PAGE_LABELS,
   ROLE_TITLES,
+  SCREEN_TITLES,
   TAB_LABELS,
 } from '@/constants/labels';
 import { DISCIPLINES } from '@/constants/fitnexia';
@@ -45,6 +47,7 @@ export default function AthleteProfilePage() {
   const { showNotice } = useNoticeModal();
   const { bookings } = useBookings();
   const showPaymentMethods = useFeature('savedPaymentMethods');
+  const showClubMembership = useFeature('clubMemberPortal');
 
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
@@ -105,6 +108,9 @@ export default function AthleteProfilePage() {
     { href: '/athlete/payment-history', label: GENERAL_LABELS.paymentHistory, icon: CreditCard },
     ...(showPaymentMethods
       ? [{ href: '/athlete/profile/payment-methods', label: PROFILE_MENU_LABELS.paymentMethods, icon: CreditCard }]
+      : []),
+    ...(showClubMembership
+      ? [{ href: '/athlete/club-membership', label: SCREEN_TITLES.clubMembership, icon: Building2 }]
       : []),
   ];
 

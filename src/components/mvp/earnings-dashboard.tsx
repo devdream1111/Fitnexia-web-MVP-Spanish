@@ -17,9 +17,9 @@ import {
   type PayoutRecord,
   type PayoutSummary,
 } from '@/services/api';
+import { downloadBlobAsFile } from '@/utils/download-file';
 import { formatMoneyFromCents } from '@/utils/format';
-import { useNoticeModal } from '@/contexts/notice-modal-context';
-import { ALERT_LABELS, GENERAL_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
+import { GENERAL_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
 
 export function EarningsDashboard({
   eyebrow,
@@ -30,12 +30,12 @@ export function EarningsDashboard({
   title: string;
   gradient?: string;
 }) {
-  const { showNotice } = useNoticeModal();
   const [weekSummary, setWeekSummary] = useState<PayoutSummary | null>(null);
   const [monthSummary, setMonthSummary] = useState<PayoutSummary | null>(null);
   const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -68,27 +68,16 @@ export function EarningsDashboard({
     };
   }, []);
 
-  const handleExport = async () => {
+  const handleExport = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setExportError('');
     setExporting(true);
     try {
       const blob = await apiDownloadPayoutsCsv();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'fitnexia-payouts.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-      showNotice({
-        title: ALERT_LABELS.savedTitle,
-        message: 'Exportación descargada.',
-        variant: 'success',
-      });
+      downloadBlobAsFile(blob, 'fitnexia-payouts.csv');
     } catch (e) {
-      showNotice({
-        title: ALERT_LABELS.missingInfoTitle,
-        message: e instanceof Error ? e.message : 'Error al exportar',
-        variant: 'error',
-      });
+      setExportError(e instanceof Error ? e.message : 'No se pudo exportar');
     } finally {
       setExporting(false);
     }
@@ -97,16 +86,23 @@ export function EarningsDashboard({
   return (
     <DashboardPage>
       <DashboardHero gradient={gradient} eyebrow={eyebrow} title={title}>
-        <Button
-          title="Exportar CSV"
-          variant="secondary"
-          className="!bg-white/15 !text-white hover:!bg-white/25"
-          loading={exporting}
-          onClick={handleExport}
-        >
-          <Download size={16} className="mr-2" />
-          Exportar CSV
-        </Button>
+        <div className="flex flex-col items-end gap-2">
+          <Button
+            title="Exportar CSV"
+            variant="secondary"
+            className="!bg-white/15 !text-white hover:!bg-white/25"
+            loading={exporting}
+            onClick={handleExport}
+          >
+            <Download size={16} className="mr-2" />
+            Exportar CSV
+          </Button>
+          {exportError ? (
+            <p className="max-w-xs text-right text-sm text-red-200" role="alert">
+              {exportError}
+            </p>
+          ) : null}
+        </div>
       </DashboardHero>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
