@@ -13,6 +13,7 @@ import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { formatClassDate, formatMoney, isClassOnCalendarDay, parseClassStartAt } from '@/utils/format';
 import { formatBookingPaymentLabel } from '@/utils/booking-payments';
 import { canCancelBooking, getRefundAmount } from '@/utils/booking';
+import { filterClassesByScheduleTab } from '@/utils/calendar';
 import { GENERAL_LABELS } from '@/constants/labels';
 import type { ClassListItem } from '@/types/api';
 import type { BookingRecord } from '@/services/api';
@@ -68,12 +69,24 @@ export default function BookingsPage() {
 
   const userBookings = user ? bookings.filter((b) => b.userId === user.id) : [];
 
-  const list =
-    tab === 'upcoming'
-      ? userBookings.filter((b) => ['confirmed', 'pending_payment'].includes(b.status))
-      : userBookings.filter((b) =>
-          ['completed', 'cancelled', 'refunded'].includes(b.status),
-        );
+  const list = useMemo(() => {
+    return userBookings.filter((booking) => {
+      const cls = resolveClass(booking);
+      if (!cls?.startAt) return false;
+      const upcoming = new Date(cls.startAt).getTime() > Date.now();
+      if (tab === 'upcoming') {
+        return upcoming && ['confirmed', 'pending_payment'].includes(booking.status);
+      }
+      return (
+        !upcoming ||
+        ['completed', 'cancelled', 'refunded', 'no_show'].includes(booking.status)
+      );
+    });
+  }, [userBookings, tab, resolveClass]);
+
+  useEffect(() => {
+    setSelectedDate(null);
+  }, [tab]);
 
   const entries = useMemo(() => {
     return list
@@ -93,8 +106,8 @@ export default function BookingsPage() {
         byId.set(cls.id, cls);
       }
     }
-    return Array.from(byId.values());
-  }, [userBookings, resolveClass, classes]);
+    return filterClassesByScheduleTab(Array.from(byId.values()), tab);
+  }, [userBookings, resolveClass, tab]);
 
   const calendarFocusDate = useMemo(() => {
     const dates = bookedClasses
@@ -165,6 +178,23 @@ export default function BookingsPage() {
         </button>
       </div>
 
+      <div className="mb-6 flex rounded-xl bg-[var(--fn-surface-muted)] p-1">
+        {(['upcoming', 'past'] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
+              tab === t
+                ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm'
+                : 'text-[var(--fn-text-muted)]'
+            }`}
+          >
+            {t === 'upcoming' ? GENERAL_LABELS.upcoming : GENERAL_LABELS.history}
+          </button>
+        ))}
+      </div>
+
       {showCalendar ? (
         <div className="mb-8">
           <Calendar
@@ -223,23 +253,6 @@ export default function BookingsPage() {
           </div>
         </div>
       ) : null}
-
-      <div className="mb-6 flex rounded-xl bg-[var(--fn-surface-muted)] p-1">
-        {(['upcoming', 'past'] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-              tab === t
-                ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm'
-                : 'text-[var(--fn-text-muted)]'
-            }`}
-          >
-            {t === 'upcoming' ? GENERAL_LABELS.upcoming : GENERAL_LABELS.history}
-          </button>
-        ))}
-      </div>
 
       {entries.length === 0 ? (
         <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noBookingsInTab}</p>

@@ -50,3 +50,29 @@ export function buildMonthGrid(month: Date): (Date | null)[] {
 export function isToday(date: Date): boolean {
   return isSameCalendarDay(date, new Date());
 }
+
+export type ScheduleTab = 'upcoming' | 'past';
+
+/** Class session is still in the future (by start time). */
+export function isClassUpcoming(startAt: string, now = Date.now()): boolean {
+  const t = new Date(startAt).getTime();
+  return !Number.isNaN(t) && t > now;
+}
+
+/** Class session has already started (by start time). */
+export function isClassPast(startAt: string, now = Date.now()): boolean {
+  const t = new Date(startAt).getTime();
+  return !Number.isNaN(t) && t <= now;
+}
+
+export function filterClassesByScheduleTab<T extends { startAt: string }>(
+  classes: T[],
+  tab: ScheduleTab,
+  now = Date.now(),
+): T[] {
+  return classes.filter((c) => {
+    if (!c?.startAt) return false;
+    const upcoming = isClassUpcoming(c.startAt, now);
+    return tab === 'upcoming' ? upcoming : !upcoming;
+  });
+}
