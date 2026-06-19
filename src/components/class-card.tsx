@@ -62,9 +62,12 @@ function ClassCardInner({ item, compact, showEdit, editHref }: {
 
   if (showEdit) {
     return (
-      <div className="fn-class-card overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+      <Link
+        href={`/class/${item.id}`}
+        className="fn-class-card block overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--fn-primary)]/30 hover:shadow-lg"
+      >
         {content}
-      </div>
+      </Link>
     );
   }
 

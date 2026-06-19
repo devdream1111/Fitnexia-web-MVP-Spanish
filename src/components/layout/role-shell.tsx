@@ -43,17 +43,9 @@ const GYM_NAV_MEMBERS: NavItem = {
   icon: <IdCard size={18} />,
 };
 
-const GYM_NAV_PLANS: NavItem = {
-  href: '/gym/membership-plans',
-  label: TAB_LABELS.gym.membershipPlans,
-  icon: <CreditCard size={18} />,
-};
-
-function buildGymNav(showMembers: boolean, showPlans: boolean): NavItem[] {
+function buildGymNav(showMembers: boolean): NavItem[] {
   const items = [...GYM_NAV_BASE];
-  const insertAt = 2;
-  if (showPlans) items.splice(insertAt, 0, GYM_NAV_PLANS);
-  if (showMembers) items.splice(insertAt, 0, GYM_NAV_MEMBERS);
+  if (showMembers) items.splice(2, 0, GYM_NAV_MEMBERS);
   return items;
 }
 
@@ -98,8 +90,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
   const { isDark, toggleDarkMode } = useAppTheme();
   const { unreadCount } = useNotifications();
   const showClubMembers = useFeature('clubMembers');
-  const showClubPlans = useFeature('clubMembershipPlans');
-  const gymNav = buildGymNav(showClubMembers, showClubPlans);
+  const gymNav = buildGymNav(showClubMembers);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   

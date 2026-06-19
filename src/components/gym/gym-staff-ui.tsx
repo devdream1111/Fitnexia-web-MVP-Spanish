@@ -84,48 +84,53 @@ export function GymStaffCard({
         aria-hidden="true"
       />
       <div className="relative flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6">
-        <div className="flex min-w-0 items-start gap-4">
-          <div className="relative shrink-0">
-            {item.photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.photoUrl}
-                alt=""
-                className="h-16 w-16 rounded-2xl object-cover ring-2 ring-[var(--fn-primary)]/20"
-              />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--fn-primary-muted)] to-violet-500/20 text-lg font-black text-[var(--fn-primary)]">
-                {initials(item.displayName) || <UserRound size={24} />}
-              </div>
-            )}
-            {item.verified ? (
-              <span className="absolute -bottom-1 -right-1">
-                <Badge label={BADGE_LABELS.verified} variant="success" size="sm" />
-              </span>
-            ) : null}
-          </div>
-          <div className="min-w-0">
-            <h3 className="truncate text-lg font-extrabold text-[var(--fn-text)]">{item.displayName}</h3>
-            <p className="mt-1 line-clamp-2 text-sm text-[var(--fn-text-muted)]">
-              {disciplineLabels || '—'}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--fn-text-secondary)]">
-                <Star size={14} className="fill-amber-400 text-amber-400" />
-                {item.averageRating.toFixed(1)}
-              </span>
-              <span className="text-xs text-[var(--fn-text-muted)]">({item.reviewCount})</span>
-              {item.staffStatus === 'linked' ? (
-                <Badge label={GYM_LABELS.instructors.onStaff} variant="success" size="sm" />
-              ) : null}
-              {item.staffStatus === 'pending' ? (
-                <Badge label={GYM_LABELS.instructors.pending} variant="warning" size="sm" />
-              ) : null}
-              {item.staffReview ? (
-                <Badge label={GYM_LABELS.instructors.reviewSent} variant="default" size="sm" />
+          <div className="flex min-w-0 items-start gap-4">
+          <Link
+            href={`/gym/instructors/${item.id}`}
+            className="flex min-w-0 flex-1 items-start gap-4 transition hover:opacity-90"
+          >
+            <div className="relative shrink-0">
+              {item.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.photoUrl}
+                  alt=""
+                  className="h-16 w-16 rounded-2xl object-cover ring-2 ring-[var(--fn-primary)]/20"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--fn-primary-muted)] to-violet-500/20 text-lg font-black text-[var(--fn-primary)]">
+                  {initials(item.displayName) || <UserRound size={24} />}
+                </div>
+              )}
+              {item.verified ? (
+                <span className="absolute -bottom-1 -right-1">
+                  <Badge label={BADGE_LABELS.verified} variant="success" size="sm" />
+                </span>
               ) : null}
             </div>
-          </div>
+            <div className="min-w-0">
+              <h3 className="truncate text-lg font-extrabold text-[var(--fn-text)]">{item.displayName}</h3>
+              <p className="mt-1 line-clamp-2 text-sm text-[var(--fn-text-muted)]">
+                {disciplineLabels || '—'}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--fn-text-secondary)]">
+                  <Star size={14} className="fill-amber-400 text-amber-400" />
+                  {item.averageRating.toFixed(1)}
+                </span>
+                <span className="text-xs text-[var(--fn-text-muted)]">({item.reviewCount})</span>
+                {item.staffStatus === 'linked' ? (
+                  <Badge label={GYM_LABELS.instructors.onStaff} variant="success" size="sm" />
+                ) : null}
+                {item.staffStatus === 'pending' ? (
+                  <Badge label={GYM_LABELS.instructors.pending} variant="warning" size="sm" />
+                ) : null}
+                {item.staffReview ? (
+                  <Badge label={GYM_LABELS.instructors.reviewSent} variant="default" size="sm" />
+                ) : null}
+              </div>
+            </div>
+          </Link>
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2 md:justify-end">

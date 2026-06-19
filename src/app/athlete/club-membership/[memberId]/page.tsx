@@ -15,7 +15,6 @@ import { useNoticeModal } from '@/contexts/notice-modal-context';
 import {
   apiAuthorizeMembership,
   apiGetMembershipStatement,
-  apiPayMembershipDebt,
   apiSyncMembershipPayment,
 } from '@/services/api';
 import { ApiClientError } from '@/services/api-client';
@@ -40,7 +39,7 @@ function AthleteClubStatementContent() {
   const [statement, setStatement] = useState<ClubMembershipStatement | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'pay' | 'authorize' | null>(null);
+  const [busy, setBusy] = useState<'authorize' | null>(null);
 
   const load = useCallback(async () => {
     if (!memberId) return;
@@ -106,29 +105,6 @@ function AthleteClubStatementContent() {
     }
   };
 
-  const handlePay = async () => {
-    if (!memberId) return;
-    setBusy('pay');
-    try {
-      const res = await apiPayMembershipDebt(memberId);
-      if (redirectIfCheckout(res.checkoutUrl)) return;
-      showNotice({
-        title: ALERT_LABELS.savedTitle,
-        message: CLUB_LABELS.athlete.payNow,
-        variant: 'success',
-      });
-      await load();
-    } catch (error) {
-      showNotice({
-        title: ALERT_LABELS.missingInfoTitle,
-        message: error instanceof ApiClientError ? error.message : 'No se pudo iniciar el pago',
-        variant: 'error',
-      });
-    } finally {
-      setBusy(null);
-    }
-  };
-
   if (loading) {
     return <p className="p-6 text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>;
   }
@@ -148,11 +124,6 @@ function AthleteClubStatementContent() {
     statement.subscriptionStatus === 'none' ||
     statement.subscriptionStatus === 'cancelled' ||
     statement.feeStatus === 'pending';
-
-  const canPay =
-    statement.feeStatus === 'overdue' ||
-    statement.feeStatus === 'pending' ||
-    (statement.balanceDue?.amount ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -186,14 +157,6 @@ function AthleteClubStatementContent() {
                 title={CLUB_LABELS.billing.authorize}
                 onClick={handleAuthorize}
                 loading={busy === 'authorize'}
-              />
-            ) : null}
-            {canPay ? (
-              <Button
-                title={CLUB_LABELS.athlete.payNow}
-                variant={needsAuthorize ? 'outline' : 'primary'}
-                onClick={handlePay}
-                loading={busy === 'pay'}
               />
             ) : null}
           </div>
