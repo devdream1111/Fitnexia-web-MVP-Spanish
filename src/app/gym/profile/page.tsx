@@ -9,6 +9,7 @@ import {
   Bell,
   Building,
   BarChart3,
+  Wallet,
 } from 'lucide-react';
 
 import { PageHeader } from '@/components/layout/page-header';
@@ -117,6 +118,7 @@ export default function GymProfilePage() {
     { href: '/gym/dashboard', label: 'Panel de control', icon: BarChart3 },
     { href: '/gym/instructors', label: PROFILE_MENU_LABELS.instructors, icon: Users, count: instructorCount },
     { href: '/gym/classes', label: 'Clases grupales', icon: BookOpen, count: gymClasses.length },
+    { href: '/gym/profile/payout-account', label: PROFILE_MENU_LABELS.payoutAccount, icon: Wallet },
     { href: '/gym/profile/plan', label: PROFILE_MENU_LABELS.planCommission, icon: Building },
   ];
 

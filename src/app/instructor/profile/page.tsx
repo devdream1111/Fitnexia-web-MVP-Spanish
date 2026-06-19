@@ -11,6 +11,7 @@ import {
   CircleCheck,
   Clock,
   Star,
+  Wallet,
 } from 'lucide-react';
 import type { Certification } from '@/types/api';
 
@@ -149,6 +150,7 @@ export default function InstructorProfilePage() {
     { href: '/instructor/classes', label: 'Mis clases', icon: BookOpen, count: myClasses.length },
     { href: '/instructor/calendar', label: 'Calendario', icon: Calendar },
     { href: '/instructor/earnings', label: 'Ingresos', icon: DollarSign },
+    { href: '/instructor/profile/payout-account', label: PROFILE_MENU_LABELS.payoutAccount, icon: Wallet },
     { href: '/instructor/profile/availability', label: PROFILE_MENU_LABELS.scheduleAvailability, icon: Clock },
     { href: '/instructor/profile/plan', label: PROFILE_MENU_LABELS.planCommission, icon: Star },
   ];

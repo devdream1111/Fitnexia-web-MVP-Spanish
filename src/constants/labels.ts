@@ -173,11 +173,25 @@ export const PROFILE_PAGE_LABELS = {
   bioUnset: 'Sin biografía',
 } as const;
 
+export const PAYOUT_ACCOUNT_LABELS = {
+  title: 'Cuenta de cobros',
+  intro:
+    'Conectá tu cuenta de Mercado Pago para recibir el neto de tus clases automáticamente cuando el marketplace esté activo.',
+  provider: 'Mercado Pago',
+  statusLabel: 'Estado',
+  statusDisconnected: 'No conectada',
+  marketplacePending: 'Marketplace en configuración — tu cliente debe entregar credenciales MP.',
+  connect: 'Conectar Mercado Pago',
+  connectNoticeTitle: 'Marketplace en configuración',
+  connectNoticeMessage:
+    'El marketplace aún está en configuración. Tu cliente debe entregar las credenciales de Mercado Pago para habilitar la conexión de cuentas de cobro.',
+} as const;
+
 export const PROFILE_MENU_LABELS = {
   favoriteSports: 'Deportes favoritos',
   notifications: 'Notificaciones',
   paymentMethods: 'Métodos de pago',
-  payoutAccount: 'Cuenta de pago',
+  payoutAccount: 'Cuenta de cobros',
   planCommission: 'Plan y comisión',
   helpSupport: 'Ayuda y soporte',
   location: 'Ubicación',
@@ -195,7 +209,7 @@ export const SCREEN_TITLES = {
   notifications: 'Notificaciones',
   favoriteSports: 'Deportes favoritos',
   paymentMethods: 'Métodos de pago',
-  payoutAccount: 'Cuenta de pago',
+  payoutAccount: 'Cuenta de cobros',
   helpSupport: 'Ayuda y soporte',
   planCommission: 'Plan y comisión',
   inviteInstructor: 'Invitar instructor',
