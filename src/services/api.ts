@@ -31,7 +31,23 @@ import type {
   UserRole,
 } from '@/types/api';
 import { buildFallbackPaymentOptions } from '@/utils/booking-payments';
-import { normalizeClubMember, normalizeClubMembersList } from '@/utils/club-members';
+import {
+  feeStatusToBackendQuery,
+  filterClubMembersLocally,
+  normalizeAthleteMembershipsList,
+  normalizeBillingSettings,
+  normalizeClubMember,
+  normalizeClubMembersList,
+  normalizeInvitePreview,
+  normalizeMembershipStatement,
+  normalizePlanList,
+  normalizeUpdatedClubMember,
+  paginateLocally,
+  toBackendBillingSettingsPatch,
+  toBackendMemberBody,
+  toBackendPlanBody,
+  toBackendPlanPatch,
+} from '@/utils/club-members';
 import type { NotificationPreferences } from '@/contexts/auth-context';
 
 export interface MeResponse {
@@ -418,13 +434,69 @@ export async function apiGetClassBookingPaymentOptions(
   classItem: ClassListItem,
 ): Promise<ClassBookingPaymentOptions> {
   try {
-    return await apiRequest<ClassBookingPaymentOptions>(
-      `/classes/${classItem.id}/booking-payment-options`,
-      { auth: false },
-    );
+    const products = await apiGetPassProducts();
+    return buildPaymentOptionsFromPassProducts(classItem, products);
   } catch {
     return buildFallbackPaymentOptions(classItem);
   }
+}
+
+export interface PassProductsConfig {
+  monthly_unlimited: {
+    id: string;
+    paymentModel: string;
+    name: string;
+    price: { amount: number; currency: string };
+  };
+  per_period: Record<
+    string,
+    {
+      periodType: string;
+      name: string;
+      price: { amount: number; currency: string };
+      classCredits?: number;
+    }
+  >;
+}
+
+export function apiGetPassProducts() {
+  return apiRequest<PassProductsConfig>('/config/pass-products', { auth: false });
+}
+
+function buildPaymentOptionsFromPassProducts(
+  cls: ClassListItem,
+  products: PassProductsConfig,
+): ClassBookingPaymentOptions {
+  const currency = cls.price.currency;
+  const options: ClassBookingPaymentOptions['options'] = [
+    {
+      paymentModel: 'per_class',
+      label: 'Pago por clase',
+      description: 'Pagá solo esta clase al confirmar la reserva.',
+      price: cls.price,
+    },
+  ];
+
+  if (products.monthly_unlimited) {
+    options.push({
+      paymentModel: 'monthly_unlimited',
+      label: products.monthly_unlimited.name,
+      description: 'Acceso ilimitado a clases durante 30 días.',
+      price: products.monthly_unlimited.price,
+    });
+  }
+
+  for (const [period, product] of Object.entries(products.per_period ?? {})) {
+    options.push({
+      paymentModel: 'per_period',
+      billingPeriod: period as import('@/types/api').BillingPeriod,
+      label: product.name,
+      description: `${product.classCredits ?? ''} créditos de clase`.trim(),
+      price: product.price,
+    });
+  }
+
+  return { classId: cls.id, currency, options };
 }
 
 export function apiGetMyClasses() {
@@ -566,8 +638,8 @@ export function apiCreateClubMembershipPlan(body: {
 }) {
   return apiRequest<ClubMembershipPlan>('/institutions/me/membership-plans', {
     method: 'POST',
-    body: JSON.stringify(body),
-  });
+    body: JSON.stringify(toBackendPlanBody(body)),
+  }).then((raw) => normalizePlanList({ data: [raw] })[0]!);
 }
 
 export function apiUpdateClubMembershipPlan(
@@ -582,8 +654,8 @@ export function apiUpdateClubMembershipPlan(
 ) {
   return apiRequest<ClubMembershipPlan>(`/institutions/me/membership-plans/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify(body),
-  });
+    body: JSON.stringify(toBackendPlanPatch(body)),
+  }).then((raw) => normalizePlanList({ data: [raw] })[0]!);
 }
 
 export function apiDeactivateClubMembershipPlan(id: string) {
@@ -592,15 +664,17 @@ export function apiDeactivateClubMembershipPlan(id: string) {
   });
 }
 
-export function apiGetMembershipBillingSettings() {
-  return apiRequest<MembershipBillingSettings>('/institutions/me/membership-settings');
+export async function apiGetMembershipBillingSettings() {
+  const raw = await apiRequest<unknown>('/institutions/me/membership-settings');
+  return normalizeBillingSettings(raw);
 }
 
-export function apiUpdateMembershipBillingSettings(body: Partial<MembershipBillingSettings>) {
-  return apiRequest<MembershipBillingSettings>('/institutions/me/membership-settings', {
+export async function apiUpdateMembershipBillingSettings(body: Partial<MembershipBillingSettings>) {
+  const raw = await apiRequest<unknown>('/institutions/me/membership-settings', {
     method: 'PATCH',
-    body: JSON.stringify(body),
+    body: JSON.stringify(toBackendBillingSettingsPatch(body)),
   });
+  return normalizeBillingSettings(raw);
 }
 
 // --- Club members (F-39) ---
@@ -613,32 +687,49 @@ export interface ListClubMembersParams {
   limit?: number;
 }
 
-export function apiListClubMembers(params: ListClubMembersParams = {}) {
+export async function apiListClubMembers(params: ListClubMembersParams = {}) {
   const qs = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') qs.set(k, String(v));
-  });
+  const backendStatus = feeStatusToBackendQuery(params.feeStatus);
+  if (backendStatus) qs.set('status', backendStatus);
   const query = qs.toString();
-  return apiRequest<PaginatedResponse<ClubMember>>(
+
+  const raw = await apiRequest<{ data: unknown[] }>(
     `/institutions/me/members${query ? `?${query}` : ''}`,
   );
+
+  let members = normalizeClubMembersList(raw);
+
+  if (params.planId || params.q || (params.feeStatus && !backendStatus)) {
+    members = filterClubMembersLocally(members, {
+      feeStatus: params.feeStatus,
+      planId: params.planId,
+      q: params.q,
+    });
+  }
+
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 20;
+  const { items, meta } = paginateLocally(members, page, limit);
+
+  return { data: items, meta } satisfies PaginatedResponse<ClubMember>;
 }
 
 export function apiGetClubMembersSummary() {
   return apiRequest<ClubMembersSummary>('/institutions/me/members/summary');
 }
 
-export function apiCreateClubMember(body: {
+export async function apiCreateClubMember(body: {
   email: string;
   firstName: string;
   lastName: string;
   phone?: string;
   planId: string;
 }) {
-  return apiRequest<ClubMember>('/institutions/me/members', {
+  const raw = await apiRequest<unknown>('/institutions/me/members', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(toBackendMemberBody(body)),
   });
+  return normalizeClubMember(raw)!;
 }
 
 export function apiRemoveClubMember(id: string) {
@@ -656,7 +747,7 @@ export async function apiGetClubMember(id: string): Promise<ClubMember | null> {
   }
 }
 
-export function apiUpdateClubMember(
+export async function apiUpdateClubMember(
   id: string,
   body: {
     firstName?: string;
@@ -666,10 +757,11 @@ export function apiUpdateClubMember(
     planId?: string;
   },
 ) {
-  return apiRequest<unknown>(`/institutions/me/members/${id}`, {
+  const raw = await apiRequest<unknown>(`/institutions/me/members/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify(body),
+    body: JSON.stringify(toBackendMemberBody(body)),
   });
+  return normalizeUpdatedClubMember(raw) ?? normalizeClubMember(raw);
 }
 
 /** Prefer GET /members/{id}; fall back to paginated list scan. */
@@ -727,17 +819,39 @@ export function apiBulkCreateMembershipInvites(file: File) {
   });
 }
 
-export function apiGetMembershipInvitePreview(code: string) {
-  return apiRequest<ClubInvitePreview>(`/memberships/invites/${encodeURIComponent(code)}`, {
+export async function apiGetMembershipInvitePreview(code: string) {
+  const raw = await apiRequest<unknown>(`/memberships/invites/${encodeURIComponent(code)}`, {
     auth: false,
   });
+  const preview = normalizeInvitePreview(raw);
+  if (!preview) throw new Error('Invalid invite preview');
+  return preview;
 }
 
-export function apiAcceptMembershipInvite(code: string) {
-  return apiRequest<AcceptMembershipInviteResponse>(
+function mapMembershipPaymentResponse(raw: unknown): MembershipPaymentResponse {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return {
+    checkoutUrl: (r.checkoutUrl ?? r.authorizationUrl) as string | undefined,
+    authorizationUrl: r.authorizationUrl as string | undefined,
+    paymentId: r.paymentId as string | undefined,
+    preapprovalId: r.preapprovalId as string | undefined,
+  };
+}
+
+export async function apiAcceptMembershipInvite(code: string) {
+  const raw = await apiRequest<Record<string, unknown>>(
     `/memberships/invites/${encodeURIComponent(code)}/accept`,
     { method: 'POST' },
   );
+  const member = normalizeClubMember(raw.member);
+  const payment = mapMembershipPaymentResponse(raw);
+  return {
+    memberId: String(member?.id ?? raw.memberId ?? ''),
+    member: member ?? undefined,
+    checkoutUrl: payment.checkoutUrl ?? payment.authorizationUrl,
+    authorizationUrl: payment.authorizationUrl,
+    subscriptionId: raw.subscriptionId as string | undefined,
+  } satisfies AcceptMembershipInviteResponse;
 }
 
 // --- Athlete memberships (F-41/F-42) ---
@@ -746,20 +860,32 @@ export function apiListMyClubMemberships() {
   return apiRequest<{ data: AthleteClubMembership[] }>('/memberships/me');
 }
 
-export function apiGetMembershipStatement(memberId: string) {
-  return apiRequest<ClubMembershipStatement>(`/memberships/me/${memberId}/statement`);
+export async function apiGetMembershipStatement(memberId: string) {
+  const raw = await apiRequest<unknown>(`/memberships/me/${memberId}/statement`);
+  const statement = normalizeMembershipStatement(raw);
+  if (!statement) throw new Error('Invalid membership statement');
+  return statement;
 }
 
-export function apiAuthorizeMembership(memberId: string) {
-  return apiRequest<MembershipPaymentResponse>(`/memberships/me/${memberId}/authorize`, {
+export async function apiAuthorizeMembership(memberId: string) {
+  const raw = await apiRequest<unknown>(`/memberships/me/${memberId}/authorize`, {
     method: 'POST',
   });
+  return mapMembershipPaymentResponse(raw);
 }
 
-export function apiPayMembershipDebt(memberId: string) {
-  return apiRequest<MembershipPaymentResponse>(`/memberships/me/${memberId}/pay-debt`, {
+export async function apiPayMembershipDebt(memberId: string) {
+  const raw = await apiRequest<unknown>(`/memberships/me/${memberId}/pay-debt`, {
     method: 'POST',
   });
+  return mapMembershipPaymentResponse(raw);
+}
+
+export async function apiSyncMembershipPayment(memberId: string, paymentId: string) {
+  return apiRequest<{ synced: boolean; status?: string }>(
+    `/memberships/me/${memberId}/payments/${paymentId}/sync`,
+    { method: 'POST' },
+  );
 }
 
 // --- Legacy aliases (deprecated paths) ---

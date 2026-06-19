@@ -23,6 +23,7 @@ import {
   type RegisterBody,
 } from '@/services/api';
 import { clearTokens, getRefreshToken, setTokens } from '@/services/api-client';
+import { ADMIN_STATIC_EMAIL, ADMIN_STATIC_PASSWORD, isValidAdminCredentials } from '@/constants/admin-auth';
 import { createMockAdminUser, mapMeToAuthUser } from '@/utils/auth-mapper';
 import { resolveUploadableImageUrl, resolveUploadableImageUrls } from '@/utils/media';
 import { defaultWeeklySchedule } from '@/utils/schedule';
@@ -273,7 +274,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticating(true);
     try {
     if (role === 'admin') {
-        const adminUser = createMockAdminUser(email);
+        if (!isValidAdminCredentials(email, password)) {
+          throw new ApiClientError(401, 'UNAUTHORIZED', 'Acceso denegado');
+        }
+
+        try {
+          const auth = await apiLogin(ADMIN_STATIC_EMAIL, ADMIN_STATIC_PASSWORD);
+          setTokens(auth.accessToken, auth.refreshToken);
+          localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
+          const me = await apiGetMe();
+          if (me.user.role === 'admin') {
+            const mapped = mapMeToAuthUser(me);
+            const prefs = await loadNotificationPrefs();
+            const nextUser = { ...mapped, notificationPreferences: prefs };
+            setUser(nextUser);
+            return nextUser;
+          }
+        } catch {
+          // Backend admin user not configured — fall back to static session.
+        }
+
+        clearTokens();
+        const adminUser = createMockAdminUser(ADMIN_STATIC_EMAIL);
         setUser(adminUser);
         localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'true');
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(adminUser));

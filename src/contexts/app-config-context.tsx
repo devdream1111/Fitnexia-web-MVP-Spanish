@@ -20,6 +20,7 @@ type ServerFeatures = Partial<{
   waitlist: boolean;
   loyaltyCredits: boolean;
   subscriptionPaymentModels: boolean;
+  clubMemberships: boolean;
   clubMembershipPlans: boolean;
   clubMembers: boolean;
   clubMemberInvites: boolean;
@@ -63,7 +64,17 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
         const appConfig = await apiGetAppConfig().catch(() => null);
         if (cancelled) return;
         if (appConfig?.features) {
-          setServerFeatures(appConfig.features as ServerFeatures);
+          const raw = appConfig.features as ServerFeatures & { clubMemberships?: boolean };
+          const clubEnabled = raw.clubMemberships ?? raw.clubMembershipPlans;
+          setServerFeatures({
+            ...raw,
+            clubMembershipPlans: raw.clubMembershipPlans ?? clubEnabled,
+            clubMembers: raw.clubMembers ?? clubEnabled,
+            clubMemberInvites: raw.clubMemberInvites ?? clubEnabled,
+            clubRecurringBilling: raw.clubRecurringBilling ?? clubEnabled,
+            clubMemberPortal: raw.clubMemberPortal ?? clubEnabled,
+            clubDelinquencyAlerts: raw.clubDelinquencyAlerts ?? clubEnabled,
+          });
         }
       } finally {
         if (!cancelled) setLoaded(true);

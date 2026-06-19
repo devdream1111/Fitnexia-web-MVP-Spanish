@@ -21,7 +21,6 @@ import {
 import { useClasses } from '@/contexts/classes-context';
 import { useAdmin } from '@/contexts/admin-context';
 import { useReviews } from '@/contexts/reviews-context';
-import { MOCK_BOOKINGS, MOCK_PAYMENTS } from '@/data/mock';
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { formatMoney } from '@/utils/format';
 import { ADMIN_LABELS, ROLE_TITLES, TAB_LABELS } from '@/constants/labels';
@@ -30,7 +29,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/admin/star-rating';
 
-const totalUsers = 150;
 const newUsersThisWeek = 12;
 
 function Stat({
@@ -92,18 +90,21 @@ export default function AdminDashboardPage() {
     institutions,
     pendingVerifications,
     reportedReviews,
+    metrics,
+    apiConnected,
     verifyPending,
     rejectPending,
     dismissReportedReview,
     removeReportedReview,
   } = useAdmin();
 
-  const totalInstructors = users.filter((u) => u.role === 'instructor').length;
-  const totalInstitutions = institutions.length;
-  const totalClasses = classes.length;
+  const totalInstructors = metrics?.instructors ?? users.filter((u) => u.role === 'instructor').length;
+  const totalInstitutions = metrics?.institutions ?? institutions.length;
+  const totalClasses = metrics?.classes ?? classes.length;
   const upcomingClasses = classes.filter((c) => new Date(c.startAt) > new Date()).length;
-  const totalBookings = MOCK_BOOKINGS.length;
-  const totalRevenueCents = MOCK_PAYMENTS.reduce((sum, p) => sum + p.amount.amount, 0);
+  const totalUsers = metrics?.users ?? users.length;
+  const totalBookings = metrics?.confirmedBookings ?? metrics?.bookings ?? 0;
+  const revenueDisplay = apiConnected ? 'N/D' : formatMoney({ amount: 0, currency: DEFAULT_CURRENCY });
 
   const handleRemoveReview = (id: string) => {
     const reviewId = removeReportedReview(id);
@@ -127,7 +128,7 @@ export default function AdminDashboardPage() {
         <Stat label={ADMIN_LABELS.dashboard.totalBookings} value={totalBookings} icon={Calendar} />
         <Stat
           label={ADMIN_LABELS.dashboard.totalRevenue}
-          value={formatMoney({ amount: totalRevenueCents, currency: DEFAULT_CURRENCY })}
+          value={revenueDisplay}
           icon={DollarSign}
         />
       </div>

@@ -43,13 +43,14 @@ export default function JoinClubPage() {
     try {
       const res = await apiAcceptMembershipInvite(code);
       const memberId = res.memberId ?? res.member?.id;
-      if (res.checkoutUrl) {
+      const redirectUrl = res.checkoutUrl ?? res.authorizationUrl;
+      if (redirectUrl) {
         showNotice({
           title: ALERT_LABELS.savedTitle,
           message: CLUB_LABELS.join.redirectPay,
           variant: 'info',
         });
-        window.location.href = res.checkoutUrl;
+        window.location.href = redirectUrl;
         return;
       }
       showNotice({

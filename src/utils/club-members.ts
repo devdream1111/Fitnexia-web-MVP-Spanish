@@ -2,10 +2,13 @@ import type {
   ClubMember,
   ClubMemberFeeStatus,
   ClubMemberInvite,
+  ClubMembershipCharge,
   ClubMembershipPlan,
+  ClubMembershipStatement,
   ClubMembersSummary,
   ClubPlanCadence,
   AthleteClubMembership,
+  MembershipBillingSettings,
   Money,
   PaginationMeta,
 } from '@/types/api';
@@ -50,10 +53,235 @@ function parseMoney(value: unknown): Money {
 }
 
 function parseFeeStatus(value: unknown): ClubMemberFeeStatus {
+  if (value === 'up_to_date') return 'current';
   if (typeof value === 'string' && FEE_STATUSES.includes(value as ClubMemberFeeStatus)) {
     return value as ClubMemberFeeStatus;
   }
   return 'current';
+}
+
+function mapSubscriptionStatus(
+  value: unknown,
+): ClubMembershipStatement['subscriptionStatus'] {
+  if (value === 'pending_authorization' || value === 'none' || value == null) return 'none';
+  if (value === 'active' || value === 'past_due' || value === 'cancelled') return value;
+  return 'none';
+}
+
+function mapChargeStatus(value: unknown): ClubMembershipCharge['status'] {
+  if (value === 'approved') return 'paid';
+  if (value === 'paid' || value === 'pending' || value === 'failed' || value === 'refunded') {
+    return value;
+  }
+  return 'pending';
+}
+
+export function feeStatusToBackendQuery(
+  feeStatus?: ClubMemberFeeStatus,
+): string | undefined {
+  if (!feeStatus) return undefined;
+  if (feeStatus === 'current') return 'up_to_date';
+  return feeStatus;
+}
+
+export function toBackendPlanBody(body: {
+  name: string;
+  cadence: ClubPlanCadence;
+  price: Money;
+  familySlots?: number;
+  active?: boolean;
+}): Record<string, unknown> {
+  return {
+    name: body.name,
+    billingFrequency: body.cadence,
+    priceCents: body.price.amount,
+    priceCurrency: body.price.currency,
+    planType: body.familySlots && body.familySlots > 1 ? 'family' : 'individual',
+    maxMembers: body.familySlots,
+    active: body.active,
+  };
+}
+
+export function toBackendPlanPatch(body: Partial<{
+  name: string;
+  cadence: ClubPlanCadence;
+  price: Money;
+  familySlots: number;
+  active: boolean;
+}>): Record<string, unknown> {
+  const patch: Record<string, unknown> = {};
+  if (body.name !== undefined) patch.name = body.name;
+  if (body.cadence !== undefined) patch.billingFrequency = body.cadence;
+  if (body.price !== undefined) {
+    patch.priceCents = body.price.amount;
+    patch.priceCurrency = body.price.currency;
+  }
+  if (body.familySlots !== undefined) {
+    patch.maxMembers = body.familySlots;
+    patch.planType = body.familySlots > 1 ? 'family' : 'individual';
+  }
+  if (body.active !== undefined) patch.active = body.active;
+  return patch;
+}
+
+export function toBackendMemberBody(body: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  planId?: string;
+}): Record<string, unknown> {
+  const contactName = `${body.firstName ?? ''} ${body.lastName ?? ''}`.trim();
+  const out: Record<string, unknown> = {};
+  if (body.planId !== undefined) out.planId = body.planId;
+  if (contactName) out.contactName = contactName;
+  if (body.email !== undefined) out.contactEmail = body.email.trim().toLowerCase();
+  if (body.phone !== undefined) out.contactPhone = body.phone.trim() || null;
+  return out;
+}
+
+export function normalizeBillingSettings(payload: unknown): MembershipBillingSettings {
+  const r = asRecord(payload);
+  if (!r) return {};
+  return {
+    reminderDaysBeforeDue:
+      typeof r.dueReminderDays === 'number'
+        ? r.dueReminderDays
+        : typeof r.reminderDaysBeforeDue === 'number'
+          ? r.reminderDaysBeforeDue
+          : undefined,
+    graceDays: typeof r.graceDays === 'number' ? r.graceDays : undefined,
+  };
+}
+
+export function toBackendBillingSettingsPatch(
+  body: Partial<MembershipBillingSettings & { graceDays?: number }>,
+): Record<string, unknown> {
+  const patch: Record<string, unknown> = {};
+  if (body.reminderDaysBeforeDue !== undefined) {
+    patch.dueReminderDays = body.reminderDaysBeforeDue;
+  }
+  if (body.graceDays !== undefined) patch.graceDays = body.graceDays;
+  return patch;
+}
+
+export function normalizeMembershipStatement(payload: unknown): ClubMembershipStatement | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const record = payload as Record<string, unknown>;
+
+  const memberRaw = record.member ?? record;
+  const member = normalizeClubMember(memberRaw);
+  if (!member) return null;
+
+  const planRaw = asRecord(record.plan) ?? {};
+  const cadence = (planRaw.billingFrequency ?? planRaw.cadence ?? 'monthly') as ClubPlanCadence;
+  const planId = String(planRaw.id ?? member.planId ?? '');
+  const planName = String(planRaw.name ?? member.planName ?? 'Plan');
+
+  const amountDueRaw = record.amountDue ?? record.balanceDue;
+  const balanceDue = amountDueRaw ? parseMoney(amountDueRaw) : { amount: 0, currency: 'UYU' };
+
+  const payments = Array.isArray(record.payments)
+    ? record.payments
+    : Array.isArray(record.charges)
+      ? record.charges
+      : [];
+
+  const charges: ClubMembershipCharge[] = [];
+  for (const raw of payments) {
+    const p = asRecord(raw);
+    if (!p || !p.id) continue;
+    charges.push({
+      id: String(p.id),
+      memberId: member.id,
+      amount: parseMoney(p.amount ?? p.amountCents),
+      status: mapChargeStatus(p.status),
+      periodStart: String(p.periodStart ?? p.createdAt ?? ''),
+      periodEnd: String(p.periodEnd ?? p.createdAt ?? ''),
+      mpPaymentId: (p.providerPaymentId ?? p.mpPaymentId ?? null) as string | null,
+      createdAt: String(p.createdAt ?? ''),
+    });
+  }
+
+  const nextDueAt = (record.nextDueDate ?? record.nextDueAt ?? member.nextDueAt ?? null) as
+    | string
+    | null;
+
+  return {
+    institutionId: member.institutionId,
+    institutionName: String(record.institutionName ?? 'Club'),
+    membershipId: member.id,
+    plan: {
+      id: planId,
+      name: planName,
+      cadence,
+      price: parseMoney(planRaw.price ?? planRaw.priceCents),
+    },
+    feeStatus: member.feeStatus,
+    balanceDue,
+    nextDueAt,
+    subscriptionStatus: mapSubscriptionStatus(
+      member.subscriptionStatus ?? record.subscriptionStatus,
+    ),
+    charges,
+  };
+}
+
+export function normalizeInvitePreview(payload: unknown): import('@/types/api').ClubInvitePreview | null {
+  const r = asRecord(payload);
+  if (!r) return null;
+  const planRaw = asRecord(r.plan) ?? {};
+  const cadence = (planRaw.billingFrequency ?? planRaw.cadence ?? 'monthly') as ClubPlanCadence;
+  return {
+    code: String(r.code ?? ''),
+    institutionId: String(r.institutionId ?? ''),
+    institutionName: String(r.institutionName ?? ''),
+    plan: {
+      id: String(planRaw.id ?? ''),
+      name: String(planRaw.name ?? ''),
+      cadence,
+      price: parseMoney(planRaw.price ?? planRaw.priceCents),
+    },
+    expiresAt: (r.expiresAt as string | null | undefined) ?? null,
+    valid: r.valid !== false,
+  };
+}
+
+/** Client-side filter when backend list endpoint lacks search/plan filters. */
+export function filterClubMembersLocally(
+  members: ClubMember[],
+  params: { feeStatus?: ClubMemberFeeStatus; planId?: string; q?: string },
+): ClubMember[] {
+  let list = members;
+  if (params.feeStatus) {
+    list = list.filter((m) => m.feeStatus === params.feeStatus);
+  }
+  if (params.planId) {
+    list = list.filter((m) => m.planId === params.planId);
+  }
+  if (params.q?.trim()) {
+    const q = params.q.trim().toLowerCase();
+    list = list.filter((m) => {
+      const name = `${m.firstName} ${m.lastName}`.toLowerCase();
+      return name.includes(q) || m.email.toLowerCase().includes(q);
+    });
+  }
+  return list;
+}
+
+export function paginateLocally<T>(
+  items: T[],
+  page: number,
+  limit: number,
+): { items: T[]; meta: PaginationMeta } {
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const start = (safePage - 1) * limit;
+  return {
+    items: items.slice(start, start + limit),
+    meta: { page: safePage, limit, total, totalPages },
+  };
 }
 
 function splitFullName(fullName: string): { firstName: string; lastName: string } {
@@ -476,7 +704,7 @@ function normalizePlan(raw: unknown): ClubMembershipPlan | null {
     id: String(r.id),
     institutionId: String(r.institutionId ?? ''),
     name: String(r.name ?? 'Plan'),
-    cadence: (r.cadence ?? 'monthly') as ClubPlanCadence,
+    cadence: (r.billingFrequency ?? r.cadence ?? 'monthly') as ClubPlanCadence,
     price: parseMoney(r.price ?? r.priceCents),
     familySlots: typeof r.familySlots === 'number' ? r.familySlots : undefined,
     active: r.active !== false,
@@ -591,7 +819,7 @@ export function normalizeClubMembersSummary(payload: unknown): ClubMembersSummar
       : record;
   return {
     total: Number(raw.total) || 0,
-    current: Number(raw.current) || 0,
+    current: Number(raw.current ?? raw.upToDate) || 0,
     pending: Number(raw.pending) || 0,
     overdue: Number(raw.overdue) || 0,
     collectionRate:

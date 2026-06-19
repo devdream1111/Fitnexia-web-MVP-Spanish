@@ -26,7 +26,6 @@ import {
   clubPlanCadenceLabel,
   normalizeClubMembersSummary,
   normalizePlanList,
-  parseClubMembersPage,
   parseFeeStatusFilter,
 } from '@/utils/club-members';
 
@@ -96,9 +95,8 @@ function GymMembersPageContent() {
     ]);
 
     if (listResult.status === 'fulfilled') {
-      const parsed = parseClubMembersPage(listResult.value);
-      setMembers(parsed.members);
-      setMeta(parsed.meta);
+      setMembers(listResult.value.data);
+      setMeta(listResult.value.meta ?? DEFAULT_META);
     } else {
       setMembers([]);
       setMeta(DEFAULT_META);

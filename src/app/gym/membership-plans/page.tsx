@@ -14,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { ToggleButton } from '@/components/ui/toggle-button';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import {
   apiCreateClubMembershipPlan,
@@ -52,6 +51,7 @@ export default function GymMembershipPlansPage() {
   const [familySlots, setFamilySlots] = useState('');
   const [active, setActive] = useState(true);
   const [reminderDays, setReminderDays] = useState('3');
+  const [graceDays, setGraceDays] = useState('7');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,6 +76,9 @@ export default function GymMembershipPlansPage() {
       setSettings(settingsResult.value);
       if (settingsResult.value.reminderDaysBeforeDue != null) {
         setReminderDays(String(settingsResult.value.reminderDaysBeforeDue));
+      }
+      if (settingsResult.value.graceDays != null) {
+        setGraceDays(String(settingsResult.value.graceDays));
       }
     }
 
@@ -166,10 +169,10 @@ export default function GymMembershipPlansPage() {
     setSavingSettings(true);
     try {
       const days = parseInt(reminderDays, 10);
+      const grace = parseInt(graceDays, 10);
       const updated = await apiUpdateMembershipBillingSettings({
         reminderDaysBeforeDue: Number.isFinite(days) ? days : undefined,
-        overdueAlertEnabled: settings.overdueAlertEnabled,
-        autoRetryFailedCharges: settings.autoRetryFailedCharges,
+        graceDays: Number.isFinite(grace) ? grace : undefined,
       });
       setSettings(updated);
       showNotice({
@@ -197,24 +200,18 @@ export default function GymMembershipPlansPage() {
         <Input
           label={CLUB_LABELS.plans.reminderDays}
           type="number"
-          min={0}
+          min={1}
           max={30}
           value={reminderDays}
           onChange={(e) => setReminderDays(e.target.value)}
         />
-        <ToggleButton
-          label={CLUB_LABELS.plans.overdueAlerts}
-          checked={settings.overdueAlertEnabled ?? true}
-          onChange={() =>
-            setSettings((s) => ({ ...s, overdueAlertEnabled: !s.overdueAlertEnabled }))
-          }
-        />
-        <ToggleButton
-          label={CLUB_LABELS.plans.autoRetry}
-          checked={settings.autoRetryFailedCharges ?? true}
-          onChange={() =>
-            setSettings((s) => ({ ...s, autoRetryFailedCharges: !s.autoRetryFailedCharges }))
-          }
+        <Input
+          label={CLUB_LABELS.plans.graceDays}
+          type="number"
+          min={0}
+          max={90}
+          value={graceDays}
+          onChange={(e) => setGraceDays(e.target.value)}
         />
         <Button
           title={CLUB_LABELS.plans.saveSettings}

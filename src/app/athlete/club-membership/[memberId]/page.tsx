@@ -16,6 +16,7 @@ import {
   apiAuthorizeMembership,
   apiGetMembershipStatement,
   apiPayMembershipDebt,
+  apiSyncMembershipPayment,
 } from '@/services/api';
 import { ApiClientError } from '@/services/api-client';
 import type { ClubMembershipStatement } from '@/types/api';
@@ -64,12 +65,19 @@ function AthleteClubStatementContent() {
 
   useEffect(() => {
     if (searchParams.get('sync') !== '1' || !memberId) return;
+    const paymentId = searchParams.get('paymentId');
+    if (paymentId) {
+      apiSyncMembershipPayment(memberId, paymentId)
+        .then(() => load())
+        .catch(() => load());
+      return;
+    }
     load();
   }, [searchParams, memberId, load]);
 
-  const redirectIfCheckout = (checkoutUrl?: string) => {
-    if (checkoutUrl) {
-      window.location.href = checkoutUrl;
+  const redirectIfCheckout = (url?: string) => {
+    if (url) {
+      window.location.href = url;
       return true;
     }
     return false;
@@ -80,7 +88,7 @@ function AthleteClubStatementContent() {
     setBusy('authorize');
     try {
       const res = await apiAuthorizeMembership(memberId);
-      if (redirectIfCheckout(res.checkoutUrl)) return;
+      if (redirectIfCheckout(res.checkoutUrl ?? res.authorizationUrl)) return;
       showNotice({
         title: ALERT_LABELS.savedTitle,
         message: CLUB_LABELS.billing.subscriptionActive,
@@ -137,14 +145,14 @@ function AthleteClubStatementContent() {
   }
 
   const needsAuthorize =
-    !statement.subscriptionStatus ||
     statement.subscriptionStatus === 'none' ||
-    statement.subscriptionStatus === 'cancelled';
+    statement.subscriptionStatus === 'cancelled' ||
+    statement.feeStatus === 'pending';
 
   const canPay =
     statement.feeStatus === 'overdue' ||
     statement.feeStatus === 'pending' ||
-    statement.balanceDue.amount > 0;
+    (statement.balanceDue?.amount ?? 0) > 0;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -167,7 +175,7 @@ function AthleteClubStatementContent() {
               {CLUB_LABELS.athlete.nextDue}: {formatClassDate(statement.nextDueAt)}
             </p>
           ) : null}
-          {statement.balanceDue.amount > 0 ? (
+          {statement.balanceDue && statement.balanceDue.amount > 0 ? (
             <p className="rounded-xl bg-red-500/10 px-4 py-2 text-sm font-semibold text-[var(--fn-error)]">
               {CLUB_LABELS.athlete.balanceDue}: {formatMoney(statement.balanceDue)}
             </p>

@@ -12,7 +12,7 @@ import { Select } from '@/components/ui/select';
 import type { AdminUserRole } from '@/types/api';
 
 export default function AdminUsersPage() {
-  const { users, toggleUserVerified, toggleUserSuspended } = useAdmin();
+  const { users, toggleUserVerified, toggleUserSuspended, apiConnected } = useAdmin();
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
@@ -32,6 +32,12 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={TAB_LABELS.admin.users} showBack />
+
+      {apiConnected && (
+        <div className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] px-4 py-3 text-sm text-[var(--fn-text-muted)]">
+          Datos en vivo desde el backend. La verificación y suspensión de usuarios se gestiona desde solicitudes de verificación.
+        </div>
+      )}
 
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="flex-1 max-w-xl">
@@ -86,14 +92,16 @@ export default function AdminUsersPage() {
                 />
               )}
               {user.suspended && <Badge label="Suspendido" variant="danger" />}
-              {(user.role === 'instructor' || user.role === 'institution') && (
+              {!apiConnected && (user.role === 'instructor' || user.role === 'institution') && (
                 <Button variant="outline" size="sm" onClick={() => toggleUserVerified(user.id)}>
                   {user.verified ? 'Desverificar' : ADMIN_LABELS.users.verify}
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => toggleUserSuspended(user.id)}>
-                {user.suspended ? 'Reactivar' : ADMIN_LABELS.users.suspend}
-              </Button>
+              {!apiConnected && (
+                <Button variant="outline" size="sm" onClick={() => toggleUserSuspended(user.id)}>
+                  {user.suspended ? 'Reactivar' : ADMIN_LABELS.users.suspend}
+                </Button>
+              )}
             </div>
           </div>
         ))}

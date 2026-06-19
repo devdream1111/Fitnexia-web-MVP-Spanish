@@ -815,10 +815,9 @@ export const CLUB_LABELS = {
     deactivated: 'Plan desactivado.',
     fitnexiaPlanHint: 'Para comisiones de la plataforma, visitá Plan y comisión en tu perfil.',
     settingsTitle: 'Configuración de cobros',
-    settingsSubtitle: 'Recordatorios y reintentos de cuota para tus socios.',
+    settingsSubtitle: 'Recordatorios y período de gracia antes de marcar morosidad.',
     reminderDays: 'Días antes del vencimiento para recordatorio',
-    overdueAlerts: 'Alertas de morosidad',
-    autoRetry: 'Reintentar cobros fallidos automáticamente',
+    graceDays: 'Días de gracia antes de marcar moroso',
     saveSettings: 'Guardar configuración',
   },
   members: {

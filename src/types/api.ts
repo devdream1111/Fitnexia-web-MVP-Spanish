@@ -408,18 +408,22 @@ export interface AthleteClubMembership {
 /** F-40/F-41 — institution membership billing configuration */
 export interface MembershipBillingSettings {
   reminderDaysBeforeDue?: number;
-  overdueAlertEnabled?: boolean;
-  autoRetryFailedCharges?: boolean;
+  graceDays?: number;
 }
 
 export interface AcceptMembershipInviteResponse {
   memberId: string;
   member?: ClubMember;
   checkoutUrl?: string;
+  authorizationUrl?: string;
+  subscriptionId?: string;
 }
 
 export interface MembershipPaymentResponse {
   checkoutUrl?: string;
+  authorizationUrl?: string;
+  paymentId?: string;
+  preapprovalId?: string;
 }
 
 /** Default API base — override per environment */
