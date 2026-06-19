@@ -14,6 +14,7 @@ import {
   PasswordInput,
   RoleTileSelector,
 } from '@/components/auth/auth-ui';
+import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
@@ -32,6 +33,7 @@ function RegisterPageContent() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Exclude<UserRole, 'admin'>>('athlete');
   const [institutionName, setInstitutionName] = useState('');
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -84,7 +86,7 @@ function RegisterPageContent() {
         role,
         firstName: role === 'institution' ? institutionName.trim() : firstName.trim(),
         lastName: role === 'institution' ? 'Admin' : lastName.trim(),
-        avatarUri: null,
+        avatarUri,
         favoriteSports: [],
         disciplines: [],
         institutionName: role === 'institution' ? institutionName.trim() : undefined,
@@ -108,7 +110,6 @@ function RegisterPageContent() {
     <AuthShell variant="register">
       <AuthFormIntro>
         <AuthFormHeader title={AUTH_LABELS.createAccount} subtitle={AUTH_LABELS.howWillYouUse} />
-
         <RoleTileSelector value={role} onChange={setRole} label={AUTH_LABELS.chooseProfile} />
 
         {googleSignInEnabled ? (
@@ -124,29 +125,40 @@ function RegisterPageContent() {
       </AuthFormIntro>
 
       <div className="fn-auth-form-fields">
-        {role === 'institution' ? (
-          <Input
-            label={AUTH_LABELS.gymSchoolName}
-            value={institutionName}
-            onChange={(e) => setInstitutionName(e.target.value)}
-            placeholder={AUTH_LABELS.gymSchoolPlaceholder}
+        <div className="fn-auth-register-photo-row">
+          <ProfilePictureUpload
+            currentAvatar={avatarUri}
+            onUpload={setAvatarUri}
+            role={role}
+            size="sm"
           />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label={AUTH_LABELS.firstName}
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="María"
-            />
-            <Input
-              label={AUTH_LABELS.lastName}
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="García"
-            />
+          <div className="fn-auth-register-fields">
+            {role === 'institution' ? (
+              <Input
+                label={AUTH_LABELS.gymSchoolName}
+                value={institutionName}
+                onChange={(e) => setInstitutionName(e.target.value)}
+                placeholder={AUTH_LABELS.gymSchoolPlaceholder}
+              />
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  label={AUTH_LABELS.firstName}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="María"
+                />
+                <Input
+                  label={AUTH_LABELS.lastName}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="García"
+                />
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
         <Input
           label={AUTH_LABELS.email}
           value={email}
@@ -165,7 +177,7 @@ function RegisterPageContent() {
         <AuthTermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} />
 
         {error ? (
-          <p className="rounded-xl border border-[var(--fn-error)]/30 bg-red-50 px-4 py-2.5 text-sm text-[var(--fn-error)] dark:bg-red-950/30">
+          <p className="rounded-xl border border-[var(--fn-error)]/30 bg-red-50 px-3 py-2 text-sm text-[var(--fn-error)] dark:bg-red-950/30">
             {error}
           </p>
         ) : null}
@@ -180,7 +192,7 @@ function RegisterPageContent() {
         />
       </div>
 
-      <div className="mt-6">
+      <div className="fn-auth-register-footer">
         <AuthFooterLink
           prompt={GENERAL_LABELS.alreadyHaveAccount}
           linkLabel={BUTTON_LABELS.signIn}

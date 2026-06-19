@@ -262,7 +262,7 @@ export function filterClubMembersLocally(
   if (params.q?.trim()) {
     const q = params.q.trim().toLowerCase();
     list = list.filter((m) => {
-      const name = `${m.firstName} ${m.lastName}`.toLowerCase();
+      const name = formatClubMemberName(m).toLowerCase();
       return name.includes(q) || m.email.toLowerCase().includes(q);
     });
   }
@@ -504,7 +504,16 @@ export function normalizeClubMember(raw: unknown): ClubMember | null {
   );
   if (!id) return null;
 
+  const contactName = pickString(
+    container.contactName,
+    root.contactName,
+    membership.contactName,
+    container.invitedName,
+    root.invitedName,
+  );
+
   const fullName = pickString(
+    contactName,
     container.name,
     container.fullName,
     container.displayName,
@@ -544,6 +553,12 @@ export function normalizeClubMember(raw: unknown): ClubMember | null {
     pickNameField(person, 'lastName'),
     pickNameField(rootPerson, 'lastName'),
   );
+
+  if (!firstName && !lastName && contactName) {
+    const split = splitFullName(contactName);
+    firstName = split.firstName;
+    lastName = split.lastName;
+  }
 
   if (!firstName && !lastName && fullName) {
     const split = splitFullName(fullName);

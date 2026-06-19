@@ -160,7 +160,7 @@ export function AuthShell({
   const { isDark } = useAppTheme();
 
   return (
-    <div className="fn-auth-shell">
+    <div className={`fn-auth-shell${variant === 'register' ? ' fn-auth-shell--register' : ''}`}>
       <AuthThemeToggle />
       <AuthBrandPanel variant={variant} />
 

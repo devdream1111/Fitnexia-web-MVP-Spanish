@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
@@ -31,7 +30,6 @@ import type {
 import {
   clubFeeStatusLabel,
   clubFeeStatusVariant,
-  clubMemberAvatarSrc,
   clubPlanCadenceLabel,
   formatClubMemberName,
   formatClubPlanLabel,
@@ -242,30 +240,6 @@ export function ClubMembersFilterBar({
   );
 }
 
-function ClubMemberAvatar({
-  member,
-  size = 'md',
-}: {
-  member: Pick<ClubMember, 'firstName' | 'lastName' | 'email' | 'photoUrl'>;
-  size?: 'md' | 'lg';
-}) {
-  const [useGenerated, setUseGenerated] = useState(false);
-  const sizeClass = size === 'lg' ? 'h-16 w-16' : 'h-14 w-14';
-  const src = clubMemberAvatarSrc(member, { useGenerated });
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt=""
-      className={`${sizeClass} shrink-0 rounded-2xl object-cover ring-2 ring-[var(--fn-primary)]/15`}
-      onError={() => {
-        if (!useGenerated) setUseGenerated(true);
-      }}
-    />
-  );
-}
-
 export function ClubCardGrid({ children }: { children: React.ReactNode }) {
   return <div className="grid gap-4 lg:grid-cols-2">{children}</div>;
 }
@@ -410,34 +384,31 @@ export function ClubMemberRow({
         aria-hidden="true"
       />
       <div className="relative flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6">
-        <div className="flex min-w-0 items-start gap-4">
-          <ClubMemberAvatar member={member} />
-          <div className="min-w-0">
-            <Link
-              href={`/gym/members/${member.id}`}
-              className="truncate text-lg font-extrabold text-[var(--fn-text)] transition hover:text-[var(--fn-primary)]"
-            >
-              {name}
-            </Link>
-            {showEmail ? (
-              <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-[var(--fn-text-muted)]">
-                <Mail size={13} className="shrink-0 opacity-70" />
-                {member.email}
-              </p>
-            ) : null}
-            <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--fn-text-secondary)]">
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--fn-surface-muted)] px-2.5 py-1 font-semibold">
-                <CreditCard size={12} />
-                {planLabel}
-              </span>
-              {member.nextDueAt ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--fn-surface-muted)] px-2.5 py-1 font-semibold">
-                  <CalendarClock size={12} />
-                  {formatClassDate(member.nextDueAt)}
-                </span>
-              ) : null}
+        <div className="min-w-0">
+          <Link
+            href={`/gym/members/${member.id}`}
+            className="truncate text-lg font-extrabold text-[var(--fn-text)] transition hover:text-[var(--fn-primary)]"
+          >
+            {name}
+          </Link>
+          {showEmail ? (
+            <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-[var(--fn-text-muted)]">
+              <Mail size={13} className="shrink-0 opacity-70" />
+              {member.email}
             </p>
-          </div>
+          ) : null}
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--fn-text-secondary)]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--fn-surface-muted)] px-2.5 py-1 font-semibold">
+              <CreditCard size={12} />
+              {planLabel}
+            </span>
+            {member.nextDueAt ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--fn-surface-muted)] px-2.5 py-1 font-semibold">
+                <CalendarClock size={12} />
+                {formatClassDate(member.nextDueAt)}
+              </span>
+            ) : null}
+          </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 md:justify-end">
           <ClubFeeStatusBadge status={member.feeStatus} />
@@ -471,7 +442,6 @@ export function ClubMemberDetailCard({ member }: { member: ClubMember }) {
       />
       <div className="relative space-y-5 p-6 md:p-8">
         <div className="flex flex-wrap items-start gap-4">
-          <ClubMemberAvatar member={member} size="lg" />
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-black text-[var(--fn-text)]">{name}</h2>
             {showEmail ? (
