@@ -39,7 +39,6 @@ import {
   DROPDOWN_LABELS,
   PROFILE_MENU_LABELS,
   PROFILE_PAGE_LABELS,
-  ADMIN_LABELS,
 } from '@/constants/labels';
 
 export default function GymProfilePage() {
@@ -132,7 +131,7 @@ export default function GymProfilePage() {
           badgeLabel={
             institutionProfile?.verified
               ? BADGE_LABELS.verified
-              : ADMIN_LABELS.verification.pending
+              : BADGE_LABELS.pending
           }
           badgeVariant={institutionProfile?.verified ? 'success' : 'warning'}
           name={institutionProfile?.name ?? 'Gimnasio'}

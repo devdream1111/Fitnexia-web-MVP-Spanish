@@ -27,19 +27,10 @@ function profileHref(role: UserRole | undefined): string {
   if (!role) return '/auth/login';
   if (role === 'instructor') return '/instructor/profile';
   if (role === 'institution') return '/gym/profile';
-  if (role === 'admin') return '/admin/profile';
   return '/athlete/profile';
 }
 
 function quickLinksForRole(role: UserRole): FooterLink[] {
-  if (role === 'admin') {
-    return [
-      { label: 'Sobre nosotros', href: '/legal/terms' },
-      { label: 'Panel', href: '/admin/dashboard' },
-      { label: 'Usuarios', href: '/admin/users' },
-      { label: 'Preguntas frecuentes', href: '/legal/privacy' },
-    ];
-  }
   if (role === 'athlete') {
     return [
       { label: 'Sobre nosotros', href: '/legal/terms' },
@@ -68,14 +59,6 @@ function quickLinksForRole(role: UserRole): FooterLink[] {
 }
 
 function forYouLinksForRole(role: UserRole): FooterLink[] {
-  if (role === 'admin') {
-    return [
-      { label: 'Reservas', href: '/admin/bookings' },
-      { label: 'Clases', href: '/admin/classes' },
-      { label: 'Instituciones', href: '/admin/institutions' },
-      { label: 'Mi perfil', href: '/admin/profile' },
-    ];
-  }
   if (role === 'athlete') {
     return [
       { label: 'Encontrar clases', href: '/athlete/search' },
@@ -127,7 +110,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-4">
               <a
-                href="mailto:hola@fitnexia.com"
+                href="mailto:info@fitnexia.fit"
                 className="text-[#94A3B8] transition hover:text-[#60A5FA]"
                 aria-label="Enviar correo a Fitnexia"
               >

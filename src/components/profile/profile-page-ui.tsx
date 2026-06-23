@@ -33,7 +33,6 @@ export const PROFILE_GRADIENTS = {
   athlete: PROFILE_HERO_GRADIENT,
   instructor: PROFILE_HERO_GRADIENT,
   institution: PROFILE_HERO_GRADIENT,
-  admin: PROFILE_HERO_GRADIENT,
 } as const;
 
 export function ProfileHero({
@@ -58,7 +57,7 @@ export function ProfileHero({
   email: string;
   memberSince?: string;
   avatarUri?: string | null;
-  uploadRole: Exclude<UserRole, 'admin'>;
+  uploadRole: UserRole;
   isEditing: boolean;
   onEdit: () => void;
   onSave: () => void;

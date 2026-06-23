@@ -6,6 +6,7 @@ import type { Modality } from '@/types/api';
 
 export const BADGE_LABELS = {
   verified: 'Verificado',
+  pending: 'Pendiente',
   availableNow: 'Disponible ahora',
   full: 'Lleno',
 } as const;
@@ -66,87 +67,6 @@ export const TAB_LABELS = {
     classes: 'Clases',
     earnings: 'Ingresos',
     profile: 'Gimnasio',
-  },
-  admin: {
-    dashboard: 'Panel de Control',
-    users: 'Usuarios',
-    classes: 'Clases',
-    bookings: 'Reservas',
-    reviews: 'Reseñas',
-    institutions: 'Instituciones',
-    payments: 'Pagos',
-  },
-} as const;
-
-export const ADMIN_LABELS = {
-  dashboard: {
-    title: 'Panel de Administración Fitnexia',
-    subtitle: 'Herramientas internas para gestionar la plataforma',
-    totalUsers: 'Usuarios Totales',
-    newUsersThisWeek: 'Nuevos Usuarios Esta Semana',
-    totalClasses: 'Clases Totales',
-    upcomingClasses: 'Clases Proximas',
-    totalBookings: 'Reservas Totales',
-    totalRevenue: 'Ingresos Totales',
-    recentActivity: 'Actividad Reciente',
-    quickActions: 'Acciones Rapidas',
-    pendingVerifications: 'Verificaciones Pendientes',
-    reportedReviews: 'Reseñas Reportadas',
-    totalInstructors: 'Instructores',
-    totalInstitutions: 'Instituciones',
-  },
-  users: {
-    filterByRole: 'Filtrar por rol',
-    allRoles: 'Todos los roles',
-    edit: 'Editar',
-    verify: 'Verificar',
-    suspend: 'Suspender',
-  },
-  verification: {
-    instructorTitle: 'Verificación de Instructores',
-    institutionTitle: 'Verificación de Instituciones',
-    pending: 'Pendiente',
-    verified: 'Verificado',
-    verify: 'Verificar',
-    reject: 'Rechazar',
-    viewProfile: 'Ver Perfil',
-  },
-  reviews: {
-    moderationTitle: 'Moderación de Reseñas',
-    reported: 'Reportada',
-    approve: 'Aprobar',
-    remove: 'Eliminar',
-    viewDetails: 'Ver Detalles',
-  },
-  login: {
-    title: 'Panel de administración',
-    subtitle: 'Acceso interno para el equipo Fitnexia',
-    signIn: 'Iniciar sesión',
-    backToApp: 'Volver a la aplicación',
-    accessDenied: 'Esta área es solo para administradores.',
-  },
-  profile: {
-    title: 'Mi perfil',
-    subtitle: 'Cuenta de administrador de plataforma',
-    memberSince: 'Administrador desde',
-    editProfile: 'Editar perfil',
-    saveProfile: 'Guardar cambios',
-    cancelEdit: 'Cancelar',
-    accountSecurity: 'Seguridad de la cuenta',
-    quickLinks: 'Accesos rápidos',
-    preferencesSaved: 'Preferencias guardadas',
-  },
-  notifications: {
-    title: 'Configuración de notificaciones',
-    subtitle: 'Elige qué alertas operativas deseas recibir',
-    preferences: {
-      verificationRequests: 'Solicitudes de verificación',
-      reportedReviews: 'Reseñas reportadas',
-      platformMetrics: 'Resúmenes y métricas de plataforma',
-      newUserSignups: 'Nuevos registros de usuarios',
-      paymentAlerts: 'Alertas de pagos y transacciones',
-      securityAlerts: 'Alertas de seguridad',
-    },
   },
 } as const;
 
@@ -484,14 +404,12 @@ export const ROLE_TITLES = {
   athlete: 'Atleta',
   instructor: 'Instructor',
   institution: 'Gimnasio / Escuela',
-  admin: 'Administrador',
 } as const;
 
 export const ROLE_DESCRIPTIONS = {
   athlete: 'Encuentra y reserva clases cerca de ti',
   instructor: 'Enseña y gestiona tu horario',
   institution: 'Gestiona instructores y clases grupales',
-  admin: '',
 } as const;
 
 export const LANDING_LABELS = {
@@ -725,6 +643,13 @@ export const INSTRUCTOR_LABELS = {
     classNameRequired: 'El nombre de la clase es obligatorio.',
     classPublished: 'Clase publicada correctamente.',
     classUpdated: 'Clase actualizada correctamente.',
+    cancelPanelTitle: 'Cancelar clase',
+    cancelPanelHint: 'Esta acción cancela la clase para todos los participantes. No se puede deshacer.',
+    cancelConfirmTitle: '¿Cancelar esta clase?',
+    cancelConfirmMessage: 'Los participantes serán notificados. Esta acción no se puede deshacer.',
+    keepClass: 'Mantener clase',
+    classCancelled: 'Clase cancelada correctamente.',
+    classCancelFailed: 'No se pudo cancelar la clase',
   },
 } as const;
 

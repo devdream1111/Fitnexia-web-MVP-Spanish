@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { 
-  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, Star, Building, CreditCard, IdCard
+  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, IdCard
 } from 'lucide-react';
 
 import { Logo } from './Logo';
@@ -49,37 +49,24 @@ function buildGymNav(showMembers: boolean): NavItem[] {
   return items;
 }
 
-const ADMIN_NAV: NavItem[] = [
-  { href: '/admin/dashboard', label: TAB_LABELS.admin.dashboard, icon: <BarChart3 size={18} /> },
-  { href: '/admin/users', label: TAB_LABELS.admin.users, icon: <Users size={18} /> },
-  { href: '/admin/classes', label: TAB_LABELS.admin.classes, icon: <BookOpen size={18} /> },
-  { href: '/admin/bookings', label: TAB_LABELS.admin.bookings, icon: <Calendar size={18} /> },
-  { href: '/admin/reviews', label: TAB_LABELS.admin.reviews, icon: <Star size={18} /> },
-  { href: '/admin/institutions', label: TAB_LABELS.admin.institutions, icon: <Building size={18} /> },
-  { href: '/admin/payments', label: TAB_LABELS.admin.payments, icon: <CreditCard size={18} /> },
-];
-
 function navForRole(
   role: UserRole,
   gymNav: NavItem[],
 ): NavItem[] {
   if (role === 'instructor') return INSTRUCTOR_NAV;
   if (role === 'institution') return gymNav;
-  if (role === 'admin') return ADMIN_NAV;
   return ATHLETE_NAV;
 }
 
 function getProfileLink(role: UserRole): string {
   if (role === 'instructor') return '/instructor/profile';
   if (role === 'institution') return '/gym/profile';
-  if (role === 'admin') return '/admin/profile'; // We'll create a placeholder
   return '/athlete/profile';
 }
 
 function getNotificationsLink(role: UserRole): string {
   if (role === 'instructor') return '/instructor/notifications';
   if (role === 'institution') return '/gym/notifications';
-  if (role === 'admin') return '/admin/notifications'; // Placeholder
   return '/athlete/notifications';
 }
 
@@ -122,9 +109,8 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     setDropdownOpen(false);
-    const isAdmin = user.role === 'admin';
     await logout();
-    router.replace(isAdmin ? '/admin' : '/auth/login');
+    router.replace('/auth/login');
   };
 
   const nav = navForRole(user.role, gymNav);

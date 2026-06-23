@@ -23,8 +23,7 @@ import {
   type RegisterBody,
 } from '@/services/api';
 import { clearTokens, getRefreshToken, setTokens } from '@/services/api-client';
-import { ADMIN_STATIC_EMAIL, ADMIN_STATIC_PASSWORD, isValidAdminCredentials } from '@/constants/admin-auth';
-import { createMockAdminUser, mapMeToAuthUser } from '@/utils/auth-mapper';
+import { mapMeToAuthUser } from '@/utils/auth-mapper';
 import { resolveUploadableImageUrl, resolveUploadableImageUrls } from '@/utils/media';
 import { defaultWeeklySchedule } from '@/utils/schedule';
 
@@ -36,15 +35,6 @@ export interface NotificationPreferences {
   membershipReminders: boolean;
   memberDelinquencyAlerts: boolean;
   marketing: boolean;
-}
-
-export interface AdminNotificationPreferences {
-  verificationRequests: boolean;
-  reportedReviews: boolean;
-  platformMetrics: boolean;
-  newUserSignups: boolean;
-  paymentAlerts: boolean;
-  securityAlerts: boolean;
 }
 
 export interface PaymentMethod {
@@ -94,7 +84,6 @@ export interface AuthUser {
   avatarUri?: string | null;
   favoriteSports: string[];
   notificationPreferences: NotificationPreferences;
-  adminNotificationPreferences?: AdminNotificationPreferences;
   paymentMethods: PaymentMethod[];
   instructorId?: string;
   instructorProfile?: InstructorProfileData;
@@ -112,19 +101,9 @@ const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
   marketing: false,
 };
 
-export const DEFAULT_ADMIN_NOTIFICATIONS: AdminNotificationPreferences = {
-  verificationRequests: true,
-  reportedReviews: true,
-  platformMetrics: true,
-  newUserSignups: true,
-  paymentAlerts: true,
-  securityAlerts: true,
-};
-
 const STORAGE_KEYS = {
   USER: 'fitnexia_user',
   HAS_SEEN_ONBOARDING: 'fitnexia_has_seen_onboarding',
-  ADMIN_SESSION: 'fitnexia_admin_session',
 };
 
 export function defaultInstructorProfile(
@@ -175,7 +154,6 @@ export type UpdateProfileParams = Partial<
   Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'avatarUri' | 'favoriteSports'>
 > & {
   notificationPreferences?: Partial<NotificationPreferences>;
-  adminNotificationPreferences?: Partial<AdminNotificationPreferences>;
   paymentMethods?: PaymentMethod[];
   instructorProfile?: Partial<InstructorProfileData>;
   institutionProfile?: Partial<InstitutionProfileData>;
@@ -187,11 +165,11 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticating: boolean;
   completeOnboarding: () => void;
-  login: (email: string, password: string, role?: UserRole) => Promise<AuthUser>;
+  login: (email: string, password: string) => Promise<AuthUser>;
   register: (params: RegisterParams) => Promise<void>;
   googleSignIn: (params: {
     idToken: string;
-    role?: Exclude<UserRole, 'admin'>;
+    role?: UserRole;
     institutionName?: string;
   }) => Promise<AuthUser>;
   updateProfile: (updates: UpdateProfileParams) => Promise<void>;
@@ -228,15 +206,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedOnboarding = localStorage.getItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING);
       if (storedOnboarding) setHasSeenOnboarding(true);
 
-      const isAdminSession = localStorage.getItem(STORAGE_KEYS.ADMIN_SESSION) === 'true';
-      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-
-      if (isAdminSession && storedUser) {
-        setUser(JSON.parse(storedUser) as AuthUser);
-        setIsLoading(false);
-        return;
-      }
-
       const refreshToken = getRefreshToken();
       if (!refreshToken) {
         setIsLoading(false);
@@ -256,55 +225,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     bootstrap();
   }, [refreshUser]);
 
-  useEffect(() => {
-    if (isLoading || !user) return;
-    if (user.role === 'admin') {
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-      localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'true');
-    }
-  }, [user, isLoading]);
-
   const completeOnboarding = useCallback(() => {
     setHasSeenOnboarding(true);
     localStorage.setItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING, 'true');
   }, []);
 
-  const login = useCallback(
-    async (email: string, password: string, role: UserRole = 'athlete') => {
+  const login = useCallback(async (email: string, password: string) => {
     setIsAuthenticating(true);
     try {
-    if (role === 'admin') {
-        if (!isValidAdminCredentials(email, password)) {
-          throw new ApiClientError(401, 'UNAUTHORIZED', 'Acceso denegado');
-        }
-
-        try {
-          const auth = await apiLogin(ADMIN_STATIC_EMAIL, ADMIN_STATIC_PASSWORD);
-          setTokens(auth.accessToken, auth.refreshToken);
-          localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
-          const me = await apiGetMe();
-          if (me.user.role === 'admin') {
-            const mapped = mapMeToAuthUser(me);
-            const prefs = await loadNotificationPrefs();
-            const nextUser = { ...mapped, notificationPreferences: prefs };
-            setUser(nextUser);
-            return nextUser;
-          }
-        } catch {
-          // Backend admin user not configured — fall back to static session.
-        }
-
-        clearTokens();
-        const adminUser = createMockAdminUser(ADMIN_STATIC_EMAIL);
-        setUser(adminUser);
-        localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'true');
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(adminUser));
-        return adminUser;
-      }
-
       const auth = await apiLogin(email.trim(), password);
       setTokens(auth.accessToken, auth.refreshToken);
-      localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
 
       const me = await apiGetMe();
       const mapped = mapMeToAuthUser(me);
@@ -315,17 +245,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsAuthenticating(false);
     }
-    },
-    [],
-  );
+  }, []);
 
   const register = useCallback(async (params: RegisterParams) => {
     setIsAuthenticating(true);
     try {
-    if (params.role === 'admin') {
-      throw new Error('Cannot register as admin');
-    }
-
     const photoUrl = params.avatarUri
       ? await resolveUploadableImageUrl(params.avatarUri)
       : undefined;
@@ -345,7 +269,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const auth = await apiRegister(body);
     setTokens(auth.accessToken, auth.refreshToken);
-    localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
 
     const me = await apiGetMe();
     const mapped = mapMeToAuthUser(me);
@@ -359,7 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const googleSignIn = useCallback(
     async (params: {
       idToken: string;
-      role?: Exclude<UserRole, 'admin'>;
+      role?: UserRole;
       institutionName?: string;
     }) => {
       setIsAuthenticating(true);
@@ -370,7 +293,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         institutionName: params.institutionName,
       });
       setTokens(auth.accessToken, auth.refreshToken);
-      localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
 
       const me = await apiGetMe();
       const mapped = mapMeToAuthUser(me);
@@ -388,26 +310,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = useCallback(
     async (updates: UpdateProfileParams) => {
       if (!user) return;
-
-      if (user.role === 'admin') {
-    setUser((prev) => {
-      if (!prev) return prev;
-          return {
-        ...prev,
-        ...updates,
-        notificationPreferences: updates.notificationPreferences
-          ? { ...prev.notificationPreferences, ...updates.notificationPreferences }
-          : prev.notificationPreferences,
-        adminNotificationPreferences: updates.adminNotificationPreferences
-          ? {
-              ...(prev.adminNotificationPreferences ?? DEFAULT_ADMIN_NOTIFICATIONS),
-              ...updates.adminNotificationPreferences,
-            }
-          : prev.adminNotificationPreferences,
-          } as AuthUser;
-        });
-        return;
-      }
 
       if (updates.email && updates.email !== user.email) {
         await apiUpdateUserEmail(updates.email);
@@ -528,9 +430,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     const refreshToken = getRefreshToken();
-    const isAdmin = user?.role === 'admin';
 
-    if (!isAdmin && refreshToken) {
+    if (refreshToken) {
       try {
         await apiLogout(refreshToken);
       } catch {
@@ -540,9 +441,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     clearTokens();
     localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
     setUser(null);
-  }, [user]);
+  }, []);
 
   const value = useMemo(
     () => ({

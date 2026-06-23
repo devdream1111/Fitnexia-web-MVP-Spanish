@@ -3,7 +3,7 @@
  * Keep in sync with docs/openapi.yaml and docs/API.md
  */
 
-export type UserRole = 'athlete' | 'instructor' | 'institution' | 'admin';
+export type UserRole = 'athlete' | 'instructor' | 'institution';
 
 export type ClassFormat = 'individual' | 'group';
 
@@ -243,33 +243,6 @@ export interface Review {
   response?: string | null;
   createdAt: string;
   verified: boolean;
-}
-
-export interface ReportedReview extends Review {
-  reportCount: number;
-  reportReasons: string[];
-}
-
-export type AdminUserRole = Exclude<UserRole, 'admin'>;
-
-export interface AdminUser {
-  id: string;
-  email: string;
-  role: AdminUserRole;
-  firstName: string;
-  lastName: string;
-  verified: boolean;
-  suspended?: boolean;
-  instructorId?: string;
-  institutionId?: string;
-}
-
-export interface PendingVerification {
-  type: 'instructor' | 'institution';
-  id: string;
-  name: string;
-  submittedAt: string;
-  reason: string;
 }
 
 /** Verified review from a gym that employs the instructor */

@@ -1,8 +1,6 @@
 import type { AthleteProfile, Institution, Instructor, WeeklySchedule } from '@/types/api';
-import { ADMIN_STATIC_EMAIL } from '@/constants/admin-auth';
 import {
   type AuthUser,
-  DEFAULT_ADMIN_NOTIFICATIONS,
   DEFAULT_NOTIFICATIONS,
   defaultInstructorProfile,
   defaultInstitutionProfile,
@@ -83,18 +81,4 @@ export function mapMeToAuthUser(data: MeResponse): AuthUser {
   }
 
   return base;
-}
-
-export function createMockAdminUser(email: string = ADMIN_STATIC_EMAIL): AuthUser {
-  return {
-    id: 'admin-1',
-    email,
-    role: 'admin',
-    firstName: 'Admin',
-    lastName: 'Fitnexia',
-    favoriteSports: [],
-    notificationPreferences: { ...DEFAULT_NOTIFICATIONS },
-    adminNotificationPreferences: { ...DEFAULT_ADMIN_NOTIFICATIONS },
-    paymentMethods: [],
-  };
 }

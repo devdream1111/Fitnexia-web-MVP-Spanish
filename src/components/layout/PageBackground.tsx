@@ -9,13 +9,12 @@ export function PageBackground({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isDark } = useAppTheme();
   const isAuthRoute = pathname.startsWith('/auth');
-  const isAdminRoute = pathname.startsWith('/admin');
   const isLegalRoute = pathname.startsWith('/legal');
   const isCheckoutRoute = pathname.startsWith('/book');
   const isLanding = pathname === '/';
   const showPageBackground =
-    !isAuthRoute && !isLanding && !isAdminRoute && !isLegalRoute && !isCheckoutRoute;
-  const showFooter = !isAuthRoute && !isAdminRoute && !isLegalRoute && !isCheckoutRoute;
+    !isAuthRoute && !isLanding && !isLegalRoute && !isCheckoutRoute;
+  const showFooter = !isAuthRoute && !isLegalRoute && !isCheckoutRoute;
 
   return (
     <div className="relative flex min-h-screen flex-col">

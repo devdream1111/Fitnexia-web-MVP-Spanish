@@ -1,12 +1,9 @@
 import type {
-  AdminUser,
   Booking,
   ClassListItem,
   CreditBalance,
   Instructor,
   Institution,
-  PendingVerification,
-  ReportedReview,
   Review,
   Payment,
   Notification,
@@ -25,15 +22,6 @@ const PDE_CANCHAS = { lat: -34.965, lng: -54.955 } as const;
 const PDE_LOFT = { lat: -34.957, lng: -54.938 } as const;
 
 export { formatClassDate, formatMoney } from '@/utils/format';
-
-// Mock Users
-export const MOCK_USERS: AdminUser[] = [
-  { id: '1', email: 'maria@example.com', role: 'athlete', firstName: 'Maria', lastName: 'Garcia', verified: true },
-  { id: '2', email: 'carlos@example.com', role: 'instructor', firstName: 'Carlos', lastName: 'Ruiz', verified: true, instructorId: 'inst-1' },
-  { id: '3', email: 'gym@example.com', role: 'institution', firstName: 'FitHub', lastName: 'Centro', verified: false, institutionId: 'gym-2' },
-  { id: '4', email: 'lucia@example.com', role: 'instructor', firstName: 'Lucia', lastName: 'Gomez', verified: false, instructorId: 'inst-4' },
-  { id: '5', email: 'miguel@example.com', role: 'athlete', firstName: 'Miguel', lastName: 'Lopez', verified: true },
-];
 
 export const MOCK_INSTRUCTORS: Instructor[] = [
   {
@@ -91,13 +79,6 @@ export const MOCK_INSTRUCTORS: Instructor[] = [
     reviewCount: 18,
     plan: 'basic',
   },
-];
-
-// Mock pending verifications
-export const MOCK_PENDING_VERIFICATIONS: PendingVerification[] = [
-  { type: 'instructor', id: 'inst-3', name: 'James Okonkwo', submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), reason: 'Nuevo instructor' },
-  { type: 'instructor', id: 'inst-4', name: 'Lucia Gomez', submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), reason: 'Solicitud de verificación' },
-  { type: 'institution', id: 'gym-2', name: 'Studio Wellness', submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), reason: 'Nueva institución' },
 ];
 
 export const MOCK_INSTITUTIONS: Institution[] = [
@@ -268,36 +249,6 @@ export const MOCK_REVIEWS: Review[] = [
     comment: 'Excelente flujo de yoga, la manera perfecta de empezar la mañana.',
     createdAt: '2026-05-20T09:15:00Z',
     verified: true,
-  },
-];
-
-// Mock reported reviews for moderation
-export const MOCK_REPORTED_REVIEWS: ReportedReview[] = [
-  { 
-    id: 'review-3', 
-    classId: 'class-4', 
-    instructorId: 'inst-3', 
-    userId: 'u-6', 
-    authorName: 'Usuario Anonimo', 
-    rating: 1, 
-    comment: 'Este instructor es terrible, no recomiendo para nada.',
-    createdAt: '2026-06-08T10:15:00Z',
-    verified: false,
-    reportCount: 3,
-    reportReasons: ['Contenido inapropiado', 'Spam'],
-  },
-  { 
-    id: 'review-4', 
-    classId: 'class-1', 
-    instructorId: 'inst-2', 
-    userId: 'u-7', 
-    authorName: 'Juan Perez', 
-    rating: 2, 
-    comment: 'La clase no cumplió con las expectativas.',
-    createdAt: '2026-06-07T15:45:00Z',
-    verified: true,
-    reportCount: 1,
-    reportReasons: ['Queja no justificada'],
   },
 ];
 
@@ -517,32 +468,6 @@ export const MOCK_NOTIFICATIONS_BY_USER: Record<string, Notification[]> = {
       body: 'Hoy es tu día más ocupado de la semana con 15 reservas.',
       read: true,
       createdAt: '2026-06-04T08:00:00Z',
-    },
-  ],
-  'admin-1': [
-    {
-      id: 'admin-notif-1',
-      type: 'verification_request',
-      title: 'Nueva solicitud de verificación',
-      body: 'Lucia Gomez solicitó verificación como instructor.',
-      read: false,
-      createdAt: '2026-06-08T14:00:00Z',
-    },
-    {
-      id: 'admin-notif-2',
-      type: 'review_reported',
-      title: 'Reseña reportada',
-      body: 'Una reseña de James Okonkwo fue reportada 3 veces por contenido inapropiado.',
-      read: false,
-      createdAt: '2026-06-08T10:30:00Z',
-    },
-    {
-      id: 'admin-notif-3',
-      type: 'platform_metrics',
-      title: 'Resumen semanal',
-      body: '12 nuevos usuarios y 47 reservas esta semana en la plataforma.',
-      read: true,
-      createdAt: '2026-06-07T09:00:00Z',
     },
   ],
 };

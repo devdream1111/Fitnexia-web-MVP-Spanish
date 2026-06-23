@@ -31,7 +31,7 @@ function RegisterPageContent() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Exclude<UserRole, 'admin'>>('athlete');
+  const [role, setRole] = useState<UserRole>('athlete');
   const [institutionName, setInstitutionName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

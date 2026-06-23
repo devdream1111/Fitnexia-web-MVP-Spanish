@@ -110,7 +110,7 @@ export const Radius = {
   full: 999,
 };
 
-/** ISO 4217 default for prices, payouts, and admin totals */
+/** ISO 4217 default for prices and payouts */
 export const DEFAULT_CURRENCY = 'UYU' as const;
 
 /** Reference FX rate used when migrating list prices from USD to UYU (1 USD ≈ 40 UYU). */

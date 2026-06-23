@@ -114,20 +114,21 @@ export default function EditClassPage() {
   }
 
   const handleCancelClass = async () => {
-    if (!cls || !window.confirm('¿Cancelar esta clase? Los participantes serán notificados.')) return;
+    if (!cls) return;
     setCancelling(true);
     try {
       await cancelClass(cls.id);
       showNotice({
         title: ALERT_LABELS.savedTitle,
-        message: 'Clase cancelada correctamente.',
+        message: INSTRUCTOR_LABELS.classForm.classCancelled,
         variant: 'success',
       });
       router.push('/instructor/classes');
     } catch (e) {
       showNotice({
         title: ALERT_LABELS.missingInfoTitle,
-        message: e instanceof ApiClientError ? e.message : 'No se pudo cancelar la clase',
+        message:
+          e instanceof ApiClientError ? e.message : INSTRUCTOR_LABELS.classForm.classCancelFailed,
         variant: 'error',
       });
     } finally {

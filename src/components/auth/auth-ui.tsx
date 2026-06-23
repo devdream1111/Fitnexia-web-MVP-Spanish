@@ -319,7 +319,7 @@ export function PasswordInput({
   );
 }
 
-type RegisterRole = Exclude<UserRole, 'admin'>;
+type RegisterRole = UserRole;
 
 const ROLE_OPTIONS: {
   value: RegisterRole;

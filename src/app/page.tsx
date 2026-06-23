@@ -10,7 +10,6 @@ import type { UserRole } from '@/types/api';
 function homeForRole(role: UserRole) {
   if (role === 'instructor') return '/instructor/dashboard';
   if (role === 'institution') return '/gym/dashboard';
-  if (role === 'admin') return '/admin/dashboard';
   return '/athlete/home';
 }
 

@@ -58,7 +58,7 @@ export interface MeResponse {
 export interface RegisterBody {
   email: string;
   password: string;
-  role: Exclude<UserRole, 'admin'>;
+  role: UserRole;
   firstName: string;
   lastName: string;
   favoriteSports?: string[];
@@ -245,7 +245,7 @@ export function apiLogin(email: string, password: string) {
 
 export interface GoogleOAuthBody {
   idToken: string;
-  role?: Exclude<UserRole, 'admin'>;
+  role?: UserRole;
   institutionName?: string;
 }
 

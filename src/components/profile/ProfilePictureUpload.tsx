@@ -6,7 +6,7 @@ import type { UserRole } from '@/types/api';
 interface ProfilePictureUploadProps {
   currentAvatar?: string | null;
   onUpload: (imageDataUrl: string) => void;
-  role?: Exclude<UserRole, 'admin'>;
+  role?: UserRole;
   size?: 'sm' | 'md' | 'lg';
   editable?: boolean;
 }
