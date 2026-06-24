@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/layout/page-header';
 import { PlanCards } from '@/components/mvp/plan-cards';
 import { apiGetInstructorMe, apiGetPlans, type PlanOption } from '@/services/api';
-import { GENERAL_LABELS, PROFILE_MENU_LABELS } from '@/constants/labels';
+import { GENERAL_LABELS, INSTRUCTOR_JOB_LABELS, PROFILE_MENU_LABELS } from '@/constants/labels';
 
 export default function InstructorPlanPage() {
   const [plans, setPlans] = useState<PlanOption[]>([]);
@@ -22,7 +22,7 @@ export default function InstructorPlanPage() {
           apiGetInstructorMe().catch(() => null),
         ]);
         if (!cancelled) {
-          setPlans(plansRes.data);
+          setPlans(plansRes.data.filter((p) => p.id === 'basic' || p.id === 'pro'));
           setCurrentPlanId(instructor?.plan);
         }
       } finally {
@@ -38,9 +38,7 @@ export default function InstructorPlanPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={PROFILE_MENU_LABELS.planCommission} showBack />
-      <p className="max-w-2xl text-[var(--fn-text-muted)]">
-        Compara comisiones y beneficios según tu plan actual en Fitnexia.
-      </p>
+      <p className="max-w-2xl text-[var(--fn-text-muted)]">{INSTRUCTOR_JOB_LABELS.planDescription}</p>
       {loading ? (
         <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
       ) : (

@@ -26,6 +26,85 @@ export type BillingPeriod = 'weekly' | 'monthly' | 'quarterly';
 
 export type InstructorPlan = 'basic' | 'pro' | 'institutional';
 
+/** Fitnexia SaaS tier for gyms/clubs */
+export type GymSaasTier = 'basic' | 'professional' | 'premium' | 'enterprise';
+
+export type OpeningHoursDayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export interface OpeningHoursDay {
+  closed?: boolean;
+  open?: string;
+  close?: string;
+}
+
+export type OpeningHours = Partial<Record<OpeningHoursDayKey, OpeningHoursDay>>;
+
+export interface GymEntitlements {
+  manualPayments: boolean;
+  clubProfile: boolean;
+  jobPostings: boolean;
+  recurringBilling: boolean;
+  reportsBasic: boolean;
+  prioritySupport: boolean;
+  branding: boolean;
+  reportsAdvanced: boolean;
+  activities: boolean;
+  integrations: boolean;
+}
+
+export interface GymSubscription {
+  tier: GymSaasTier;
+  tierName: string;
+  monthlyFeeCents: number;
+  memberCount: number;
+  memberLimit: number | null;
+  membersRemaining: number | null;
+  atLimit: boolean;
+  entitlements: GymEntitlements;
+  billingStatus: 'manual' | string;
+}
+
+export interface GymTierCatalog {
+  id: GymSaasTier;
+  name: string;
+  monthlyFeeCents: number;
+  memberLimit: number | null;
+  entitlements: GymEntitlements;
+}
+
+export type JobRoleType = 'instructor' | 'trainer' | 'staff';
+export type JobStatus = 'draft' | 'open' | 'closed';
+
+export interface JobPosting {
+  id: string;
+  institutionId: string;
+  institutionName: string;
+  institutionLogoUrl?: string;
+  title: string;
+  roleType: JobRoleType;
+  description?: string;
+  disciplines: string[];
+  status: JobStatus;
+  expiresAt?: string | null;
+  applicationCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  instructorId: string;
+  instructorName?: string;
+  instructorPhotoUrl?: string;
+  message?: string;
+  status: string;
+  jobTitle?: string;
+  jobStatus?: JobStatus;
+  institutionName?: string;
+  createdAt: string;
+}
+
 export type ClientPlatform = 'web' | 'ios' | 'android';
 
 export interface Money {
@@ -142,6 +221,11 @@ export interface Institution {
   gallery?: string[];
   verified: boolean;
   plan?: InstructorPlan;
+  saasTier?: GymSaasTier;
+  contactPhone?: string;
+  contactEmail?: string;
+  website?: string;
+  openingHours?: OpeningHours;
   instructors?: Pick<Instructor, 'id' | 'displayName'>[];
 }
 

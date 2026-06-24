@@ -16,12 +16,14 @@ import { useNoticeModal } from '@/contexts/notice-modal-context';
 import {
   apiRemoveClubMember,
   apiGetClubMembersSummary,
+  apiGetGymSubscription,
   apiListClubMembers,
   apiListClubMembershipPlans,
 } from '@/services/api';
 import { ApiClientError } from '@/services/api-client';
 import { ALERT_LABELS, CLUB_LABELS, GENERAL_LABELS } from '@/constants/labels';
-import type { ClubMember, ClubMemberFeeStatus, ClubMembershipPlan, PaginationMeta } from '@/types/api';
+import type { ClubMember, ClubMemberFeeStatus, ClubMembershipPlan, GymSubscription, PaginationMeta } from '@/types/api';
+import { MemberLimitAlert } from '@/components/gym/gym-saas-plan-cards';
 import {
   clubPlanCadenceLabel,
   normalizeClubMembersSummary,
@@ -51,6 +53,7 @@ function GymMembersPageContent() {
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>(DEFAULT_META);
   const [summary, setSummary] = useState({ total: 0, current: 0, pending: 0, overdue: 0 });
+  const [subscription, setSubscription] = useState<GymSubscription | null>(null);
   const [plans, setPlans] = useState<ClubMembershipPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -83,7 +86,7 @@ function GymMembersPageContent() {
     setLoadError(null);
     const errors: string[] = [];
 
-    const [listResult, summaryResult] = await Promise.allSettled([
+    const [listResult, summaryResult, subResult] = await Promise.allSettled([
       apiListClubMembers({
         feeStatus: feeFilter === 'all' ? undefined : feeFilter,
         planId: planFilter === 'all' ? undefined : planFilter,
@@ -92,6 +95,7 @@ function GymMembersPageContent() {
         limit: PAGE_SIZE,
       }),
       apiGetClubMembersSummary(),
+      apiGetGymSubscription(),
     ]);
 
     if (listResult.status === 'fulfilled') {
@@ -110,6 +114,12 @@ function GymMembersPageContent() {
       setSummary(normalizeClubMembersSummary(summaryResult.value));
     } else {
       setSummary({ total: 0, current: 0, pending: 0, overdue: 0 });
+    }
+
+    if (subResult.status === 'fulfilled') {
+      setSubscription(subResult.value);
+    } else {
+      setSubscription(null);
     }
 
     setLoadError(errors[0] ?? null);
@@ -174,7 +184,10 @@ function GymMembersPageContent() {
         total={summary.total}
         overdue={summary.overdue}
         current={summary.current}
+        subscription={subscription}
       />
+
+      {subscription ? <MemberLimitAlert subscription={subscription} /> : null}
 
       <ClubMembersFilterBar
         feeFilters={filters}

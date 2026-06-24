@@ -7,6 +7,7 @@ import {
   DollarSign,
   Award,
   Bell,
+  Briefcase,
   Circle,
   CircleCheck,
   Clock,
@@ -43,8 +44,10 @@ import {
   PROFILE_MENU_LABELS,
   PROFILE_PAGE_LABELS,
   ROLE_TITLES,
+  TAB_LABELS,
 } from '@/constants/labels';
 import { disciplineSelectOptions, filterValidDisciplines } from '@/utils/disciplines';
+import type { ImageUploadInput } from '@/utils/media';
 
 export default function InstructorProfilePage() {
   const { user, updateProfile } = useAuth();
@@ -55,7 +58,7 @@ export default function InstructorProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
-  const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
+  const [avatarUri, setAvatarUri] = useState<ImageUploadInput>(user?.avatarUri ?? null);
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [hourlyRate, setHourlyRate] = useState(profile?.hourlyRate ?? '');
   const [disciplines, setDisciplines] = useState<string[]>(
@@ -149,6 +152,7 @@ export default function InstructorProfilePage() {
   const quickLinks = [
     { href: '/instructor/classes', label: 'Mis clases', icon: BookOpen, count: myClasses.length },
     { href: '/instructor/calendar', label: 'Calendario', icon: Calendar },
+    { href: '/instructor/jobs', label: TAB_LABELS.instructor.jobs, icon: Briefcase },
     { href: '/instructor/earnings', label: 'Ingresos', icon: DollarSign },
     { href: '/instructor/profile/payout-account', label: PROFILE_MENU_LABELS.payoutAccount, icon: Wallet },
     { href: '/instructor/profile/availability', label: PROFILE_MENU_LABELS.scheduleAvailability, icon: Clock },
@@ -173,6 +177,13 @@ export default function InstructorProfilePage() {
           onSave={handleSave}
           onCancel={handleCancel}
           onAvatarUpload={setAvatarUri}
+          onAvatarError={(message) =>
+            showNotice({
+              title: ALERT_LABELS.missingInfoTitle,
+              message,
+              variant: 'error',
+            })
+          }
         />
         <div className="grid gap-4 p-6 md:grid-cols-3 md:p-8">
           <ProfileStatCard icon={BookOpen} label="Clases publicadas" value={myClasses.length} />

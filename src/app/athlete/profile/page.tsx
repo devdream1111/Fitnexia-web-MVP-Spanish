@@ -40,6 +40,7 @@ import {
   TAB_LABELS,
 } from '@/constants/labels';
 import { disciplineSelectOptions, filterValidDisciplines } from '@/utils/disciplines';
+import type { ImageUploadInput } from '@/utils/media';
 import { useFeature } from '@/hooks/use-feature';
 
 export default function AthleteProfilePage() {
@@ -53,7 +54,7 @@ export default function AthleteProfilePage() {
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
-  const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
+  const [avatarUri, setAvatarUri] = useState<ImageUploadInput>(user?.avatarUri ?? null);
   const [favoriteSports, setFavoriteSports] = useState<string[]>(
     filterValidDisciplines(user?.favoriteSports ?? []),
   );
@@ -139,6 +140,13 @@ export default function AthleteProfilePage() {
           onSave={handleSave}
           onCancel={handleCancel}
           onAvatarUpload={setAvatarUri}
+          onAvatarError={(message) =>
+            showNotice({
+              title: ALERT_LABELS.missingInfoTitle,
+              message,
+              variant: 'error',
+            })
+          }
         />
         <div className="grid gap-4 p-6 md:grid-cols-3 md:p-8">
           <ProfileStatCard icon={Calendar} label="Reservas activas" value={upcomingCount} accent="success" />

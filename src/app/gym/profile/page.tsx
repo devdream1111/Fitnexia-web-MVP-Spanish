@@ -1,17 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import {
-  Users,
-  BookOpen,
-  MapPin,
-  Image,
-  Bell,
-  Building,
-  BarChart3,
-  Wallet,
-} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 
+import { OpeningHoursEditor } from '@/components/gym/opening-hours-editor';
 import { PageHeader } from '@/components/layout/page-header';
 import { PhotoGallery } from '@/components/profile/PhotoGallery';
 import { Input } from '@/components/ui/input';
@@ -40,6 +33,25 @@ import {
   PROFILE_MENU_LABELS,
   PROFILE_PAGE_LABELS,
 } from '@/constants/labels';
+import { formatOpeningHoursLine } from '@/utils/opening-hours';
+import type { OpeningHours } from '@/types/api';
+import {
+  Users,
+  BookOpen,
+  MapPin,
+  Image,
+  Bell,
+  Building,
+  BarChart3,
+  Wallet,
+  Briefcase,
+  Clock,
+  Phone,
+  Mail,
+  Globe,
+} from 'lucide-react';
+import { defaultOpeningHours } from '@/utils/opening-hours';
+import type { ImageUploadInput } from '@/utils/media';
 
 export default function GymProfilePage() {
   const { user, updateProfile } = useAuth();
@@ -57,26 +69,36 @@ export default function GymProfilePage() {
     resolveCountryCode(institutionProfile?.country),
   );
   const [description, setDescription] = useState(institutionProfile?.description ?? '');
-  const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatarUri ?? null);
+  const [contactPhone, setContactPhone] = useState(institutionProfile?.contactPhone ?? '');
+  const [contactEmail, setContactEmail] = useState(institutionProfile?.contactEmail ?? '');
+  const [website, setWebsite] = useState(institutionProfile?.website ?? '');
+  const [openingHours, setOpeningHours] = useState<OpeningHours>(
+    institutionProfile?.openingHours ?? defaultOpeningHours(),
+  );
+  const [avatarUri, setAvatarUri] = useState<ImageUploadInput>(user?.avatarUri ?? null);
   const [gallery, setGallery] = useState<string[]>(institutionProfile?.gallery ?? []);
 
-  useEffect(() => {
-    if (!isEditing) {
-      setName(user?.institutionProfile?.name ?? '');
-      setEmail(user?.email ?? '');
-      setAddress(user?.institutionProfile?.address ?? '');
-      setCity(user?.institutionProfile?.city ?? '');
-      setCountry(resolveCountryCode(user?.institutionProfile?.country));
-      setDescription(user?.institutionProfile?.description ?? '');
-      setAvatarUri(user?.avatarUri ?? null);
-      setGallery(user?.institutionProfile?.gallery ?? []);
-    }
-  }, [user, isEditing]);
+  const resetFields = useCallback(() => {
+    const ip = user?.institutionProfile;
+    setName(ip?.name ?? '');
+    setEmail(user?.email ?? '');
+    setAddress(ip?.address ?? '');
+    setCity(ip?.city ?? '');
+    setCountry(resolveCountryCode(ip?.country));
+    setDescription(ip?.description ?? '');
+    setContactPhone(ip?.contactPhone ?? '');
+    setContactEmail(ip?.contactEmail ?? '');
+    setWebsite(ip?.website ?? '');
+    setOpeningHours(ip?.openingHours ?? defaultOpeningHours());
+    setAvatarUri(user?.avatarUri ?? null);
+    setGallery(ip?.gallery ?? []);
+  }, [user]);
 
-  const gymClasses = useMemo(
-    () => classes.filter((c) => c.institution?.id === institutionId),
-    [classes, institutionId],
-  );
+  useEffect(() => {
+    if (!isEditing) resetFields();
+  }, [user, isEditing, resetFields]);
+
+  const gymClasses = classes.filter((c) => c.institution?.id === institutionId);
   const instructorCount = institutionProfile?.instructorIds.length ?? 0;
 
   const handleSave = async () => {
@@ -84,7 +106,18 @@ export default function GymProfilePage() {
       await updateProfile({
         email,
         avatarUri,
-        institutionProfile: { name, address, city, country, description, gallery },
+        institutionProfile: {
+          name,
+          address,
+          city,
+          country,
+          description,
+          gallery,
+          contactPhone,
+          contactEmail,
+          website,
+          openingHours,
+        },
       });
       setIsEditing(false);
       showNotice({
@@ -101,21 +134,10 @@ export default function GymProfilePage() {
     }
   };
 
-  const handleCancel = () => {
-    setName(institutionProfile?.name ?? '');
-    setEmail(user?.email ?? '');
-    setAddress(institutionProfile?.address ?? '');
-    setCity(institutionProfile?.city ?? '');
-    setCountry(resolveCountryCode(institutionProfile?.country));
-    setDescription(institutionProfile?.description ?? '');
-    setAvatarUri(user?.avatarUri ?? null);
-    setGallery(institutionProfile?.gallery ?? []);
-    setIsEditing(false);
-  };
-
   const quickLinks = [
     { href: '/gym/dashboard', label: 'Panel de control', icon: BarChart3 },
     { href: '/gym/instructors', label: PROFILE_MENU_LABELS.instructors, icon: Users, count: instructorCount },
+    { href: '/gym/jobs', label: 'Empleos', icon: Briefcase },
     { href: '/gym/classes', label: 'Clases grupales', icon: BookOpen, count: gymClasses.length },
     { href: '/gym/profile/payout-account', label: PROFILE_MENU_LABELS.payoutAccount, icon: Wallet },
     { href: '/gym/profile/plan', label: PROFILE_MENU_LABELS.planCommission, icon: Building },
@@ -125,13 +147,21 @@ export default function GymProfilePage() {
     <div className="space-y-8">
       <PageHeader title={PROFILE_PAGE_LABELS.title} showBack />
 
+      {institutionId ? (
+        <Link
+          href={`/club/${institutionId}`}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--fn-primary)] hover:opacity-80"
+        >
+          Ver perfil público del club
+          <ExternalLink size={14} />
+        </Link>
+      ) : null}
+
       <div className="overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
         <ProfileHero
           gradientClass={PROFILE_GRADIENTS.institution}
           badgeLabel={
-            institutionProfile?.verified
-              ? BADGE_LABELS.verified
-              : BADGE_LABELS.pending
+            institutionProfile?.verified ? BADGE_LABELS.verified : BADGE_LABELS.pending
           }
           badgeVariant={institutionProfile?.verified ? 'success' : 'warning'}
           name={institutionProfile?.name ?? 'Gimnasio'}
@@ -141,18 +171,23 @@ export default function GymProfilePage() {
           isEditing={isEditing}
           onEdit={() => setIsEditing(true)}
           onSave={handleSave}
-          onCancel={handleCancel}
+          onCancel={() => {
+            resetFields();
+            setIsEditing(false);
+          }}
           onAvatarUpload={setAvatarUri}
+          onAvatarError={(message) =>
+            showNotice({
+              title: ALERT_LABELS.missingInfoTitle,
+              message,
+              variant: 'error',
+            })
+          }
         />
         <div className="grid gap-4 p-6 md:grid-cols-3 md:p-8">
           <ProfileStatCard icon={Users} label="Instructores" value={instructorCount} accent="success" />
           <ProfileStatCard icon={BookOpen} label="Clases activas" value={gymClasses.length} />
-          <ProfileStatCard
-            icon={MapPin}
-            label="Ubicación"
-            value={city || '—'}
-            accent="warning"
-          />
+          <ProfileStatCard icon={MapPin} label="Ubicación" value={city || '—'} accent="warning" />
         </div>
       </div>
 
@@ -160,6 +195,14 @@ export default function GymProfilePage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Input label="Nombre del gimnasio" value={name} onChange={(e) => setName(e.target.value)} />
           <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input label="Teléfono del club" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+          <Input
+            label="Email de contacto"
+            type="email"
+            value={contactEmail}
+            onChange={(e) => setContactEmail(e.target.value)}
+          />
+          <Input label="Sitio web" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" />
           <Input label="Dirección" value={address} onChange={(e) => setAddress(e.target.value)} />
           <Input label="Ciudad" value={city} onChange={(e) => setCity(e.target.value)} />
           <Select
@@ -174,10 +217,17 @@ export default function GymProfilePage() {
           label="Descripción"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          rows={12}
-          placeholder="Presenta tu gimnasio: instalaciones, servicios, horarios y lo que os hace únicos…"
-          className="min-h-[280px] resize-y text-base leading-relaxed"
+          rows={8}
+          placeholder="Presenta tu gimnasio: instalaciones, servicios y lo que os hace únicos…"
+          className="min-h-[200px] resize-y text-base leading-relaxed"
         />
+        <div className="mt-6">
+          <h4 className="mb-3 flex items-center gap-2 text-base font-bold">
+            <Clock size={18} className="text-[var(--fn-primary)]" />
+            Horario de apertura
+          </h4>
+          <OpeningHoursEditor value={openingHours} onChange={setOpeningHours} />
+        </div>
         <div className="mt-6">
           <h4 className="mb-3 flex items-center gap-2 text-base font-bold">
             <Image size={18} className="text-[var(--fn-primary)]" />
@@ -193,35 +243,56 @@ export default function GymProfilePage() {
         </div>
       </ProfileEditFields>
 
-      <div
-        className={toggleVisible(
-          !isEditing,
-          'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6',
-        )}
-      >
+      <div className={toggleVisible(!isEditing, 'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6')}>
         <h3 className="mb-2 text-lg font-bold">Sobre el gimnasio</h3>
         <p className="whitespace-pre-wrap text-base leading-relaxed text-[var(--fn-text-secondary)]">
           {institutionProfile?.description || '—'}
         </p>
-        <p
-          className={toggleVisible(
-            !!(institutionProfile?.address || institutionProfile?.city),
-            'mt-3 flex items-center gap-2 text-sm text-[var(--fn-text-secondary)]',
+        <div className="mt-4 space-y-2 text-sm text-[var(--fn-text-secondary)]">
+          {(institutionProfile?.address || institutionProfile?.city) && (
+            <p className="flex items-center gap-2">
+              <MapPin size={16} className="text-[var(--fn-primary)]" />
+              {[institutionProfile?.address, institutionProfile?.city, getCountryLabel(institutionProfile?.country)]
+                .filter(Boolean)
+                .join(', ')}
+            </p>
           )}
-        >
-          <MapPin size={16} className="text-[var(--fn-primary)]" />
-          {[institutionProfile?.address, institutionProfile?.city, getCountryLabel(institutionProfile?.country)]
-            .filter(Boolean)
-            .join(', ')}
-        </p>
+          {institutionProfile?.contactPhone ? (
+            <p className="flex items-center gap-2">
+              <Phone size={16} className="text-[var(--fn-primary)]" />
+              {institutionProfile.contactPhone}
+            </p>
+          ) : null}
+          {institutionProfile?.contactEmail ? (
+            <p className="flex items-center gap-2">
+              <Mail size={16} className="text-[var(--fn-primary)]" />
+              {institutionProfile.contactEmail}
+            </p>
+          ) : null}
+          {institutionProfile?.website ? (
+            <p className="flex items-center gap-2">
+              <Globe size={16} className="text-[var(--fn-primary)]" />
+              {institutionProfile.website}
+            </p>
+          ) : null}
+        </div>
       </div>
 
-      <div
-        className={toggleVisible(
-          !isEditing,
-          'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6',
-        )}
-      >
+      {!isEditing && institutionProfile?.openingHours ? (
+        <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold">
+            <Clock size={18} className="text-[var(--fn-primary)]" />
+            Horario de apertura
+          </h3>
+          <ul className="space-y-1 text-sm text-[var(--fn-text-secondary)]">
+            {formatOpeningHoursLine(institutionProfile.openingHours).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className={toggleVisible(!isEditing, 'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6')}>
         <h3 className="mb-3 flex items-center gap-2 text-lg font-bold">
           <Image size={18} className="text-[var(--fn-primary)]" />
           {PROFILE_PAGE_LABELS.photoGallery}

@@ -21,6 +21,7 @@ import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
 import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS } from '@/constants/labels';
 import { useFeature } from '@/hooks/use-feature';
 import type { UserRole } from '@/types/api';
+import type { ImageUploadInput } from '@/utils/media';
 
 function RegisterPageContent() {
   const router = useRouter();
@@ -33,7 +34,7 @@ function RegisterPageContent() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('athlete');
   const [institutionName, setInstitutionName] = useState('');
-  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [avatarUri, setAvatarUri] = useState<ImageUploadInput>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -129,6 +130,7 @@ function RegisterPageContent() {
           <ProfilePictureUpload
             currentAvatar={avatarUri}
             onUpload={setAvatarUri}
+            onError={setError}
             role={role}
             size="sm"
           />

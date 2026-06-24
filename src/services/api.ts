@@ -22,9 +22,16 @@ import type {
   MembershipPaymentResponse,
   CreateBookingRequest,
   CreateBookingResponse,
+  GymSaasTier,
+  GymSubscription,
+  GymTierCatalog,
   HomeFeed,
   Institution,
   Instructor,
+  JobApplication,
+  JobPosting,
+  JobRoleType,
+  JobStatus,
   Money,
   PaginatedResponse,
   User,
@@ -328,7 +335,7 @@ export function apiGetInstitutionMe() {
 }
 
 export function apiGetInstitution(id: string) {
-  return apiRequest<Institution>(`/institutions/${id}`);
+  return apiRequest<Institution>(`/institutions/${id}`, { auth: false });
 }
 
 export function apiUpdateInstitution(body: Record<string, unknown>) {
@@ -606,6 +613,110 @@ export interface PlanOption {
 
 export function apiGetPlans() {
   return apiRequest<{ data: PlanOption[] }>('/config/plans', { auth: false });
+}
+
+// --- Gym SaaS subscription ---
+
+export function apiGetGymTiers() {
+  return apiRequest<{ data: GymTierCatalog[] }>('/config/gym-tiers', { auth: false });
+}
+
+export function apiGetGymSubscription() {
+  return apiRequest<GymSubscription>('/institutions/me/subscription');
+}
+
+export function apiUpdateGymSubscription(tier: GymSaasTier) {
+  return apiRequest<GymSubscription>('/institutions/me/subscription', {
+    method: 'PATCH',
+    body: JSON.stringify({ tier }),
+  });
+}
+
+// --- Manual member payments ---
+
+export async function apiMarkClubMemberPaid(id: string) {
+  const raw = await apiRequest<unknown>(`/institutions/me/members/${id}/mark-paid`, {
+    method: 'POST',
+  });
+  return normalizeClubMember(raw)!;
+}
+
+export async function apiMarkClubMemberPending(id: string) {
+  const raw = await apiRequest<unknown>(`/institutions/me/members/${id}/mark-pending`, {
+    method: 'POST',
+  });
+  return normalizeClubMember(raw)!;
+}
+
+// --- Job postings (gym) ---
+
+export function apiListGymJobs() {
+  return apiRequest<{ data: JobPosting[] }>('/institutions/me/jobs');
+}
+
+export function apiGetGymJob(id: string) {
+  return apiRequest<JobPosting>(`/institutions/me/jobs/${id}`);
+}
+
+export function apiCreateGymJob(body: {
+  title: string;
+  roleType?: JobRoleType;
+  description?: string;
+  disciplines?: string[];
+  status?: JobStatus;
+  expiresAt?: string | null;
+}) {
+  return apiRequest<JobPosting>('/institutions/me/jobs', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiUpdateGymJob(
+  id: string,
+  body: Partial<{
+    title: string;
+    roleType: JobRoleType;
+    description: string;
+    disciplines: string[];
+    status: JobStatus;
+    expiresAt: string | null;
+  }>,
+) {
+  return apiRequest<JobPosting>(`/institutions/me/jobs/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiDeleteGymJob(id: string) {
+  return apiRequest<void>(`/institutions/me/jobs/${id}`, { method: 'DELETE' });
+}
+
+export function apiListJobApplications(jobId: string) {
+  return apiRequest<{ data: JobApplication[] }>(`/institutions/me/jobs/${jobId}/applications`);
+}
+
+// --- Job postings (public / instructor) ---
+
+export function apiListOpenJobs(q?: string) {
+  const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+  return apiRequest<{ data: JobPosting[] }>(`/jobs${qs}`, { auth: false });
+}
+
+export function apiGetOpenJob(id: string) {
+  return apiRequest<JobPosting>(`/jobs/${id}`, { auth: false });
+}
+
+export function apiApplyToJob(id: string, body: { message?: string } = {}) {
+  return apiRequest<JobApplication>(`/jobs/${id}/apply`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiListMyJobApplications() {
+  return apiRequest<{ data: JobApplication[] }>('/instructors/me/job-applications');
 }
 
 export interface PaymentDetail {

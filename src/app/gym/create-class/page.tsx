@@ -30,7 +30,7 @@ import {
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { apiListLinkedInstructors, type LinkedInstructor } from '@/services/api';
 import { resolveInstitutionId } from '@/utils/gym-classes';
-import { combineDateAndTime, dateToTimeString, defaultClassStart, timeStringToDate } from '@/utils/schedule';
+import { classStartAtFromForm, dateToTimeString, defaultClassStart, formatLocalDateInput } from '@/utils/schedule';
 import { ApiClientError } from '@/services/api-client';
 import type { Modality } from '@/types/api';
 
@@ -53,7 +53,7 @@ export default function GymCreateClassPage() {
   const [title, setTitle] = useState('');
   const [discipline, setDiscipline] = useState<string>(DISCIPLINES[0]);
   const [modality, setModality] = useState<Modality>('in_person');
-  const [startDate, setStartDate] = useState(() => defaults.date.toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(() => formatLocalDateInput(defaults.date));
   const [startTime, setStartTime] = useState(() => dateToTimeString(defaults.time));
   const [duration, setDuration] = useState('60');
   const [price, setPrice] = useState(String(DEFAULT_CLASS_PRICE_UYU));
@@ -72,7 +72,7 @@ export default function GymCreateClassPage() {
 
   const previewStartAt = useMemo(() => {
     try {
-      return combineDateAndTime(new Date(startDate), timeStringToDate(startTime)).toISOString();
+      return classStartAtFromForm(startDate, startTime);
     } catch {
       return '';
     }
@@ -120,7 +120,7 @@ export default function GymCreateClassPage() {
       const durationMinutes = parseInt(duration, 10);
       const priceAmount = Math.round(parseFloat(price) * 100);
       const cap = parseInt(capacity, 10);
-      const startAt = combineDateAndTime(new Date(startDate), timeStringToDate(startTime)).toISOString();
+      const startAt = classStartAtFromForm(startDate, startTime);
 
       await addClass({
         title: title.trim(),

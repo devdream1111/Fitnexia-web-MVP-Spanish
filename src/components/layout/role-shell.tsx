@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { 
-  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, IdCard
+  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, IdCard, Briefcase
 } from 'lucide-react';
 
 import { Logo } from './Logo';
@@ -14,6 +14,7 @@ import { useAppTheme } from '@/contexts/theme-context';
 import { useNotifications } from '@/contexts/notifications-context';
 import { useFeature } from '@/hooks/use-feature';
 import type { UserRole } from '@/types/api';
+import { resolveMediaUrl } from '@/utils/media';
 
 type NavItem = { href: string; label: string; icon: React.ReactNode };
 
@@ -27,12 +28,14 @@ const INSTRUCTOR_NAV: NavItem[] = [
   { href: '/instructor/dashboard', label: TAB_LABELS.instructor.dashboard, icon: <BarChart3 size={18} /> },
   { href: '/instructor/classes', label: TAB_LABELS.instructor.classes, icon: <BookOpen size={18} /> },
   { href: '/instructor/calendar', label: TAB_LABELS.instructor.calendar, icon: <Calendar size={18} /> },
+  { href: '/instructor/jobs', label: TAB_LABELS.instructor.jobs, icon: <Briefcase size={18} /> },
   { href: '/instructor/earnings', label: TAB_LABELS.instructor.earnings, icon: <DollarSign size={18} /> },
 ];
 
 const GYM_NAV_BASE: NavItem[] = [
   { href: '/gym/dashboard', label: TAB_LABELS.gym.dashboard, icon: <BarChart3 size={18} /> },
   { href: '/gym/instructors', label: TAB_LABELS.gym.staff, icon: <Users size={18} /> },
+  { href: '/gym/jobs', label: TAB_LABELS.gym.jobs, icon: <Briefcase size={18} /> },
   { href: '/gym/classes', label: TAB_LABELS.gym.classes, icon: <BookOpen size={18} /> },
   { href: '/gym/earnings', label: TAB_LABELS.gym.earnings, icon: <DollarSign size={18} /> },
 ];
@@ -178,7 +181,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
               >
                 {user.avatarUri ? (
                   <img
-                    src={user.avatarUri}
+                    src={resolveMediaUrl(user.avatarUri) ?? user.avatarUri}
                     alt="Profile"
                     className="h-9 w-9 rounded-full object-cover border-2 border-[var(--fn-surface-muted)]"
                   />

@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import { BUTTON_LABELS, GENERAL_LABELS, PROFILE_PAGE_LABELS } from '@/constants/labels';
 import type { UserRole } from '@/types/api';
+import type { ImageUploadInput } from '@/utils/media';
 
 /** Keep nodes mounted; toggle visibility only — safe with browser translators + React. */
 export function toggleVisible(visible: boolean, className = '') {
@@ -49,6 +50,7 @@ export function ProfileHero({
   onSave,
   onCancel,
   onAvatarUpload,
+  onAvatarError,
 }: {
   gradientClass: string;
   badgeLabel: string;
@@ -56,13 +58,14 @@ export function ProfileHero({
   name: string;
   email: string;
   memberSince?: string;
-  avatarUri?: string | null;
+  avatarUri?: ImageUploadInput;
   uploadRole: UserRole;
   isEditing: boolean;
   onEdit: () => void;
   onSave: () => void;
   onCancel: () => void;
-  onAvatarUpload: (uri: string) => void;
+  onAvatarUpload: (value: string | File) => void;
+  onAvatarError?: (message: string) => void;
 }) {
   return (
     <div className={`relative bg-gradient-to-br ${gradientClass} px-6 py-10 md:px-10`}>
@@ -76,6 +79,7 @@ export function ProfileHero({
             <ProfilePictureUpload
               currentAvatar={avatarUri}
               onUpload={onAvatarUpload}
+              onError={onAvatarError}
               role={uploadRole}
               size="lg"
               editable={isEditing}

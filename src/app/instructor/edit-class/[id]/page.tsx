@@ -30,16 +30,11 @@ import {
 } from '@/constants/labels';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { ApiClientError } from '@/services/api-client';
-import { combineDateAndTime, dateToTimeString, timeStringToDate } from '@/utils/schedule';
+import {
+  classStartAtFromForm,
+  splitClassStartForForm,
+} from '@/utils/schedule';
 import type { ClassFormat, ClassListItem, Modality } from '@/types/api';
-
-function splitClassStart(startAt: string) {
-  const date = new Date(startAt);
-  return {
-    date: date.toISOString().slice(0, 10),
-    time: dateToTimeString(date),
-  };
-}
 
 export default function EditClassPage() {
   const { id } = useParams<{ id: string }>();
@@ -54,8 +49,8 @@ export default function EditClassPage() {
   const [discipline, setDiscipline] = useState(() => coerceDiscipline(cls?.discipline));
   const [modality, setModality] = useState<Modality>(cls?.modality ?? 'in_person');
   const [classFormat, setClassFormat] = useState<ClassFormat>(cls?.classFormat ?? 'group');
-  const [startDate, setStartDate] = useState(() => (cls ? splitClassStart(cls.startAt).date : ''));
-  const [startTime, setStartTime] = useState(() => (cls ? splitClassStart(cls.startAt).time : ''));
+  const [startDate, setStartDate] = useState(() => (cls ? splitClassStartForForm(cls.startAt).date : ''));
+  const [startTime, setStartTime] = useState(() => (cls ? splitClassStartForForm(cls.startAt).time : ''));
   const [duration, setDuration] = useState(String(cls?.durationMinutes ?? 60));
   const [price, setPrice] = useState(() =>
     cls?.price ? String((cls.price.amount / 100).toFixed(2)) : '25',
@@ -76,7 +71,7 @@ export default function EditClassPage() {
       setDiscipline(coerceDiscipline(c.discipline));
       setModality(c.modality);
       setClassFormat(c.classFormat ?? 'group');
-      const start = splitClassStart(c.startAt);
+      const start = splitClassStartForForm(c.startAt);
       setStartDate(start.date);
       setStartTime(start.time);
       setDuration(String(c.durationMinutes));
@@ -96,7 +91,7 @@ export default function EditClassPage() {
 
   const previewStartAt = useMemo(() => {
     try {
-      return combineDateAndTime(new Date(startDate), timeStringToDate(startTime)).toISOString();
+      return classStartAtFromForm(startDate, startTime);
     } catch {
       return cls?.startAt ?? '';
     }
@@ -141,7 +136,7 @@ export default function EditClassPage() {
     setError('');
     try {
       const cap = isPrivate ? 1 : parseInt(capacity, 10);
-      const startAt = combineDateAndTime(new Date(startDate), timeStringToDate(startTime)).toISOString();
+      const startAt = classStartAtFromForm(startDate, startTime);
       await updateClass(cls.id, {
         title: title.trim(),
         discipline: coerceDiscipline(discipline),

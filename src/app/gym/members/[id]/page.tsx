@@ -13,13 +13,16 @@ import { Button } from '@/components/ui/button';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import {
   apiFindClubMember,
+  apiGetGymSubscription,
   apiListClubMembershipPlans,
+  apiMarkClubMemberPaid,
+  apiMarkClubMemberPending,
   apiRemoveClubMember,
   apiUpdateClubMember,
 } from '@/services/api';
 import { ApiClientError } from '@/services/api-client';
 import { ALERT_LABELS, CLUB_LABELS, GENERAL_LABELS } from '@/constants/labels';
-import type { ClubMember, ClubMembershipPlan } from '@/types/api';
+import type { ClubMember, ClubMembershipPlan, GymSubscription } from '@/types/api';
 import { formatClubMemberName, normalizePlanList, normalizeUpdatedClubMember } from '@/utils/club-members';
 
 export default function GymMemberDetailPage() {
@@ -28,10 +31,12 @@ export default function GymMemberDetailPage() {
   const { showNotice } = useNoticeModal();
   const [member, setMember] = useState<ClubMember | null>(null);
   const [plans, setPlans] = useState<ClubMembershipPlan[]>([]);
+  const [subscription, setSubscription] = useState<GymSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [paymentBusy, setPaymentBusy] = useState<'paid' | 'pending' | null>(null);
   const [editPlanId, setEditPlanId] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editFirst, setEditFirst] = useState('');
@@ -50,12 +55,14 @@ export default function GymMemberDetailPage() {
     if (!id) return;
     setLoading(true);
     try {
-      const [found, plansRes] = await Promise.all([
+      const [found, plansRes, sub] = await Promise.all([
         apiFindClubMember(id),
         apiListClubMembershipPlans(),
+        apiGetGymSubscription().catch(() => null),
       ]);
       setMember(found);
       setPlans(normalizePlanList(plansRes));
+      setSubscription(sub);
       if (found) resetEditFields(found);
     } catch {
       setMember(null);
@@ -111,6 +118,50 @@ export default function GymMemberDetailPage() {
     }
   };
 
+  const handleMarkPaid = async () => {
+    if (!member) return;
+    setPaymentBusy('paid');
+    try {
+      const updated = await apiMarkClubMemberPaid(member.id);
+      setMember(updated);
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: CLUB_LABELS.members.markPaidSuccess,
+        variant: 'success',
+      });
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: error instanceof ApiClientError ? error.message : 'No se pudo registrar el pago',
+        variant: 'error',
+      });
+    } finally {
+      setPaymentBusy(null);
+    }
+  };
+
+  const handleMarkPending = async () => {
+    if (!member) return;
+    setPaymentBusy('pending');
+    try {
+      const updated = await apiMarkClubMemberPending(member.id);
+      setMember(updated);
+      showNotice({
+        title: ALERT_LABELS.savedTitle,
+        message: CLUB_LABELS.members.markPendingSuccess,
+        variant: 'success',
+      });
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: error instanceof ApiClientError ? error.message : 'No se pudo actualizar el estado',
+        variant: 'error',
+      });
+    } finally {
+      setPaymentBusy(null);
+    }
+  };
+
   const handleDeactivate = async () => {
     if (!member || !window.confirm(CLUB_LABELS.members.deactivateConfirm)) return;
     setDeactivating(true);
@@ -146,12 +197,29 @@ export default function GymMemberDetailPage() {
     );
   }
 
+  const showManualPayments = subscription?.entitlements.manualPayments !== false;
+
   return (
     <div className="space-y-6">
       <PageHeader title={formatClubMemberName(member)} showBack />
       <div className="flex flex-wrap gap-2">
         {!editing ? (
           <Button title={CLUB_LABELS.members.edit} variant="outline" onClick={() => setEditing(true)} />
+        ) : null}
+        {showManualPayments && !editing ? (
+          <>
+            <Button
+              title={CLUB_LABELS.members.markPaid}
+              loading={paymentBusy === 'paid'}
+              onClick={handleMarkPaid}
+            />
+            <Button
+              title={CLUB_LABELS.members.markPending}
+              variant="secondary"
+              loading={paymentBusy === 'pending'}
+              onClick={handleMarkPending}
+            />
+          </>
         ) : null}
         <Button
           title="Baja"
@@ -186,7 +254,9 @@ export default function GymMemberDetailPage() {
         <ClubMemberDetailCard member={member} />
       )}
 
-      <ClubInfoNote>{CLUB_LABELS.members.billingNote}</ClubInfoNote>
+      {showManualPayments ? (
+        <ClubInfoNote>{CLUB_LABELS.members.billingNote}</ClubInfoNote>
+      ) : null}
     </div>
   );
 }

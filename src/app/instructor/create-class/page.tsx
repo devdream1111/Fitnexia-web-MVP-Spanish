@@ -24,7 +24,7 @@ import { ALERT_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
 import { coerceDiscipline, disciplineSelectOptions } from '@/utils/disciplines';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { getLinkedInstructorId } from '@/utils/instructor';
-import { combineDateAndTime, dateToTimeString, defaultClassStart, timeStringToDate } from '@/utils/schedule';
+import { classStartAtFromForm, dateToTimeString, defaultClassStart, formatLocalDateInput } from '@/utils/schedule';
 import { ApiClientError } from '@/services/api-client';
 import type { ClassFormat, Modality } from '@/types/api';
 
@@ -42,7 +42,7 @@ export default function CreateClassPage() {
   const [discipline, setDiscipline] = useState<string>(DISCIPLINES[0]);
   const [modality, setModality] = useState<Modality>('in_person');
   const [classFormat, setClassFormat] = useState<ClassFormat>('group');
-  const [startDate, setStartDate] = useState(() => defaults.date.toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(() => formatLocalDateInput(defaults.date));
   const [startTime, setStartTime] = useState(() => dateToTimeString(defaults.time));
   const [duration, setDuration] = useState('60');
   const [price, setPrice] = useState(String(DEFAULT_CLASS_PRICE_UYU));
@@ -61,7 +61,7 @@ export default function CreateClassPage() {
 
   const previewStartAt = useMemo(() => {
     try {
-      return combineDateAndTime(new Date(startDate), timeStringToDate(startTime)).toISOString();
+      return classStartAtFromForm(startDate, startTime);
     } catch {
       return '';
     }
@@ -84,7 +84,7 @@ export default function CreateClassPage() {
       const durationMinutes = parseInt(duration, 10);
       const priceAmount = Math.round(parseFloat(price) * 100);
       const cap = isPrivate ? 1 : parseInt(capacity, 10);
-      const startAt = combineDateAndTime(new Date(startDate), timeStringToDate(startTime)).toISOString();
+      const startAt = classStartAtFromForm(startDate, startTime);
 
       await addClass({
         title: title.trim(),

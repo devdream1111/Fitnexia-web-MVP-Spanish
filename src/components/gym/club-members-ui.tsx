@@ -252,10 +252,12 @@ export function ClubMembersHero({
   total,
   overdue,
   current,
+  subscription,
 }: {
   total: number;
   overdue: number;
   current: number;
+  subscription?: { memberCount: number; memberLimit: number | null; atLimit: boolean } | null;
 }) {
   const showInvites = useFeature('clubMemberInvites');
   const showPlans = useFeature('clubMembershipPlans');
@@ -273,7 +275,9 @@ export function ClubMembersHero({
           </p>
           <div className="flex flex-wrap gap-3 pt-1">
             <span className="rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
-              {total} socios
+              {subscription?.memberLimit != null
+                ? `${subscription.memberCount}/${subscription.memberLimit} socios`
+                : `${total} socios`}
             </span>
             <span className="rounded-full border border-emerald-300/40 bg-emerald-400/20 px-4 py-1.5 text-sm font-semibold text-emerald-100">
               {current} {CLUB_LABELS.feeStatus.current.toLowerCase()}

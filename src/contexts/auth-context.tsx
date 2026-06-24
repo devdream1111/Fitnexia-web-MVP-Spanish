@@ -4,7 +4,8 @@ import React, { createContext, useCallback, useContext, useMemo, useState, useEf
 
 import { DEFAULT_COUNTRY_CODE, resolveCountryCode } from '@/constants/countries';
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
-import type { Certification, UserRole, WeeklySchedule } from '@/types/api';
+import type { Certification, OpeningHours, UserRole, WeeklySchedule } from '@/types/api';
+import { defaultOpeningHours } from '@/utils/opening-hours';
 import { ApiClientError } from '@/services/api-client';
 import {
   apiForgotPassword,
@@ -24,7 +25,12 @@ import {
 } from '@/services/api';
 import { clearTokens, getRefreshToken, setTokens } from '@/services/api-client';
 import { mapMeToAuthUser } from '@/utils/auth-mapper';
-import { resolveUploadableImageUrl, resolveUploadableImageUrls } from '@/utils/media';
+import {
+  type ImageUploadInput,
+  resolveMediaUrl,
+  resolveUploadableImageUrl,
+  resolveUploadableImageUrls,
+} from '@/utils/media';
 import { defaultWeeklySchedule } from '@/utils/schedule';
 
 export interface NotificationPreferences {
@@ -73,6 +79,11 @@ export interface InstitutionProfileData {
   gallery: string[];
   instructorIds: string[];
   pendingInvites: InstructorInvite[];
+  contactPhone: string;
+  contactEmail: string;
+  website: string;
+  openingHours: OpeningHours;
+  saasTier?: string;
 }
 
 export interface AuthUser {
@@ -134,6 +145,10 @@ export function defaultInstitutionProfile(name: string): InstitutionProfileData 
     gallery: [],
     instructorIds: [],
     pendingInvites: [],
+    contactPhone: '',
+    contactEmail: '',
+    website: '',
+    openingHours: defaultOpeningHours(),
   };
 }
 
@@ -143,7 +158,7 @@ export type RegisterParams = {
   role: UserRole;
   firstName: string;
   lastName: string;
-  avatarUri?: string | null;
+  avatarUri?: ImageUploadInput;
   favoriteSports?: string[];
   disciplines?: string[];
   institutionName?: string;
@@ -151,8 +166,9 @@ export type RegisterParams = {
 };
 
 export type UpdateProfileParams = Partial<
-  Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'avatarUri' | 'favoriteSports'>
+  Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'favoriteSports'>
 > & {
+  avatarUri?: ImageUploadInput;
   notificationPreferences?: Partial<NotificationPreferences>;
   paymentMethods?: PaymentMethod[];
   instructorProfile?: Partial<InstructorProfileData>;
@@ -345,7 +361,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   ...prev,
                   firstName: profile.firstName,
                   lastName: profile.lastName,
-                  avatarUri: profile.photoUrl ?? null,
+                  avatarUri: resolveMediaUrl(profile.photoUrl) ?? null,
                   favoriteSports: profile.favoriteSports ?? [],
                   email: updates.email ?? prev.email,
                 }
@@ -395,6 +411,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const body: Record<string, unknown> = {};
         if (ip?.name !== undefined) body.name = ip.name;
         if (ip?.description !== undefined) body.description = ip.description;
+        if (ip?.contactPhone !== undefined) body.contactPhone = ip.contactPhone.trim() || null;
+        if (ip?.contactEmail !== undefined) body.contactEmail = ip.contactEmail.trim() || null;
+        if (ip?.website !== undefined) body.website = ip.website.trim() || null;
+        if (ip?.openingHours !== undefined) body.openingHours = ip.openingHours;
         if (ip?.gallery !== undefined) {
           body.gallery = await resolveUploadableImageUrls(ip.gallery);
         }

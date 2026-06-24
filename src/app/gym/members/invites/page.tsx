@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Mail, Upload, UserPlus } from 'lucide-react';
 
+import { MemberLimitAlert } from '@/components/gym/gym-saas-plan-cards';
 import {
   ClubAlertBanner,
   ClubEmptyState,
@@ -19,12 +20,13 @@ import {
   apiCancelMembershipInvite,
   apiCreateClubMember,
   apiCreateMembershipInvite,
+  apiGetGymSubscription,
   apiListMembershipInvites,
   apiListClubMembershipPlans,
 } from '@/services/api';
 import { ApiClientError } from '@/services/api-client';
-import { ALERT_LABELS, CLUB_LABELS, GENERAL_LABELS } from '@/constants/labels';
-import type { ClubMemberInvite, ClubMembershipPlan } from '@/types/api';
+import { ALERT_LABELS, CLUB_LABELS, GENERAL_LABELS, GYM_LABELS } from '@/constants/labels';
+import type { ClubMemberInvite, ClubMembershipPlan, GymSubscription } from '@/types/api';
 import { clubPlanCadenceLabel, normalizeInviteList, normalizePlanList } from '@/utils/club-members';
 
 export default function GymMemberInvitesPage() {
@@ -42,15 +44,17 @@ export default function GymMemberInvitesPage() {
   const [manualFirst, setManualFirst] = useState('');
   const [manualLast, setManualLast] = useState('');
   const [manualPhone, setManualPhone] = useState('');
+  const [subscription, setSubscription] = useState<GymSubscription | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     const errors: string[] = [];
 
-    const [plansResult, invitesResult] = await Promise.allSettled([
+    const [plansResult, invitesResult, subResult] = await Promise.allSettled([
       apiListClubMembershipPlans(),
       apiListMembershipInvites(),
+      apiGetGymSubscription(),
     ]);
 
     if (plansResult.status === 'fulfilled') {
@@ -77,6 +81,12 @@ export default function GymMemberInvitesPage() {
       );
     }
 
+    if (subResult.status === 'fulfilled') {
+      setSubscription(subResult.value);
+    } else {
+      setSubscription(null);
+    }
+
     setLoadError(errors[0] ?? null);
     setLoading(false);
   }, []);
@@ -91,7 +101,7 @@ export default function GymMemberInvitesPage() {
   }));
 
   const handleInvite = async () => {
-    if (!planId) return;
+    if (!planId || subscription?.atLimit) return;
     setSending(true);
     try {
       if (email.trim()) {
@@ -123,9 +133,15 @@ export default function GymMemberInvitesPage() {
       setMessage('');
       await load();
     } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.code === 'MEMBER_LIMIT_REACHED'
+            ? GYM_LABELS.saas.limitBlocked
+            : error.message
+          : 'No se pudo enviar';
       showNotice({
         title: ALERT_LABELS.missingInfoTitle,
-        message: error instanceof ApiClientError ? error.message : 'No se pudo enviar',
+        message,
         variant: 'error',
       });
     } finally {
@@ -134,7 +150,7 @@ export default function GymMemberInvitesPage() {
   };
 
   const handleCreateLink = async () => {
-    if (!planId) return;
+    if (!planId || subscription?.atLimit) return;
     setSending(true);
     try {
       const invite = await apiCreateMembershipInvite({ planId, message: message || undefined });
@@ -218,6 +234,8 @@ export default function GymMemberInvitesPage() {
     <div className="space-y-6">
       <ClubInvitesHero />
 
+      {subscription ? <MemberLimitAlert subscription={subscription} /> : null}
+
       {loadError ? <ClubAlertBanner>{loadError}</ClubAlertBanner> : null}
 
       {loading ? (
@@ -250,12 +268,18 @@ export default function GymMemberInvitesPage() {
               onChange={(e) => setMessage(e.target.value)}
             />
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button title={CLUB_LABELS.invites.send} onClick={handleInvite} loading={sending} />
+              <Button
+                title={CLUB_LABELS.invites.send}
+                onClick={handleInvite}
+                loading={sending}
+                disabled={subscription?.atLimit}
+              />
               <Button
                 title={CLUB_LABELS.invites.createLink}
                 variant="outline"
                 onClick={handleCreateLink}
                 loading={sending}
+                disabled={subscription?.atLimit}
               />
             </div>
           </ClubSection>

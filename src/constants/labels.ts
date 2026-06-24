@@ -57,6 +57,7 @@ export const TAB_LABELS = {
     classes: 'Clases',
     calendar: 'Calendario',
     earnings: 'Ingresos',
+    jobs: 'Empleos',
     profile: 'Perfil',
   },
   gym: {
@@ -64,6 +65,7 @@ export const TAB_LABELS = {
     staff: 'Personal',
     members: 'Socios',
     membershipPlans: 'Planes',
+    jobs: 'Empleos',
     classes: 'Clases',
     earnings: 'Ingresos',
     profile: 'Gimnasio',
@@ -736,10 +738,53 @@ export const GYM_LABELS = {
   },
   plan: {
     yourPlan: 'Tu plan',
-    planTitle: 'Plan de gym',
-    planDescription: 'Compara planes y comisiones disponibles para tu gimnasio.',
+    planTitle: 'Plan Fitnexia',
+    planDescription:
+      'Tu suscripción Fitnexia define el límite de socios activos y las funciones incluidas. Las cuotas que cobrás a tus socios se configuran aparte.',
     loadError: 'No se pudieron cargar los planes.',
   },
+  saas: {
+    currentPlan: 'Plan Fitnexia',
+    currentBadge: 'Plan actual',
+    memberUsage: 'Socios activos',
+    billingManual: 'Facturación manual (contacto comercial)',
+    atLimit: 'Límite alcanzado',
+    remaining: (n: number) => `${n} cupos disponibles`,
+    selectPlan: 'Seleccionar plan',
+    tierUpdated: 'Plan actualizado correctamente.',
+    memberLimitReached: (limit: number) =>
+      `Alcanzaste el límite de ${limit} socios activos de tu plan. Actualizá tu plan Fitnexia o dá de baja socios para agregar más.`,
+    limitBlocked: 'No podés agregar más socios hasta liberar cupo o cambiar de plan.',
+  },
+  jobs: {
+    title: 'Ofertas de empleo',
+    subtitle: 'Publicá vacantes para instructores, entrenadores y staff.',
+    create: 'Nueva oferta',
+    empty: 'No hay ofertas publicadas.',
+    applications: 'Postulaciones',
+    apply: 'Postularme',
+    applied: 'Ya postulaste a esta oferta.',
+    applySuccess: 'Postulación enviada correctamente.',
+    saved: 'Oferta guardada.',
+    deleted: 'Oferta eliminada.',
+    browseTitle: 'Empleos en gimnasios',
+    browseSubtitle: 'Encontrá oportunidades en clubs de Fitnexia.',
+    myApplications: 'Mis postulaciones',
+    noApplications: 'Aún no postulaste a ninguna oferta.',
+    fields: {
+      title: 'Título',
+      roleType: 'Tipo de rol',
+      description: 'Descripción',
+      disciplines: 'Disciplinas (separadas por coma)',
+      status: 'Estado',
+      expiresAt: 'Vence (opcional)',
+    },
+  },
+} as const;
+
+export const INSTRUCTOR_JOB_LABELS = {
+  planDescription:
+    'Compara comisiones de marketplace según tu plan de instructor. Los cobros de clases usan Mercado Pago cuando el marketplace está activo.',
 } as const;
 
 export const CLUB_LABELS = {
@@ -784,7 +829,11 @@ export const CLUB_LABELS = {
     empty: 'No hay socios registrados.',
     loadError: 'No se pudieron cargar los socios. El servicio puede no estar disponible todavía.',
     billingNote:
-      'El débito automático lo autoriza el socio desde su app (Membresía del club → Estado de cuenta).',
+      'Con cobros manuales, registrá cada pago desde el detalle del socio. Los recordatorios automáticos se envían antes del vencimiento.',
+    markPaid: 'Marcar como pagado',
+    markPending: 'Marcar como pendiente',
+    markPaidSuccess: 'Pago registrado. El socio quedó al día.',
+    markPendingSuccess: 'Cuota marcada como pendiente.',
     deactivateConfirm: '¿Dar de baja a este socio?',
     deactivated: 'Socio dado de baja.',
     saved: 'Socio guardado.',

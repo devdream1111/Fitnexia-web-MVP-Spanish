@@ -1,4 +1,5 @@
 import type { WeeklyDaySchedule, WeeklySchedule } from '@/types/api';
+import { parseClassStartAt } from '@/utils/format';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
@@ -39,6 +40,38 @@ export function combineDateAndTime(date: Date, time: Date): Date {
   const result = new Date(date);
   result.setHours(time.getHours(), time.getMinutes(), 0, 0);
   return result;
+}
+
+/** Parse YYYY-MM-DD from <input type="date"> as local midnight (not UTC). */
+export function parseLocalDateOnly(ymd: string): Date {
+  const [year, month, day] = ymd.split('-').map(Number);
+  if (!year || !month || !day) {
+    throw new Error('Invalid date');
+  }
+  return new Date(year, month - 1, day);
+}
+
+/** Format a Date for <input type="date"> in the user's local timezone. */
+export function formatLocalDateInput(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** Build API startAt from form date + time fields. */
+export function classStartAtFromForm(startDate: string, startTime: string): string {
+  const date = parseLocalDateOnly(startDate);
+  return timeStringToDate(startTime, date).toISOString();
+}
+
+/** Split API startAt into form fields (local calendar date + HH:MM). */
+export function splitClassStartForForm(startAt: string): { date: string; time: string } {
+  const local = parseClassStartAt(startAt);
+  return {
+    date: formatLocalDateInput(local),
+    time: dateToTimeString(local),
+  };
 }
 
 export function formatScheduleDay(day: WeeklyDaySchedule): string {
