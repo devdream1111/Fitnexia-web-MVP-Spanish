@@ -533,7 +533,7 @@ export function JobsSearchBar({
         label="Buscar empleos"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder ?? 'Yoga, CrossFit, Pilates…'}
+        placeholder={placeholder ?? 'Yoga, Entrenamiento cross, Pilates…'}
         className="flex-1"
         onKeyDown={(e) => e.key === 'Enter' && onSearch()}
       />

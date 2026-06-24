@@ -137,7 +137,7 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const removeReview = useCallback((_id: string) => {
-    // Admin-only mock moderation — no backend endpoint for athletes
+    // Admin-only moderation — no backend endpoint for athletes yet
   }, []);
 
   const value = useMemo(

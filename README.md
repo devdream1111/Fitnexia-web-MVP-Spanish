@@ -1,43 +1,38 @@
 # Fitnexia Web
 
-Web client for Fitnexia — **same MVP functionality** as [fitnexia-mobile](../fitnexia-mobile), built with **Next.js 15** (App Router) and Tailwind CSS.
+Web client for Fitnexia — built with **Next.js** (App Router) and Tailwind CSS. Connects to the shared Fitnexia API (`fitnexia-backend`).
 
 ## Shared with mobile
 
-Copied/synced from the mobile app (keep in sync when contracts change):
+Keep in sync when API contracts change:
 
 - `src/types/api.ts` — API DTOs
 - `src/constants/features.ts` — feature flags
 - `src/constants/labels.ts` — product copy
-- `src/data/mock.ts` — mock data
 - `src/utils/*` — search, metrics, schedule helpers
-- `src/contexts/*` — auth, classes, reviews (in-memory mock)
+- `src/contexts/*` — auth, classes, bookings, reviews (API-backed)
+- `src/services/api.ts` — API client
 
-API docs live in the mobile repo: `../fitnexia-mobile/docs/API.md`
+API docs: `fitnexia-backend/docs/API.md`
 
 ## Get started
 
 ```bash
-cd fitnexia-web
 npm install
+cp .env.example .env.local   # set NEXT_PUBLIC_API_URL, OAuth, etc.
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Flow matches mobile:
-
-1. Onboarding → Login
-2. **Quick demo**: Athlete / Coach / Gym
-3. Same role tabs and flows (search, book, instructor dashboard, gym metrics, etc.)
-
 ## Environment
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.staging.fitnexia.com/v1
+NEXT_PUBLIC_API_URL=https://your-api-host/fitnexia-api/v1
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Not used until the API client is wired; mock auth/data work offline.
+See `.env.example` for Google OAuth variables.
 
 ## Scripts
 
@@ -51,17 +46,11 @@ Not used until the API client is wired; mock auth/data work offline.
 
 | Mobile (Expo Router) | Web (Next.js) |
 |----------------------|---------------|
-| `/(auth)/onboarding` | `/auth/onboarding` |
+| `/(auth)/onboarding` | `/onboarding` |
 | `/(auth)/login` | `/auth/login` |
 | `/(athlete)/(tabs)/home` | `/athlete/home` |
 | `/class/[id]` | `/class/[id]` |
 | `/book/[classId]` | `/book/[classId]` |
 | `/(instructor)/(tabs)/dashboard` | `/instructor/dashboard` |
-| `/(gym)/(tabs)/metrics` | `/gym/metrics` |
-| `/create-class` | `/create-class` |
-
-## Next steps
-
-1. Extract `types`, `constants`, `data`, `utils` into a shared `packages/` workspace.
-2. Add `services/api-client.ts` and persist auth (cookies / secure storage).
-3. Align remaining profile sub-screens with mobile pixel-detail where needed.
+| `/(gym)/(tabs)/dashboard` | `/gym/dashboard` |
+| `/create-class` | `/instructor/create-class` |

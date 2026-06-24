@@ -1,6 +1,6 @@
 import type { AuthUser } from '@/contexts/auth-context';
 
-/** Mock instructor id linked to the logged-in instructor account */
+/** Instructor profile id from the authenticated user session */
 export function getLinkedInstructorId(user: AuthUser | null | undefined): string {
-  return user?.instructorId ?? 'inst-1';
+  return user?.instructorId ?? '';
 }

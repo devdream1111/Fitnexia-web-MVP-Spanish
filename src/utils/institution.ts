@@ -1,6 +1,6 @@
-/** Mock institution id linked to the logged-in gym account */
+/** Institution profile id from the authenticated user session */
 export function getLinkedInstitutionId(
   user: { institutionId?: string } | null | undefined,
 ): string {
-  return user?.institutionId ?? 'gym-1';
+  return user?.institutionId ?? '';
 }

@@ -126,8 +126,8 @@ export const DISCIPLINES = [
   'Entrenamiento para adultos mayores',
   'Entrenamiento para embarazadas',
   'Zumba/Ritmos',
-  'Indoor Cycling',
-  'Pilates Mat/Reformer',
+  'Ciclismo indoor',
+  'Pilates suelo/reformer',
   'Tenis',
   'Pádel',
   'Hidrogimnasia',
@@ -137,7 +137,7 @@ export const DISCIPLINES = [
   'Voleibol',
   'Hockey',
   'Yoga',
-  'Crossfit',
+  'Entrenamiento cross',
   'Otros',
 ] as const;
 
@@ -152,14 +152,6 @@ export const DEFAULT_MAP_CENTER = {
   lat: -34.9614,
   lng: -54.9478,
 } as const;
-
-export const MOCK_LOCATION_AREAS = [
-  'Centro',
-  'FitHub',
-  'Loft de Bienestar',
-  'Canchas Centrales',
-  'Online',
-] as const;
 
 export const PRICE_RANGES = [
   { id: 'any', label: 'Cualquier precio', min: 0, max: Infinity },

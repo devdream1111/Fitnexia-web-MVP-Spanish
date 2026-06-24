@@ -7,7 +7,9 @@ export default function GalleryPage() {
   return (
     <div>
       <PageHeader title={PROFILE_MENU_LABELS.photoGallery} showBack />
-      <p className="text-[var(--fn-text-muted)]">Photo gallery — mock on mobile, placeholder on web.</p>
+      <p className="text-[var(--fn-text-muted)]">
+        La galería se gestiona desde el perfil del gimnasio.
+      </p>
     </div>
   );
 }

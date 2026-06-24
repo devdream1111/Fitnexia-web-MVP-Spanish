@@ -86,7 +86,7 @@ export default function InstructorProfilePage() {
     }
   }, [user, isEditing]);
 
-  const instructorId = user?.instructorId ?? 'inst-1';
+  const instructorId = user?.instructorId ?? '';
   const myClasses = useMemo(() => getClassesByInstructor(instructorId), [getClassesByInstructor, instructorId]);
   const upcomingClasses = useMemo(
     () => myClasses.filter((c) => new Date(c.startAt) > new Date()).length,
