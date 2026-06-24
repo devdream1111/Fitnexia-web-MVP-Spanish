@@ -16,6 +16,7 @@ import {
   ClassFormShell,
   classFormatModalityOptions,
 } from '@/components/class-form/class-form-ui';
+import { ClassLocationField } from '@/components/class-form/class-location-field';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { ClassCancelPanel } from '@/components/class-form/class-cancel-panel';
@@ -34,6 +35,7 @@ import {
   classStartAtFromForm,
   splitClassStartForForm,
 } from '@/utils/schedule';
+import { buildLocationPayload, labelFromClassLocation } from '@/utils/class-location';
 import type { ClassFormat, ClassListItem, Modality } from '@/types/api';
 
 export default function EditClassPage() {
@@ -56,6 +58,7 @@ export default function EditClassPage() {
     cls?.price ? String((cls.price.amount / 100).toFixed(2)) : '25',
   );
   const [capacity, setCapacity] = useState(String(cls?.capacity ?? 12));
+  const [locationLabel, setLocationLabel] = useState(() => labelFromClassLocation(cls?.location));
   const [loading, setLoading] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
@@ -77,6 +80,7 @@ export default function EditClassPage() {
       setDuration(String(c.durationMinutes));
       setPrice(String((c.price.amount / 100).toFixed(2)));
       setCapacity(String(c.capacity ?? 12));
+      setLocationLabel(labelFromClassLocation(c.location));
     });
   }, [id, cls, fetchClassById]);
 
@@ -132,6 +136,14 @@ export default function EditClassPage() {
   };
 
   const save = async () => {
+    if (modality === 'in_person' && !locationLabel.trim()) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: INSTRUCTOR_LABELS.classForm.locationRequired,
+        variant: 'error',
+      });
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -149,6 +161,7 @@ export default function EditClassPage() {
           currency: cls.price.currency || DEFAULT_CURRENCY,
         },
         capacity: cap,
+        location: buildLocationPayload(modality, locationLabel, cls.location),
       });
       showNotice({
         title: ALERT_LABELS.savedTitle,
@@ -198,6 +211,9 @@ export default function EditClassPage() {
                 onChange={setClassFormat}
                 options={segmentOptions.classFormat}
               />
+              {modality === 'in_person' ? (
+                <ClassLocationField value={locationLabel} onChange={setLocationLabel} />
+              ) : null}
             </ClassFormSection>
 
             <ClassFormSection
@@ -274,6 +290,7 @@ export default function EditClassPage() {
               priceAmount={Math.round(parseFloat(price || '0') * 100)}
               capacity={isPrivate ? 1 : parseInt(capacity, 10) || 0}
               instructorName={instructorName}
+              locationLabel={modality === 'in_person' ? locationLabel : undefined}
             />
             {error ? <p className="text-sm text-[var(--fn-error)]">{error}</p> : null}
             <Button

@@ -17,13 +17,15 @@ import {
   ClassFormShell,
   classFormatModalityOptions,
 } from '@/components/class-form/class-form-ui';
+import { ClassLocationField } from '@/components/class-form/class-location-field';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
-import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DEFAULT_MAP_CENTER, DISCIPLINES } from '@/constants/fitnexia';
+import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DISCIPLINES } from '@/constants/fitnexia';
 import { ALERT_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
 import { coerceDiscipline, disciplineSelectOptions } from '@/utils/disciplines';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { getLinkedInstructorId } from '@/utils/instructor';
+import { buildLocationPayload } from '@/utils/class-location';
 import { classStartAtFromForm, dateToTimeString, defaultClassStart, formatLocalDateInput } from '@/utils/schedule';
 import { ApiClientError } from '@/services/api-client';
 import type { ClassFormat, Modality } from '@/types/api';
@@ -47,6 +49,7 @@ export default function CreateClassPage() {
   const [duration, setDuration] = useState('60');
   const [price, setPrice] = useState(String(DEFAULT_CLASS_PRICE_UYU));
   const [capacity, setCapacity] = useState('12');
+  const [locationLabel, setLocationLabel] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -78,6 +81,14 @@ export default function CreateClassPage() {
       });
       return;
     }
+    if (modality === 'in_person' && !locationLabel.trim()) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: INSTRUCTOR_LABELS.classForm.locationRequired,
+        variant: 'error',
+      });
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -98,10 +109,7 @@ export default function CreateClassPage() {
         capacity: cap,
         spotsLeft: cap,
         instructor: { id: instructorId, displayName: instructorName },
-        location:
-          modality === 'in_person'
-            ? { lat: DEFAULT_MAP_CENTER.lat, lng: DEFAULT_MAP_CENTER.lng, label: 'Studio' }
-            : undefined,
+        location: buildLocationPayload(modality, locationLabel),
       });
       showNotice({
         title: ALERT_LABELS.savedTitle,
@@ -159,6 +167,9 @@ export default function CreateClassPage() {
                 onChange={setClassFormat}
                 options={segmentOptions.classFormat}
               />
+              {modality === 'in_person' ? (
+                <ClassLocationField value={locationLabel} onChange={setLocationLabel} />
+              ) : null}
             </ClassFormSection>
 
             <ClassFormSection
@@ -234,6 +245,7 @@ export default function CreateClassPage() {
               priceAmount={Math.round(parseFloat(price || '0') * 100)}
               capacity={isPrivate ? 1 : parseInt(capacity, 10) || 0}
               instructorName={instructorName}
+              locationLabel={modality === 'in_person' ? locationLabel : undefined}
             />
             {error ? <p className="text-sm text-[var(--fn-error)]">{error}</p> : null}
             <Button

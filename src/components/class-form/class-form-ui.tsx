@@ -117,6 +117,7 @@ export function ClassFormPreview({
   priceAmount,
   capacity,
   instructorName,
+  locationLabel,
 }: {
   title: string;
   discipline: string;
@@ -127,6 +128,7 @@ export function ClassFormPreview({
   priceAmount: number;
   capacity: number;
   instructorName: string;
+  locationLabel?: string;
 }) {
   const price = formatMoney({ amount: priceAmount, currency: DEFAULT_CURRENCY });
   const disciplineLabel =
@@ -157,6 +159,14 @@ export function ClassFormPreview({
               {startAt ? formatClassDate(startAt) : '—'}
             </dd>
           </div>
+          {modality === 'in_person' ? (
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">Dónde</dt>
+              <dd className="mt-1 font-medium text-[var(--fn-text)]">
+                {locationLabel?.trim() || '—'}
+              </dd>
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">Duración</dt>
