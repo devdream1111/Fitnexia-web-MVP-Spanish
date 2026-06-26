@@ -642,7 +642,6 @@ html:has(.fn-landing) {
 }
 
 .fn-landing-menu-btn {
-  display: flex;
   height: 2.5rem;
   width: 2.5rem;
   flex-shrink: 0;
@@ -654,6 +653,14 @@ html:has(.fn-landing) {
   color: #fff;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
+}
+
+@media (min-width: 1024px) {
+  .fn-landing-menu-btn,
+  .fn-landing-menu-backdrop,
+  .fn-landing-mobile-menu {
+    display: none !important;
+  }
 }
 
 .fn-landing-header--solid .fn-landing-menu-btn,

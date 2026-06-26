@@ -44,6 +44,15 @@ export function LandingHeader() {
     };
   }, [menuOpen, closeMenu]);
 
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => {
+      if (media.matches) closeMenu();
+    };
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, [closeMenu]);
+
   const headerClass = `fn-landing-header${scrolled ? ' fn-landing-header--solid' : ''}${menuOpen ? ' fn-landing-header--menu-open' : ''}`;
 
   return (
@@ -99,7 +108,7 @@ export function LandingHeader() {
 
         <button
           type="button"
-          className="fn-landing-menu-btn lg:hidden"
+          className="fn-landing-menu-btn flex lg:hidden"
           aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
           aria-expanded={menuOpen}
           aria-controls="landing-mobile-menu"
