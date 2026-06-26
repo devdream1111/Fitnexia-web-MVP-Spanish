@@ -659,6 +659,29 @@ export const INSTRUCTOR_LABELS = {
   },
 } as const;
 
+export const INSTITUTION_PROFILE_LABELS = {
+  email: 'Correo electrónico (gimnasio y club)',
+  emailHint: 'Este correo es tu acceso al panel y el contacto público del club.',
+  phone: 'Teléfono (gimnasio y club)',
+  address: 'Dirección (gimnasio y club)',
+  city: 'Ciudad (gimnasio y club)',
+  country: 'País (gimnasio y club)',
+  name: 'Nombre (gimnasio y club)',
+  description: 'Descripción (gimnasio y club)',
+  website: 'Sitio web (gimnasio y club)',
+  openingHours: 'Horario de apertura (club)',
+  publicClubLink: 'Ver perfil público del club',
+} as const;
+
+export const PUBLIC_CLUB_LABELS = {
+  eyebrow: 'Club Fitnexia',
+  contact: 'Contacto (gimnasio y club)',
+  description: 'Descripción (gimnasio y club)',
+  openingHours: 'Horario de apertura (club)',
+  team: 'Equipo',
+  notAvailable: 'No publicado',
+} as const;
+
 export const GYM_LABELS = {
   dashboard: {
     controlPanel: 'Panel de control',
@@ -773,6 +796,7 @@ export const GYM_LABELS = {
     deleted: 'Oferta eliminada.',
     browseTitle: 'Empleos en gimnasios',
     browseSubtitle: 'Encontrá oportunidades en clubs de Fitnexia.',
+    searchPlaceholder: 'Yoga, funcional, Pilates…',
     myApplications: 'Mis postulaciones',
     noApplications: 'Aún no postulaste a ninguna oferta.',
     fields: {

@@ -10,6 +10,7 @@ import {
   Dumbbell,
   MessageSquare,
   Pencil,
+  Search,
   Sparkles,
   Trash2,
   UserCircle,
@@ -528,16 +529,35 @@ export function JobsSearchBar({
   placeholder?: string;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 shadow-sm sm:flex-row sm:items-end">
-      <Input
-        label="Buscar empleos"
+    <div className="relative">
+      <Search
+        className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]"
+        aria-hidden="true"
+      />
+      <input
+        type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder ?? 'Yoga, Entrenamiento cross, Pilates…'}
-        className="flex-1"
         onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+        placeholder={placeholder ?? GYM_LABELS.jobs.searchPlaceholder}
+        className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] py-3.5 pl-12 pr-24 text-sm text-[var(--fn-text)] transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
       />
-      <Button title="Buscar" onClick={onSearch} className="sm:mb-0.5">
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          className="absolute right-[5.5rem] top-1/2 -translate-y-1/2 rounded-full p-1 text-[var(--fn-text-muted)] transition hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]"
+          aria-label="Limpiar búsqueda"
+        >
+          <X size={16} />
+        </button>
+      ) : null}
+      <Button
+        title="Buscar"
+        size="sm"
+        onClick={onSearch}
+        className="absolute right-2 top-1/2 -translate-y-1/2"
+      >
         Buscar
       </Button>
     </div>

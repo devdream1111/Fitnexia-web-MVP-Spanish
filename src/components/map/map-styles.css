@@ -10,7 +10,7 @@
 }
 
 .fn-map-shell .leaflet-container {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   background: #e5e3df;
 }
 

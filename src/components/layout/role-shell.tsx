@@ -123,9 +123,10 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col">
       {/* Header (desktop & mobile) */}
       <header className="sticky top-0 z-50 border-b border-[var(--fn-border)] bg-[var(--fn-surface)]">
-        <div className="fn-layout-shell flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center">
-            <Logo size="md" className="ml-[-31px]" />
+        <div className="fn-layout-shell flex h-14 min-w-0 items-center justify-between gap-2 sm:h-16 sm:gap-3">
+          <Link href="/" className="flex min-w-0 shrink items-center">
+            <Logo size="sm" className="md:hidden" />
+            <Logo size="md" className="hidden md:block lg:ml-[-31px]" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -150,7 +151,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* User Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             {/* Notifications */}
             <Link
               href={getNotificationsLink(user.role)}
@@ -174,11 +175,11 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
 
             {/* User Info with Dropdown */}
             <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-[var(--fn-surface-muted)] transition"
-              >
+            <button
+              type="button"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-1 rounded-xl px-1 py-1 hover:bg-[var(--fn-surface-muted)] transition sm:gap-2 sm:px-2"
+            >
                 {user.avatarUri ? (
                   <img
                     src={resolveMediaUrl(user.avatarUri) ?? user.avatarUri}
@@ -196,7 +197,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
                   <p className="text-sm font-semibold text-[var(--fn-text)]">{user.firstName} {user.lastName}</p>
                   <p className="text-xs text-[var(--fn-text-muted)]">{ROLE_TITLES[user.role as keyof typeof ROLE_TITLES]}</p>
                 </div>
-                <ChevronDown size={16} className="text-[var(--fn-text-muted)]" />
+                <ChevronDown size={16} className="hidden text-[var(--fn-text-muted)] sm:block" />
               </button>
 
               {dropdownOpen && (
@@ -238,23 +239,25 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation (add profile back here) */}
-      <nav className="fixed bottom-0 left-0 right-0 flex border-t border-[var(--fn-border)] bg-[var(--fn-surface)] md:hidden">
+      {/* Mobile Bottom Navigation */}
+      <nav className="fn-mobile-tabbar fixed bottom-0 left-0 right-0 border-t border-[var(--fn-border)] bg-[var(--fn-surface)] md:hidden">
+        <div className="flex w-full min-w-0">
         {[...nav, { href: profileLink, label: DROPDOWN_LABELS.myProfile, icon: <User size={18} /> }].map((item) => {
           const active = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-1 flex-col items-center py-2 text-xs ${
+              className={`fn-mobile-tabbar-item flex min-w-0 flex-1 flex-col items-center px-0.5 py-2 text-[10px] sm:text-xs ${
                 active ? 'text-[var(--fn-primary)]' : 'text-[var(--fn-text-muted)]'
               }`}
             >
               {item.icon}
-              {item.label}
+              <span className="fn-mobile-tabbar-label mt-0.5 max-w-full truncate">{item.label}</span>
             </Link>
           );
         })}
+        </div>
       </nav>
     </div>
   );

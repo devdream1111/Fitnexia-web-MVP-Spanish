@@ -405,14 +405,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (
         user.role === 'institution' &&
-        (updates.institutionProfile || updates.avatarUri !== undefined)
+        (updates.institutionProfile || updates.avatarUri !== undefined || updates.email !== undefined)
       ) {
         const ip = updates.institutionProfile;
         const body: Record<string, unknown> = {};
         if (ip?.name !== undefined) body.name = ip.name;
         if (ip?.description !== undefined) body.description = ip.description;
         if (ip?.contactPhone !== undefined) body.contactPhone = ip.contactPhone.trim() || null;
-        if (ip?.contactEmail !== undefined) body.contactEmail = ip.contactEmail.trim() || null;
+        if (ip?.contactEmail !== undefined) {
+          body.contactEmail = ip.contactEmail.trim() || null;
+        } else if (updates.email !== undefined) {
+          body.contactEmail = updates.email.trim() || null;
+        }
         if (ip?.website !== undefined) body.website = ip.website.trim() || null;
         if (ip?.openingHours !== undefined) body.openingHours = ip.openingHours;
         if (ip?.gallery !== undefined) {
@@ -435,6 +439,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (Object.keys(body).length > 0) {
           await apiUpdateInstitution(body);
           await refreshUser();
+        } else if (updates.email) {
+          setUser((prev) => (prev ? { ...prev, email: updates.email! } : prev));
         }
       }
     },

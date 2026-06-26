@@ -9,7 +9,7 @@ import { PublicClubProfile } from '@/components/club/public-club-profile';
 import { GENERAL_LABELS } from '@/constants/labels';
 import { apiGetInstitution } from '@/services/api';
 import type { Institution } from '@/types/api';
-import { normalizeOpeningHours } from '@/utils/opening-hours';
+import { normalizePublicInstitution } from '@/utils/institution-public';
 
 export default function PublicClubPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,12 +20,7 @@ export default function PublicClubPage() {
     if (!id) return;
     setLoading(true);
     apiGetInstitution(id)
-      .then((data) =>
-        setInstitution({
-          ...data,
-          openingHours: normalizeOpeningHours(data.openingHours),
-        }),
-      )
+      .then((data) => setInstitution(normalizePublicInstitution(data)))
       .catch(() => setInstitution(null))
       .finally(() => setLoading(false));
   }, [id]);

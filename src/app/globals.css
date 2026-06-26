@@ -54,7 +54,18 @@ html, body {
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  letter-spacing: -0.015em;
 }
 
 .fn-layout-shell {
@@ -62,6 +73,7 @@ body {
   max-width: var(--fn-layout-max);
   margin-inline: auto;
   padding-inline: 1rem;
+  min-width: 0;
 }
 
 @media (min-width: 768px) {
@@ -101,6 +113,8 @@ body {
 }
 
 @theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --color-fn-bg: var(--fn-bg);
   --color-fn-surface: var(--fn-surface);
   --color-fn-surface-muted: var(--fn-surface-muted);
@@ -555,6 +569,7 @@ html:has(.fn-landing) {
   left: 0;
   right: 0;
   z-index: 50;
+  overflow: visible;
   border-bottom: 1px solid transparent;
   background: rgb(15 23 42 / 28%);
   backdrop-filter: blur(12px);
@@ -624,6 +639,148 @@ html:has(.fn-landing) {
 .fn-landing-header--solid .fn-landing-btn-login {
   border-color: var(--fn-primary) !important;
   color: var(--fn-primary) !important;
+}
+
+.fn-landing-menu-btn {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.fn-landing-header--solid .fn-landing-menu-btn,
+.fn-landing-header--menu-open .fn-landing-menu-btn {
+  border-color: var(--fn-border);
+  background: var(--fn-surface-muted);
+  color: var(--fn-text);
+}
+
+.fn-landing-menu-btn:hover {
+  background: rgb(255 255 255 / 20%);
+}
+
+.fn-landing-header--solid .fn-landing-menu-btn:hover,
+.fn-landing-header--menu-open .fn-landing-menu-btn:hover {
+  background: var(--fn-border);
+}
+
+.fn-landing-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  top: 3.5rem;
+  z-index: 40;
+  border: 0;
+  background: rgb(15 23 42 / 45%);
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .fn-landing-menu-backdrop {
+    top: 4rem;
+  }
+}
+
+.fn-landing-mobile-menu {
+  position: fixed;
+  top: 3.5rem;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  max-height: calc(100dvh - 3.5rem);
+  overflow-y: auto;
+  border-bottom: 1px solid var(--fn-border);
+  background: color-mix(in srgb, var(--fn-surface) 97%, transparent);
+  box-shadow: 0 16px 40px rgb(15 23 42 / 18%);
+  padding: 1rem 1rem 1.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 640px) {
+  .fn-landing-mobile-menu {
+    top: 4rem;
+    max-height: calc(100dvh - 4rem);
+    padding-inline: 2.5rem;
+  }
+}
+
+.fn-landing-header--menu-open {
+  border-bottom-color: var(--fn-border);
+  background: color-mix(in srgb, var(--fn-surface) 97%, transparent);
+  box-shadow: 0 4px 24px rgb(15 23 42 / 8%);
+}
+
+.fn-landing-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fn-landing-mobile-nav-link {
+  display: block;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fn-text);
+  transition: background 0.15s;
+}
+
+.fn-landing-mobile-nav-link:hover {
+  background: var(--fn-surface-muted);
+}
+
+.fn-landing-mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--fn-border);
+}
+
+.fn-landing-mobile-theme {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--fn-border);
+  background: var(--fn-surface-muted);
+  padding: 0.75rem 0.875rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--fn-text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fn-landing-mobile-theme:hover {
+  background: var(--fn-border);
+}
+
+.fn-landing-mobile-theme-icon {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--fn-surface);
+  color: var(--fn-primary);
+}
+
+.fn-landing-header--menu-open .fn-landing-btn-login {
+  border-color: var(--fn-primary) !important;
+  color: var(--fn-primary) !important;
+  background: transparent !important;
 }
 
 /* Hero — horizontal splash carousel */
@@ -1250,16 +1407,51 @@ html:has(.fn-landing) {
 
 .fn-uy-cta-actions {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.75rem;
   margin-top: 2rem;
+}
+
+.fn-uy-cta-actions a,
+.fn-uy-cta-actions button {
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .fn-uy-cta-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .fn-uy-cta-actions a,
+  .fn-uy-cta-actions button {
+    width: auto;
+  }
 }
 
 .fn-uy-cta-note {
   margin-top: 1.25rem;
   font-size: 0.875rem;
   color: var(--fn-text-muted);
+}
+
+/* Role shell — mobile tab bar */
+.fn-mobile-tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 360px) {
+  .fn-mobile-tabbar-label {
+    display: none;
+  }
+
+  .fn-mobile-tabbar-item {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
 }
 
 /* Role dashboards (athlete / instructor / gym) */

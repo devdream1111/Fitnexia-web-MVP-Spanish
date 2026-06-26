@@ -220,7 +220,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
               <ChevronRight size={18} />
             </button>
           </div>
-          <h2 className="ml-2 text-xl font-semibold">
+          <h2 className="ml-0 min-w-0 text-base font-semibold sm:ml-2 sm:text-xl">
             {view === 'month'
               ? currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
               : `${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay() + 6).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}

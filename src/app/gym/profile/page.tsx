@@ -27,13 +27,15 @@ import { resolveInstitutionId } from '@/utils/gym-classes';
 import { COUNTRY_OPTIONS, getCountryLabel, resolveCountryCode } from '@/constants/countries';
 import {
   ALERT_LABELS,
-  AUTH_LABELS,
   BADGE_LABELS,
   DROPDOWN_LABELS,
+  INSTITUTION_PROFILE_LABELS,
   PROFILE_MENU_LABELS,
   PROFILE_PAGE_LABELS,
+  PUBLIC_CLUB_LABELS,
 } from '@/constants/labels';
 import { formatOpeningHoursLine } from '@/utils/opening-hours';
+import { institutionContactEmail } from '@/utils/institution-contact';
 import type { OpeningHours } from '@/types/api';
 import {
   Users,
@@ -62,7 +64,9 @@ export default function GymProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(institutionProfile?.name ?? '');
-  const [email, setEmail] = useState(user?.email ?? '');
+  const [email, setEmail] = useState(() =>
+    institutionContactEmail(user?.email, institutionProfile?.contactEmail),
+  );
   const [address, setAddress] = useState(institutionProfile?.address ?? '');
   const [city, setCity] = useState(institutionProfile?.city ?? '');
   const [country, setCountry] = useState(() =>
@@ -70,7 +74,6 @@ export default function GymProfilePage() {
   );
   const [description, setDescription] = useState(institutionProfile?.description ?? '');
   const [contactPhone, setContactPhone] = useState(institutionProfile?.contactPhone ?? '');
-  const [contactEmail, setContactEmail] = useState(institutionProfile?.contactEmail ?? '');
   const [website, setWebsite] = useState(institutionProfile?.website ?? '');
   const [openingHours, setOpeningHours] = useState<OpeningHours>(
     institutionProfile?.openingHours ?? defaultOpeningHours(),
@@ -81,13 +84,12 @@ export default function GymProfilePage() {
   const resetFields = useCallback(() => {
     const ip = user?.institutionProfile;
     setName(ip?.name ?? '');
-    setEmail(user?.email ?? '');
+    setEmail(institutionContactEmail(user?.email, ip?.contactEmail));
     setAddress(ip?.address ?? '');
     setCity(ip?.city ?? '');
     setCountry(resolveCountryCode(ip?.country));
     setDescription(ip?.description ?? '');
     setContactPhone(ip?.contactPhone ?? '');
-    setContactEmail(ip?.contactEmail ?? '');
     setWebsite(ip?.website ?? '');
     setOpeningHours(ip?.openingHours ?? defaultOpeningHours());
     setAvatarUri(user?.avatarUri ?? null);
@@ -114,7 +116,7 @@ export default function GymProfilePage() {
           description,
           gallery,
           contactPhone,
-          contactEmail,
+          contactEmail: email.trim(),
           website,
           openingHours,
         },
@@ -152,7 +154,7 @@ export default function GymProfilePage() {
           href={`/club/${institutionId}`}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--fn-primary)] hover:opacity-80"
         >
-          Ver perfil público del club
+          {INSTITUTION_PROFILE_LABELS.publicClubLink}
           <ExternalLink size={14} />
         </Link>
       ) : null}
@@ -165,7 +167,7 @@ export default function GymProfilePage() {
           }
           badgeVariant={institutionProfile?.verified ? 'success' : 'warning'}
           name={institutionProfile?.name ?? 'Gimnasio'}
-          email={user?.email ?? ''}
+          email={institutionContactEmail(user?.email, institutionProfile?.contactEmail)}
           avatarUri={isEditing ? avatarUri : user?.avatarUri}
           uploadRole="institution"
           isEditing={isEditing}
@@ -193,38 +195,59 @@ export default function GymProfilePage() {
 
       <ProfileEditFields visible={isEditing}>
         <div className="grid gap-4 md:grid-cols-2">
-          <Input label="Nombre del gimnasio" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label={AUTH_LABELS.email} value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input label="Teléfono del club" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
           <Input
-            label="Email de contacto"
-            type="email"
-            value={contactEmail}
-            onChange={(e) => setContactEmail(e.target.value)}
+            label={INSTITUTION_PROFILE_LABELS.name}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
-          <Input label="Sitio web" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://" />
-          <Input label="Dirección" value={address} onChange={(e) => setAddress(e.target.value)} />
-          <Input label="Ciudad" value={city} onChange={(e) => setCity(e.target.value)} />
+          <Input
+            label={INSTITUTION_PROFILE_LABELS.email}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            label={INSTITUTION_PROFILE_LABELS.phone}
+            value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)}
+          />
+          <Input
+            label={INSTITUTION_PROFILE_LABELS.website}
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            placeholder="https://"
+          />
+          <Input
+            label={INSTITUTION_PROFILE_LABELS.address}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+          <Input
+            label={INSTITUTION_PROFILE_LABELS.city}
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
           <Select
-            label="País"
+            label={INSTITUTION_PROFILE_LABELS.country}
             value={country}
             onChange={setCountry}
             options={[...COUNTRY_OPTIONS]}
             placeholder="Seleccionar país"
           />
         </div>
+        <p className="-mt-2 text-xs text-[var(--fn-text-muted)]">{INSTITUTION_PROFILE_LABELS.emailHint}</p>
         <Textarea
-          label="Descripción"
+          label={INSTITUTION_PROFILE_LABELS.description}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={8}
-          placeholder="Presenta tu gimnasio: instalaciones, servicios y lo que os hace únicos…"
+          placeholder="Presenta tu gimnasio y club: instalaciones, servicios y lo que os hace únicos…"
           className="min-h-[200px] resize-y text-base leading-relaxed"
         />
         <div className="mt-6">
           <h4 className="mb-3 flex items-center gap-2 text-base font-bold">
             <Clock size={18} className="text-[var(--fn-primary)]" />
-            Horario de apertura
+            {INSTITUTION_PROFILE_LABELS.openingHours}
           </h4>
           <OpeningHoursEditor value={openingHours} onChange={setOpeningHours} />
         </div>
@@ -244,37 +267,50 @@ export default function GymProfilePage() {
       </ProfileEditFields>
 
       <div className={toggleVisible(!isEditing, 'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6')}>
-        <h3 className="mb-2 text-lg font-bold">Sobre el gimnasio</h3>
+        <h3 className="mb-2 text-lg font-bold">{INSTITUTION_PROFILE_LABELS.description}</h3>
         <p className="whitespace-pre-wrap text-base leading-relaxed text-[var(--fn-text-secondary)]">
           {institutionProfile?.description || '—'}
         </p>
-        <div className="mt-4 space-y-2 text-sm text-[var(--fn-text-secondary)]">
-          {(institutionProfile?.address || institutionProfile?.city) && (
-            <p className="flex items-center gap-2">
-              <MapPin size={16} className="text-[var(--fn-primary)]" />
+        <h3 className="mb-3 mt-6 text-lg font-bold">{PUBLIC_CLUB_LABELS.contact}</h3>
+        <div className="space-y-3 text-sm text-[var(--fn-text-secondary)]">
+          <p className="flex items-start gap-2">
+            <MapPin size={16} className="mt-0.5 shrink-0 text-[var(--fn-primary)]" />
+            <span>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">
+                {INSTITUTION_PROFILE_LABELS.address}
+              </span>
               {[institutionProfile?.address, institutionProfile?.city, getCountryLabel(institutionProfile?.country)]
                 .filter(Boolean)
-                .join(', ')}
-            </p>
-          )}
-          {institutionProfile?.contactPhone ? (
-            <p className="flex items-center gap-2">
-              <Phone size={16} className="text-[var(--fn-primary)]" />
-              {institutionProfile.contactPhone}
-            </p>
-          ) : null}
-          {institutionProfile?.contactEmail ? (
-            <p className="flex items-center gap-2">
-              <Mail size={16} className="text-[var(--fn-primary)]" />
-              {institutionProfile.contactEmail}
-            </p>
-          ) : null}
-          {institutionProfile?.website ? (
-            <p className="flex items-center gap-2">
-              <Globe size={16} className="text-[var(--fn-primary)]" />
-              {institutionProfile.website}
-            </p>
-          ) : null}
+                .join(', ') || '—'}
+            </span>
+          </p>
+          <p className="flex items-start gap-2">
+            <Phone size={16} className="mt-0.5 shrink-0 text-[var(--fn-primary)]" />
+            <span>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">
+                {INSTITUTION_PROFILE_LABELS.phone}
+              </span>
+              {institutionProfile?.contactPhone || '—'}
+            </span>
+          </p>
+          <p className="flex items-start gap-2">
+            <Mail size={16} className="mt-0.5 shrink-0 text-[var(--fn-primary)]" />
+            <span>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">
+                {INSTITUTION_PROFILE_LABELS.email}
+              </span>
+              {institutionContactEmail(user?.email, institutionProfile?.contactEmail) || '—'}
+            </span>
+          </p>
+          <p className="flex items-start gap-2">
+            <Globe size={16} className="mt-0.5 shrink-0 text-[var(--fn-primary)]" />
+            <span>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">
+                {INSTITUTION_PROFILE_LABELS.website}
+              </span>
+              {institutionProfile?.website || '—'}
+            </span>
+          </p>
         </div>
       </div>
 
@@ -282,7 +318,7 @@ export default function GymProfilePage() {
         <div className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
           <h3 className="mb-3 flex items-center gap-2 text-lg font-bold">
             <Clock size={18} className="text-[var(--fn-primary)]" />
-            Horario de apertura
+            {INSTITUTION_PROFILE_LABELS.openingHours}
           </h3>
           <ul className="space-y-1 text-sm text-[var(--fn-text-secondary)]">
             {formatOpeningHoursLine(institutionProfile.openingHours).map((line) => (

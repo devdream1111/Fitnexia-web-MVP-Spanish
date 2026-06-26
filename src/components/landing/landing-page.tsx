@@ -117,11 +117,11 @@ export function LandingPage() {
             <h2 className="fn-uy-cta-title">{LANDING_LABELS.ctaTitle}</h2>
             <p className="fn-uy-cta-subtitle">{LANDING_LABELS.ctaSubtitle}</p>
             <div className="fn-uy-cta-actions">
-              <Link href="/auth/register">
-                <Button title={LANDING_LABELS.ctaButton} size="lg" />
+              <Link href="/auth/register" className="w-full sm:w-auto">
+                <Button title={LANDING_LABELS.ctaButton} size="lg" className="w-full sm:w-auto" />
               </Link>
-              <Link href="/auth/login">
-                <Button title={BUTTON_LABELS.signIn} variant="outline" size="lg" />
+              <Link href="/auth/login" className="w-full sm:w-auto">
+                <Button title={BUTTON_LABELS.signIn} variant="outline" size="lg" className="w-full sm:w-auto" />
               </Link>
             </div>
             <p className="fn-uy-cta-note">{LANDING_LABELS.ctaNote}</p>

@@ -31,6 +31,10 @@ export default function InstructorPublicPage() {
     return getCachedInstructor(id) ? 'done' : 'loading';
   });
 
+  // const [instructor, setInstructor] = useState<Instructor | null>(null);
+  
+  // const [fetchState, setFetchState] = useState<FetchState>('loading');
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -51,6 +55,9 @@ export default function InstructorPublicPage() {
           setFetchState('done');
         }
       })
+      //  .catch(() => {
+      //   setFetchState('error');
+      // });
       .catch(() => {
         if (cancelled) return;
         if (getCachedInstructor(id) ?? cached) {
@@ -66,6 +73,47 @@ export default function InstructorPublicPage() {
       cancelled = true;
     };
   }, [id, cacheInstructor, fetchInstructorReviews, fetchStaffReviews, getCachedInstructor]);
+
+  // useEffect(() => {
+  //   if (!id) return;
+  
+  //   let cancelled = false;
+  
+  //   async function loadInstructor() {
+  //     try {
+  //       setFetchState('loading');
+  
+  //       const data = await apiGetInstructor(id);
+  
+  //       if (cancelled) return;
+  
+  //       setInstructor(data);
+  //       cacheInstructor(data);
+  //       setFetchState('done');
+  
+  //       fetchInstructorReviews(id);
+  //       fetchStaffReviews(id);
+  
+  //     } catch (error) {
+  //       if (cancelled) return;
+  
+  //       console.error('Failed to load instructor:', error);
+  //       setFetchState('error');
+  //     }
+  //   }
+  
+  //   loadInstructor();
+  
+  //   return () => {
+  //     cancelled = true;
+  //   };
+  
+  // }, [
+  //   id,
+  //   cacheInstructor,
+  //   fetchInstructorReviews,
+  //   fetchStaffReviews
+  // ]);
 
   const reviews = instructor ? getReviewsForInstructor(instructor.id) : [];
   const staffReviews = instructor ? getStaffReviewsForInstructor(instructor.id) : [];
