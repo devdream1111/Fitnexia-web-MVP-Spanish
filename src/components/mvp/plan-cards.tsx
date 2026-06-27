@@ -15,7 +15,7 @@ export function PlanCards({
   currentPlanId?: string;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2">
       {plans.map((plan) => {
         const isCurrent = plan.id === currentPlanId;
         return (
