@@ -176,3 +176,34 @@ export const SCHEDULE_FILTERS: { id: ScheduleFilter; label: string }[] = [
   { id: 'afternoon', label: 'Tarde' },
   { id: 'evening', label: 'Noche' },
 ];
+
+/** F-11 — advanced search: class level */
+export const CLASS_LEVELS = [
+  { id: 'beginner' as const, label: 'Principiante' },
+  { id: 'intermediate' as const, label: 'Intermedio' },
+  { id: 'advanced' as const, label: 'Avanzado' },
+];
+
+/** F-11 — advanced search: class language (ISO-style codes) */
+export const CLASS_LANGUAGES = [
+  { id: 'es', label: 'Español' },
+  { id: 'en', label: 'Inglés' },
+  { id: 'pt', label: 'Portugués' },
+];
+
+/** F-11 — instructor gender (matches backend `instructor_gender` enum) */
+export const INSTRUCTOR_GENDERS = [
+  { id: 'female' as const, label: 'Femenino' },
+  { id: 'male' as const, label: 'Masculino' },
+  { id: 'other' as const, label: 'Otro' },
+  { id: 'prefer_not_to_say' as const, label: 'Prefiero no decir' },
+] as const;
+
+/** Gender options exposed in advanced class search (excludes prefer_not_to_say). */
+export const ADVANCED_SEARCH_GENDERS = INSTRUCTOR_GENDERS.filter(
+  (item) => item.id !== 'prefer_not_to_say',
+);
+
+export type AdvancedLevelFilter = (typeof CLASS_LEVELS)[number]['id'] | 'any';
+export type AdvancedLanguageFilter = (typeof CLASS_LANGUAGES)[number]['id'] | 'any';
+export type AdvancedGenderFilter = (typeof ADVANCED_SEARCH_GENDERS)[number]['id'] | 'any';

@@ -18,23 +18,35 @@ import {
   classFormatModalityOptions,
 } from '@/components/class-form/class-form-ui';
 import { ClassLocationField } from '@/components/class-form/class-location-field';
+import { ClassMetadataFields } from '@/components/class-form/class-metadata-fields';
+import {
+  ClassRecurrenceFields,
+  type RecurrenceFormState,
+} from '@/components/class-form/class-recurrence-fields';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { DEFAULT_CURRENCY, DEFAULT_CLASS_PRICE_UYU, DISCIPLINES } from '@/constants/fitnexia';
-import { ALERT_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
+import { ALERT_LABELS, INSTRUCTOR_LABELS, RECURRENCE_LABELS } from '@/constants/labels';
 import { coerceDiscipline, disciplineSelectOptions } from '@/utils/disciplines';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
+import { UnverifiedPublishWarning } from '@/components/verification/unverified-publish-warning';
+import { useFeature } from '@/hooks/use-feature';
 import { getLinkedInstructorId } from '@/utils/instructor';
 import { buildLocationPayload } from '@/utils/class-location';
+import {
+  generateRecurringDates,
+  recurringStartAtFromDateAndTime,
+} from '@/utils/class-recurrence';
 import { classStartAtFromForm, dateToTimeString, defaultClassStart, formatLocalDateInput } from '@/utils/schedule';
 import { ApiClientError } from '@/services/api-client';
-import type { ClassFormat, Modality } from '@/types/api';
+import type { ClassFormat, ClassLevel, Modality } from '@/types/api';
 
 export default function CreateClassPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { addClass } = useClasses();
+  const { addClass, createRecurringSeries } = useClasses();
   const { showNotice } = useNoticeModal();
+  const recurringEnabled = useFeature('recurringClasses');
   const defaults = defaultClassStart();
   const instructorId = getLinkedInstructorId(user);
   const segmentOptions = classFormatModalityOptions();
@@ -49,9 +61,15 @@ export default function CreateClassPage() {
   const [duration, setDuration] = useState('60');
   const [price, setPrice] = useState(String(DEFAULT_CLASS_PRICE_UYU));
   const [capacity, setCapacity] = useState('12');
+  const [level, setLevel] = useState<ClassLevel | ''>('');
+  const [language, setLanguage] = useState('');
   const [locationLabel, setLocationLabel] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recurrence, setRecurrence] = useState<RecurrenceFormState>({
+    enabled: false,
+    weekdays: [],
+  });
 
   const isPrivate = classFormat === 'individual';
 
@@ -69,6 +87,19 @@ export default function CreateClassPage() {
       return '';
     }
   }, [startDate, startTime]);
+
+  const recurrencePreview = useMemo(() => {
+    if (!recurringEnabled || !recurrence.enabled || recurrence.weekdays.length === 0) {
+      return [];
+    }
+    try {
+      return generateRecurringDates(startDate, recurrence.weekdays).map((ymd) =>
+        recurringStartAtFromDateAndTime(ymd, startTime),
+      );
+    } catch {
+      return [];
+    }
+  }, [recurringEnabled, recurrence.enabled, recurrence.weekdays, startDate, startTime]);
 
   const disciplineOptions = disciplineSelectOptions();
 
@@ -89,6 +120,14 @@ export default function CreateClassPage() {
       });
       return;
     }
+    if (recurringEnabled && recurrence.enabled && recurrence.weekdays.length === 0) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: RECURRENCE_LABELS.weekdaysRequired,
+        variant: 'error',
+      });
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -97,12 +136,14 @@ export default function CreateClassPage() {
       const cap = isPrivate ? 1 : parseInt(capacity, 10);
       const startAt = classStartAtFromForm(startDate, startTime);
 
-      await addClass({
+      const payload = {
         title: title.trim(),
         description: description.trim() || undefined,
         discipline: coerceDiscipline(discipline),
         modality,
         classFormat,
+        level: level || undefined,
+        language: language || undefined,
         startAt,
         durationMinutes,
         price: { amount: priceAmount, currency: DEFAULT_CURRENCY },
@@ -110,12 +151,27 @@ export default function CreateClassPage() {
         spotsLeft: cap,
         instructor: { id: instructorId, displayName: instructorName },
         location: buildLocationPayload(modality, locationLabel),
-      });
-      showNotice({
-        title: ALERT_LABELS.savedTitle,
-        message: INSTRUCTOR_LABELS.classForm.classPublished,
-        variant: 'success',
-      });
+      };
+
+      if (recurringEnabled && recurrence.enabled) {
+        const created = await createRecurringSeries(payload, {
+          weekdays: recurrence.weekdays,
+          seriesStartDate: startDate,
+          startTime,
+        });
+        showNotice({
+          title: ALERT_LABELS.savedTitle,
+          message: RECURRENCE_LABELS.publishSeriesDone(created.length),
+          variant: 'success',
+        });
+      } else {
+        await addClass(payload);
+        showNotice({
+          title: ALERT_LABELS.savedTitle,
+          message: INSTRUCTOR_LABELS.classForm.classPublished,
+          variant: 'success',
+        });
+      }
       router.push('/instructor/classes');
     } catch (e) {
       setError(e instanceof ApiClientError ? e.message : 'No se pudo publicar la clase');
@@ -127,6 +183,8 @@ export default function CreateClassPage() {
   return (
     <ClassFormShell>
       <PageHeader title={INSTRUCTOR_LABELS.classForm.newClass} showBack />
+
+      <UnverifiedPublishWarning profile={user?.instructorProfile} />
 
       <ClassFormLayout
         main={
@@ -167,6 +225,12 @@ export default function CreateClassPage() {
                 onChange={setClassFormat}
                 options={segmentOptions.classFormat}
               />
+              <ClassMetadataFields
+                level={level}
+                language={language}
+                onLevelChange={setLevel}
+                onLanguageChange={setLanguage}
+              />
               {modality === 'in_person' ? (
                 <ClassLocationField value={locationLabel} onChange={setLocationLabel} />
               ) : null}
@@ -179,7 +243,11 @@ export default function CreateClassPage() {
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <Input
-                  label={INSTRUCTOR_LABELS.classForm.date}
+                  label={
+                    recurringEnabled && recurrence.enabled
+                      ? RECURRENCE_LABELS.seriesStart
+                      : INSTRUCTOR_LABELS.classForm.date
+                  }
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
@@ -200,6 +268,9 @@ export default function CreateClassPage() {
                   className="sm:col-span-2"
                 />
               </div>
+              {recurringEnabled ? (
+                <ClassRecurrenceFields value={recurrence} onChange={setRecurrence} />
+              ) : null}
             </ClassFormSection>
 
             <ClassFormSection
@@ -246,10 +317,15 @@ export default function CreateClassPage() {
               capacity={isPrivate ? 1 : parseInt(capacity, 10) || 0}
               instructorName={instructorName}
               locationLabel={modality === 'in_person' ? locationLabel : undefined}
+              recurrencePreview={recurrencePreview}
             />
             {error ? <p className="text-sm text-[var(--fn-error)]">{error}</p> : null}
             <Button
-              title={INSTRUCTOR_LABELS.classForm.publishClass}
+              title={
+                recurringEnabled && recurrence.enabled
+                  ? RECURRENCE_LABELS.publishSeries
+                  : INSTRUCTOR_LABELS.classForm.publishClass
+              }
               className="w-full"
               loading={loading}
               onClick={publish}

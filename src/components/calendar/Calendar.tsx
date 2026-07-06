@@ -3,7 +3,18 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
 import { formatClassDate, formatMoney, isClassOnCalendarDay, parseClassStartAt } from '@/utils/format';
+import { INSTRUCTOR_LABELS } from '@/constants/labels';
 import type { ClassListItem } from '@/types/api';
+
+export type CalendarLabels = {
+  today: string;
+  month: string;
+  week: string;
+  noEventsDay: string;
+  moreEvents: (count: number) => string;
+  weekdayShort: readonly string[];
+  weekdayFull: readonly string[];
+};
 
 interface CalendarProps {
   classes: ClassListItem[];
@@ -11,10 +22,12 @@ interface CalendarProps {
   showSidePanel?: boolean;
   /** Jump the calendar to the month of the first booking when data loads */
   focusDate?: Date;
+  labels?: CalendarLabels;
+  locale?: string;
 }
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const FULL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DEFAULT_LABELS: CalendarLabels = INSTRUCTOR_LABELS.calendar;
+const DEFAULT_LOCALE = 'es-ES';
 
 function uniqueClassesById(items: ClassListItem[]): ClassListItem[] {
   const seen = new Set<string>();
@@ -25,7 +38,14 @@ function uniqueClassesById(items: ClassListItem[]): ClassListItem[] {
   });
 }
 
-export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate }: CalendarProps) {
+export function Calendar({
+  classes,
+  onDateClick,
+  showSidePanel = true,
+  focusDate,
+  labels = DEFAULT_LABELS,
+  locale = DEFAULT_LOCALE,
+}: CalendarProps) {
   const [view, setView] = useState<'month' | 'week'>('month');
   const [currentDate, setCurrentDate] = useState(() => focusDate ?? new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -100,7 +120,11 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
                 {c.title}
               </div>
             ))}
-            {dayClasses.length > 2 && <div className="text-[9px] text-[var(--fn-text-muted)]">+{dayClasses.length - 2} more</div>}
+            {dayClasses.length > 2 && (
+              <div className="text-[9px] text-[var(--fn-text-muted)]">
+                {labels.moreEvents(dayClasses.length - 2)}
+              </div>
+            )}
           </div>
         </button>
       );
@@ -142,7 +166,9 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
                     isSelected ? 'bg-[var(--fn-primary-muted)]' : ''
                   }`}
                 >
-                  <div className="text-[10px] text-[var(--fn-text-muted)]">{FULL_DAYS[idx]}</div>
+                  <div className="text-[10px] text-[var(--fn-text-muted)]">
+                    {labels.weekdayFull[date.getDay()]}
+                  </div>
                   <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                     isToday ? 'bg-[var(--fn-primary)] text-white' : isSelected ? 'font-bold text-[var(--fn-primary)]' : ''
                   }`}>{date.getDate()}</div>
@@ -202,7 +228,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
             onClick={goToToday}
             className="rounded-md border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-2 text-sm font-medium text-[var(--fn-text)] transition-all hover:bg-[var(--fn-surface-muted)]"
           >
-            Today
+            {labels.today}
           </button>
           <div className="flex items-center gap-1">
             <button
@@ -222,8 +248,8 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
           </div>
           <h2 className="ml-0 min-w-0 text-base font-semibold sm:ml-2 sm:text-xl">
             {view === 'month'
-              ? currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-              : `${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay() + 6).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+              ? currentDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' })
+              : `${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay()).toLocaleDateString(locale, { month: 'short', day: 'numeric' })} - ${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay() + 6).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}`}
           </h2>
         </div>
 
@@ -236,7 +262,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
             }`}
           >
             <CalendarIcon size={16} />
-            Month
+            {labels.month}
           </button>
           <button
             type="button"
@@ -246,7 +272,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
             }`}
           >
             <Clock size={16} />
-            Week
+            {labels.week}
           </button>
         </div>
       </div>
@@ -255,7 +281,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
         <div className={`${showSidePanel ? 'lg:col-span-2' : 'lg:col-span-1'} rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4`}>
           {view === 'month' ? (
             <div className="grid grid-cols-7 border-b border-[var(--fn-border)]">
-              {DAYS.map((d) => (
+              {labels.weekdayShort.map((d) => (
                 <div key={d} className="pb-2 text-center text-sm font-medium text-[var(--fn-text-muted)]">{d}</div>
               ))}
             </div>
@@ -274,7 +300,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
           <div className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold">
-                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                {selectedDate.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </h3>
               <button
                 type="button"
@@ -285,7 +311,7 @@ export function Calendar({ classes, onDateClick, showSidePanel = true, focusDate
               </button>
             </div>
             {selectedClasses.length === 0 ? (
-              <p className="text-sm text-[var(--fn-text-muted)]">No classes scheduled for this day.</p>
+              <p className="text-sm text-[var(--fn-text-muted)]">{labels.noEventsDay}</p>
             ) : (
               <div className="space-y-3">
                 {selectedClasses.map((c) => (

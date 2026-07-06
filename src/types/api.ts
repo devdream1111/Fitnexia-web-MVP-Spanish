@@ -5,11 +5,18 @@
 
 export type UserRole = 'athlete' | 'instructor' | 'institution';
 
+export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
+
+export type VerificationRequestStatus = 'pending' | 'approved' | 'rejected';
+
 export type ClassFormat = 'individual' | 'group';
 
 export type Modality = 'in_person' | 'online';
 
 export type ClassLevel = 'beginner' | 'intermediate' | 'advanced';
+
+/** F-11 — instructor gender (backend `instructor_gender` enum) */
+export type InstructorGender = 'female' | 'male' | 'other' | 'prefer_not_to_say';
 
 export type BookingStatus =
   | 'pending_payment'
@@ -170,10 +177,12 @@ export interface Instructor {
   certifications?: Certification[];
   hourlyRate?: Money;
   verified: boolean;
+  verificationStatus?: VerificationStatus;
   availableNow: boolean;
   averageRating: number;
   reviewCount: number;
   plan?: InstructorPlan;
+  gender?: InstructorGender;
 }
 
 export interface InstitutionLocation {
@@ -220,6 +229,7 @@ export interface Institution {
   location?: InstitutionLocation;
   gallery?: string[];
   verified: boolean;
+  verificationStatus?: VerificationStatus;
   plan?: InstructorPlan;
   saasTier?: GymSaasTier;
   contactPhone?: string;
@@ -233,7 +243,10 @@ export interface ClassRecurrence {
   enabled: boolean;
   frequency: 'weekly';
   weekdays: number[];
-  until: string;
+  /** Omitted or null = indefinite series (F-13) */
+  until?: string | null;
+  paused?: boolean;
+  seriesId?: string;
 }
 
 /** 0 = Sunday … 6 = Saturday */
@@ -256,11 +269,51 @@ export interface ClassListItem {
   price: Money;
   capacity?: number;
   spotsLeft?: number;
-  instructor?: Pick<Instructor, 'id' | 'displayName' | 'photoUrl'> | null;
-  institution?: Pick<Institution, 'id' | 'name'> | null;
+  instructor?: (Pick<Instructor, 'id' | 'displayName' | 'photoUrl'> & {
+    verified?: boolean;
+    gender?: InstructorGender;
+  }) | null;
+  institution?: (Pick<Institution, 'id' | 'name'> & { verified?: boolean; logoUrl?: string }) | null;
   location?: { lat: number; lng: number; label: string };
   averageRating?: number;
   classFormat?: ClassFormat;
+  /** F-11 — optional on list items when returned by search API */
+  level?: ClassLevel;
+  language?: string;
+  /** F-13 — recurrence metadata when part of a weekly series */
+  recurrence?: ClassRecurrence;
+  /** Backend field on class instances belonging to a series */
+  seriesId?: string;
+  recurrenceSeriesId?: string;
+  isSeriesException?: boolean;
+}
+
+/** F-13 — weekly class series managed by the backend */
+export type ClassSeriesStatus = 'active' | 'paused' | 'deleted';
+
+export interface ClassSeries {
+  id: string;
+  title: string;
+  description?: string;
+  discipline: string;
+  modality: Modality;
+  classFormat?: ClassFormat;
+  status: ClassSeriesStatus;
+  weekdays: number[];
+  timeOfDay: string;
+  anchorStartAt: string;
+  durationMinutes: number;
+  price: Money;
+  capacity?: number;
+  instructorId: string;
+  institutionId?: string;
+  pausedAt?: string;
+  deletedAt?: string;
+}
+
+export interface ClassSeriesInstance {
+  id: string;
+  startAt: string;
 }
 
 export interface Class extends ClassListItem {

@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Dumbbell, MapPin, Sparkles, Video } from 'lucide-react';
+import { CalendarClock, Dumbbell, MapPin, Sparkles, Video } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { RegularClassBadge } from '@/components/regular-class-badge';
 import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel } from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/utils/format';
 import { classHostLabel } from '@/utils/class-instructor';
@@ -75,8 +76,21 @@ function ModalityIcon({ modality }: { modality: ClassListItem['modality'] }) {
   return modality === 'online' ? <Video size={14} className="shrink-0" /> : <MapPin size={14} className="shrink-0" />;
 }
 
-function SectionHead({ title, icon }: { title: string; icon: 'nearby' | 'recommended' }) {
-  const Icon = icon === 'nearby' ? MapPin : Sparkles;
+function SectionHead({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: 'nearby' | 'recommended' | 'recurring' | 'general';
+}) {
+  const Icon =
+    icon === 'nearby'
+      ? MapPin
+      : icon === 'recurring'
+        ? CalendarClock
+        : icon === 'general'
+          ? Dumbbell
+          : Sparkles;
 
   return (
     <div className="mb-5 flex items-center gap-3">
@@ -110,7 +124,10 @@ export function AthleteHomeRailCard({ item, index }: { item: ClassListItem; inde
       <div className="flex flex-1 flex-col gap-1.5 p-4 pb-[1.125rem]">
         <div className="flex items-start justify-between gap-2">
           <h3 className="m-0 text-base font-extrabold leading-tight text-[var(--fn-text)]">{item.title}</h3>
-          {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <RegularClassBadge item={item} size="sm" />
+            {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
+          </div>
         </div>
         <p className="m-0 text-[0.8125rem] leading-snug text-[var(--fn-text-muted)]">
           {item.discipline} · {formatClassDate(item.startAt)}
@@ -177,7 +194,10 @@ export function AthleteHomeFeatureCard({
       <div className={`relative flex min-w-0 flex-col gap-1.5 p-5 md:p-6 ${flip ? 'order-1' : ''}`}>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h3 className="m-0 pr-8 text-lg font-extrabold leading-tight text-[var(--fn-text)]">{item.title}</h3>
-          {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+            <RegularClassBadge item={item} size="sm" />
+            {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
+          </div>
         </div>
         <p className="m-0 text-[0.8125rem] text-[var(--fn-text-muted)]">
           {item.discipline} · {formatClassDate(item.startAt)}
@@ -210,7 +230,7 @@ export function AthleteHomeSectionRail({
   children,
 }: {
   title: string;
-  icon: 'nearby' | 'recommended';
+  icon: 'nearby' | 'recommended' | 'recurring' | 'general';
   children: React.ReactNode;
 }) {
   return (
@@ -223,10 +243,18 @@ export function AthleteHomeSectionRail({
   );
 }
 
-export function AthleteHomeSectionStack({ title, children }: { title: string; children: React.ReactNode }) {
+export function AthleteHomeSectionStack({
+  title,
+  icon = 'recommended',
+  children,
+}: {
+  title: string;
+  icon?: 'nearby' | 'recommended' | 'recurring' | 'general';
+  children: React.ReactNode;
+}) {
   return (
     <section>
-      <SectionHead title={title} icon="recommended" />
+      <SectionHead title={title} icon={icon} />
       <div className="flex flex-col gap-4">{children}</div>
     </section>
   );

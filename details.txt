@@ -1,0 +1,595 @@
+First, All Basic Requirements:
+
+FITNEXIA	
+Product Requirements Document
+Marketplace platform to connect users, gyms, schools and fitness instructors.
+Version: 1.0 Platform: Web + Mobile App (iOS / Android) Date: 2026
+
+1. Product Vision
+Fitnexia is a global marketplace that connects three types of players in the world of sports and physical education:
+
+•Users / Athletes: people who want to find and book classes or coaches.
+•Instructors / Teachers: professionals who offer individual or group classes.
+•Gyms / Schools: institutions that manage their class offerings and schedules.
+
+
+MVP's objective
+The goal of the MVP is to validate that the three profiles can register, publish or search for services, and complete a booking with integrated payment — on the web and in the mobile app.
+
+
+2. User profiles
+2.1 User / Athlete
+•Search for classes by sport, location, schedule availability, and price.
+•Book in-person or online classes.
+•Make payments within the platform.
+•Leave verified reviews after attending a class.
+•Check your booking history.
+•Accumulate credits redeemable for classes.
+•As a club member: pay your club membership fee and check your account statement from the app.
+•As a club member: reserve courts and spaces at your club (football, padel, tennis, rugby).
+
+2.2 Instructor / Teacher
+•Create your professional profile with photo, bio, disciplines and certifications.
+•Publish individual or group classes with schedule, format and price.
+•Manage your schedule and availability.
+•Receive payments automatically via the platform.
+•View your confirmed bookings and revenue history.
+•It has a "Available now" button.
+
+2.3 Gym / Club / School
+•Create a verified institutional profile.
+•Add multiple instructors to your account.
+•Publish and manage group classes with limited spaces.
+•Manage schedules and occupancy from a control panel.
+•Access basic metrics: bookings, revenue, attendance.
+•Leave verified reviews about the professional you hired.
+•Manage the membership register and collect membership fees via recurring debit.
+•Define your own fee plans (monthly, quarterly, family) in your currency.
+•It registers and manages courts and spaces, and handles reservations by shift.
+•View collections: members up to date, delinquent members and monthly collection rate.
+
+3. Product functionalities
+
+MVP = initial release. V2 = next iteration. V3 = future roadmap.
+
+ID|Functionality|Description|Priority|Phase
+F-01	Registration and login	Registration via email and password. Social login (Google). Profile type selection upon registration.|High|MVP
+F-02	Password recovery	Email reset flow.|High|MVP
+F-03	Profile verification	Verified profile badge for instructors and institutions (initial manual review).|Average|MVP
+F-04	User profile	Name, photo, favorite sports, booking history.|High|MVP
+F-05	Instructor profile	Photo, bio, disciplines, certifications, hourly rate (optional), availability, reviews.|High|MVP
+F-06	Institutional profile	Logo, description, location, photo gallery. Classes are listed under the institution's name—no individual teacher profiles are required. A teacher can have their own profile on Fitnexia, but it's not mandatory.|High|MVP
+F-07	Profile editing	All profiles can edit their information at any time.|High|MVP
+F-08	Search with filters	Filters by: sport/discipline, location, modality (in-person/online), price, time availability.|High|MVP
+F-09	Geolocation	Interactive map with results close to the user.|High|MVP
+F-10	Free text search	Search bar by instructor name, gym, or class.|High|MVP
+F-11	Advanced search	Additional filters: level (beginner/intermediate/advanced), language, instructor gender.|Average|V2
+F-12	Class publication	Instructor or institution creates a class with: name, description, discipline, modality, date/time, price, maximum capacity (optional).|High|MVP
+F-13	Recurring classes	Create classes that repeat weekly without having to publish them one by one.|Average|V2
+F-14	Online classes (streaming)	Video integrated into the platform for live classes. No external app required.|Average|V2
+F-15	Recorded classes	Video-on-demand content available to play whenever the user wants.|Low|V3
+F-16	Class reservation	Users book with one click. Automatic confirmation via email and push notification.|High|MVP
+F-17	Reservation cancellation	User can cancel up to X hours in advance (configurable by the instructor).|High|MVP
+F-18	Waiting list	If a class is full, the user can sign up on a waiting list and be notified if a spot becomes available.|Average|V2
+F-19	Booking history	The user sees all their past and future reservations.|High|MVP
+F-20	Integrated payment	Payment processing with Mercado Pago. Credit/debit card support.|High|MVP
+F-21	Fixed monthly payment	Monthly subscription with unlimited access to bookings (for users).|High|MVP
+F-22	Payment per class	The user pays for each class individually at the time of booking.|High|MVP
+F-23	Payment per period	The user chooses to pay weekly, monthly, or quarterly depending on their usage.|High|MVP
+F-24	I charge instructors	Automatic transfer to instructor/institution. Platform fee deducted.|High|MVP
+F-25	Payment history	Revenue panel for instructors and institutions with CSV export.|Average|MVP
+F-26	Multiple coins	Payment support in different currencies depending on the region.|Average|V2
+F-27	Payments with digital wallets	Apple Pay, Google Pay.|Low|V3
+F-28	Verified reviews	Only users who attended the class can leave a review with a rating (1-5) and comment.|High|MVP
+F-29	Response to reviews	The instructor can respond publicly to reviews.|Average|V2
+F-30	Push notifications	Class reminder 24 hours and 1 hour before. Booking and payment confirmation.|High|MVP
+F-31	Email notifications	Same set of notifications as push notifications, also via email.|High|MVP
+F-32	In-app notifications	In-app notification center.|Average|V2
+F-33	Control panel (institution)	Overview of classes, bookings, instructors and income for the day/week/month.|High|MVP
+F-34	Instructor management	The institution can add instructors with their own profile on Fitnexia or publish classes without linking instructors. In Model A (launch), classes are published under the gym's name without exposing the instructor.|High|MVP
+F-35	Metrics and analytics	Occupancy charts, retention rate, revenue per class and instructor.|Average|V2
+F-36	Administration Panel	Internal panel (Fitnexia only) for managing users, verifying profiles, and moderating reviews.|High|MVP
+F-37	Platform support	Support chat or contact form for users.|Average|V2
+F-38	Loyalty program (credits)	The user earns 1 credit for each class booked and paid for. Upon reaching 10 credits, they receive a free class worth up to $30. Fitnexia covers the cost. Credits expire 12 months after the last booking.|Low|V3
+F-39	List of members	Club member list management: registration and deregistration, contact information, membership type and fee status (up to date / pending / overdue).|High|MVP
+F-40	Club membership plans	The club defines its own memberships (monthly, quarterly, annual, family, etc.) with price, currency, and frequency. It is independent of the club's Fitnexia subscription.|High|MVP
+F-41	Recurring fee collection	Automatic debit of membership fees via Mercado Pago subscriptions (pre-approval). Retry in case of payment failure and recording of each transaction.|High|MVP
+F-42	Partner's statement of account	The member sees their fee, upcoming due dates and payment history, and can pay or settle their debt from the app.|High|MVP
+F-43	Membership registration and invitation	The club invites its members via a link or code, or through bulk upload (CSV). The member registers and becomes a member of the club.|High|MVP
+F-44	Expiration and delinquency notices	Push notifications and emails to members before due dates and when payments are overdue. Alerts the club about members in arrears.|Average|MVP
+F-45	Club collections panel	View of income from fees, members up to date vs. delinquent members and monthly collection rate of the club.|Average|V2
+F-46	Access control by quota status	Check-in via QR code that validates if the member is up to date before allowing entry or making a reservation. Optional.|Low|V3
+F-47	Management of courts and spaces	The club registers its courts (5/7/11 football, padel, tennis, rugby or others) with type, surface, indoor or outdoor, lighting and operating hours.|High|V2
+F-48	Court availability schedule	Schedule of shifts by court and day showing free and occupied slots in real time.|High|V2
+F-49	Court reservation by appointment	The user or member chooses the court, date, time, and duration, and confirms the booking with payment. Confirmation is sent via push notification and email.|High|V2
+F-50	Prices by time slot	Different rates by time of day (peak/weekend) and differential price for daily members vs. non-members, including the option of a discounted shift for members.|Average|V2
+F-51	Fixed shifts (recurring booking)	A member or group can book the same shift weekly without having to load it each time.|Average|V3
+F-52	Court appointment cancellation	Cancellation up to X hours before (configurable by the club), with its own refund policy for court bookings.|High|V2
+F-53	Open games / search for players	A user creates a padel or football session with available slots, and other players join. Optional social feature.|Low|V3
+
+
+4. Main flows of the MVP
+4.1 Registration and onboarding
+1.The user opens the app or website for the first time.
+2.Select your profile type: User, Instructor, Gym or School.
+3.You can register with email + password or with Google.
+4.Complete your basic profile (photo, name, disciplines).
+5.You are redirected to your main screen according to your profile.
+
+4.2 Class Search and Booking (User)
+6.The user accesses the search engine.
+7.Apply filters: discipline, location, date, price.
+8.Select a class or instructor from the results.
+9.View the full profile with reviews, hours, and price.
+10.Click on 'Book'.
+11.Select your payment method and confirm.
+12.Receive confirmation via email and push notification.
+
+4.3 Class Publication (Instructor / Institution)
+13.The instructor accesses their panel and clicks on 'New class'.
+14.Complete: name, description, discipline, modality, date/time, price and quota.
+15.Publish the class — it becomes visible in the search engine immediately.
+16.Receive notification every time someone makes a booking.
+
+4.4 Payment and collection
+17.The user chooses the payment model at the time of booking (per class, monthly or per period).
+18.Payment is processed through Mercado Pago.
+19.Fitnexia automatically retains its commission.
+20.The net amount is transferred to the instructor or institution within the agreed period.
+21.Both parties receive a receipt for the transaction.
+
+4.5 Post-class review
+22.48 hours after the class, the user receives an email/push inviting them to leave a review.
+23.You can only do so if you attended (confirmed and paid reservation).
+24.Rate from 1 to 5 stars and leave an optional comment.
+25.The review appears on the instructor's profile with their updated average rating.
+
+4.6 Collecting a membership fee from a member
+26.The club creates its membership plans and invites its members via link, code, or bulk upload.
+27.The member registers, becomes linked to the club, and chooses their membership plan.
+28.Authorize automatic debit of the fee through Mercado Pago.
+29.Each period, the platform automatically charges the fee and records the transaction.
+30.The member receives the receipt. If the payment fails, it is retried and the member is notified to resolve the issue.
+31.Fitnexia retains its commission or fee and transfers the net amount to the club.
+
+4.7 Booking a court
+32.The user or member opens the club and chooses the type of court (football, padel, tennis, rugby).
+33.View the availability calendar and select court, date, time, and duration.
+34.The system calculates the rate according to the time slot and whether you are a daily member.
+35.Confirm and pay for the appointment, or it will be discounted if your plan includes it.
+36.You will receive confirmation via push notification and email. Your appointment will be blocked on the club's calendar.
+
+
+5. Business Rules
+
+5.1 Commissions
+Plan	Sports Commission	Observation
+Basic Plan (Free)	15% per transaction	No fixed monthly cost
+Pro Plan ($29/month)	8% per transaction	For individual instructors
+Institutional Plan ($99/month)	5% per transaction	For gyms and schools
+
+5.2 Cancellations
+•Cancellation with more than 24 hours' notice: full refund to the user.
+•Cancellation with less than 24 hours' notice: no refund (or according to the instructor's policy).
+•If the instructor cancels a class: automatic refund to all users.
+
+5.3 Reviews
+•Only one review can be left per class attended.
+•Reviews cannot be edited once published.
+•Fitnexia may moderate and remove reviews that violate the terms of use.
+
+5.4 Quotas and waiting list
+•The maximum number of participants is defined by the instructor when creating the class.
+•When the class is full, it displays 'Waiting List' instead of 'Book'.
+•If a user cancels, the first person on the waiting list receives an automatic notification with 2 hours to confirm.
+
+5.5 Loyalty program (credits)
+●The user accumulates 1 credit for each class booked and paid for through the platform.
+●Upon accumulating 10 credits, the user automatically receives a free class.
+●The free class can be exchanged for any class on the platform up to $30 in value.
+●Fitnexia covers the cost of the free class: the instructor charges normally and the platform does not charge a commission on that transaction.
+●Credits expire 12 months after the last booking. If the user does not make a booking for 12 months, the accumulated credits are lost.
+●The user receives a push notification and email 30 days before their credits expire.
+●Credits are not transferable between users nor redeemable for cash.
+●The credit balance is visible in the user's profile at all times.
+
+5.6 Membership fees and late payments
+●The club defines the amount, currency, and frequency of each fee plan.
+●The fee is collected by recurring direct debit. If a payment fails, the member's status changes to pending and, after X days, to delinquent.
+●The club sets how many days of grace it applies before marking a member as delinquent.
+●Optional: a member in arrears may be barred from booking courts or entering the club until they settle their account.
+
+5.7 Court reservations
+●Each court has an operating schedule and a shift duration defined by the club.
+●The price of the shift may vary depending on the time of day (peak hour / weekend) and membership status.
+●The club defines its cancellation window and the refund policy for court slots.
+●A confirmed appointment blocks that court in that lane for the rest of the users.
+
+5.8 Quota-based revenue model (decision pending)
+●To be defined: Fitnexia charges a commission for each fee collected, a fixed monthly fee to the club (SaaS), or a combination of both.
+The class commission scheme (15% / 8% / 5%) is intended for class bookings, not membership fees. A separate scheme should be established for the club module.
+
+
+6. Technical Requirements
+6.1 Platforms
+•Web: Responsive application compatible with Chrome, Safari and Firefox (latest 2 versions).
+•Mobile app: iOS 15+ and Android 10+. React Native or Flutter is recommended to maintain a single codebase.
+
+6.2 Authentication
+•JWT (JSON Web Tokens) for sessions.
+•OAuth 2.0 for login with Google.
+•Passwords hashed with bcrypt.
+
+6.3 Payments
+•Integration with Mercado Pago.
+•Webhook support for confirming payments and handling errors.
+•PCI-compliant storage: do not store card data on our own servers.
+
+6.4 Notifications
+•Push: Firebase Cloud Messaging (FCM) for Android and iOS.
+•Email: SendGrid or similar for transactional and reminder emails.
+
+6.5 Geolocation
+•Google Maps API or Mapbox for map search and display.
+•Geocoding addresses when creating an institution profile.
+
+6.6 File Storage
+•Profile pictures and gallery: AWS S3 or similar (with CDN to optimize loading).
+•Automatic compression of uploaded images.
+
+6.7 Security
+•HTTPS is required on all routes.
+•Rate limiting on authentication endpoints.
+•Server-side input validation (not just client-side).
+•GDPR: Users can request the deletion of their account and data.
+
+6.8 Performance
+•Initial app loading time: less than 3 seconds on a 4G network.
+•Pagination in listings with more than 20 results.
+•Lazy loading of images.
+
+
+7. Minimum MVP Screens
+7.1 General flow (all profiles)
+•Splash / Onboarding (3 welcome slides)
+•Registration — profile type selection
+•Registration — data form
+•Login
+•Recover password
+
+7.2 User / Athlete
+•Home — feed with recommended and nearby classes
+•Search engine with filters
+•List of results
+•Instructor or institution profile
+•Class details
+•Payment screen and booking confirmation
+•My bookings (upcoming and history)
+•My membership fee and statement (club member)
+•Book a court — shift schedule
+•Leave a review
+•My profile — edit
+
+7.3 Instructor / Teacher
+•Main panel — summary of classes and bookings for the day
+•My classes — list
+•Create / edit class
+•Class details — reservation list
+•Agenda / Calendar
+•Income — history of payments received
+•My professional profile — edition
+
+7.4 Gymnasium / School
+•Institutional control panel
+•Instructor management (add, edit, unlink)
+•Group class management
+•Basic metrics (occupation and income)
+•Institutional profile — edition
+•Membership register (registration, cancellation, membership fee status)
+•Collections and fees — members up to date vs. delinquent
+•Management of courts and spaces
+•Schedule of shifts and court reservations
+
+7.5 Administration Panel (Fitnexia)
+•User listing and management
+•Verification of instructor and institution profiles
+•Moderation of reported reviews
+•General platform metrics
+
+
+8. Suggested Roadmap
+
+Phase	Estimated period	Scope
+MVP	Months 1-3	Registration, profiles, filtered search, bookings, payments (Mercado Pago), basic reviews, push/email notifications, admin panel. Clubs module (phase 1): member registry and recurring fee collection.
+V2	Months 4 – 6	Online classes (streaming), recurring classes, waitlist, advanced search, review responses, advanced metrics, multiple currencies, loyalty program. Clubs Module (phase 2): court booking and payment dashboard.
+V3	Month 7 onwards	Recorded on-demand classes, digital wallets (Apple/Google Pay), chat between user and instructor, loyalty program. Clubs module: fixed shifts, open games, and QR code access control.
+
+
+Second, Requirements that were specifically modified or supplemented later:
+
+1)PLANES FITNEXIA DETALLADOS PARA CLUBES/GIMNASIOS
+
+BÁSICO – Hasta 100 socios – 49 dólares por mes
+
+Gestión de cobros y recordatorios
+Registrá los pagos de cada socio, marcá cuotas como pagas o pendientes, y enviá recordatorios automáticos antes del vencimiento. Evitás la mora sin perseguir a nadie manualmente.
+Perfil del club
+Tu club tiene una página dentro de Fitnexia con nombre, logo, descripción, horarios, dirección y contacto. Los usuarios pueden encontrarte y ver qué ofrecés.
+Publicación de ofertas laborales
+Publicás búsquedas de instructores, entrenadores o staff directamente en la plataforma, donde miles de profesionales del fitness están registrados
+
+
+PROFESIONAL – Hasta 500 socios – 99 dólares por mes
+
+Todo lo del plan Básico
+Incluye cobros con recordatorios, perfil del club y publicación de ofertas laborales.
+Cobros recurrentes
+Las cuotas mensuales se generan y cobran automáticamente, sin que tengas que crear cada pago a mano. El sistema debita o notifica al socio en la fecha pactada.
+Reportes y estadísticas
+Tablero con datos clave: ingresos del mes, socios activos vs inactivos, tasa de mora, y tendencias de crecimiento. Tomás decisiones con información real.
+Gestión de profesionales
+Administrás el equipo de instructores y trainers del club: horarios, asignación de clases, y su perfil dentro de la plataforma vinculado al club.
+Soporte prioritario
+Acceso a un canal de atención con tiempos de respuesta más rápidos que el soporte estándar. Tus consultas se resuelven primero.
+
+
+PREMIUM – Hasta 1.999 socios – 149 dólares por mes
+
+Todo lo del plan Profesional
+Incluye cobros recurrentes, reportes, gestión de profesionales y soporte prioritario.
+App con la marca de tu club
+Tus socios acceden a la app de Fitnexia pero personalizada con el logo y colores de tu club. La experiencia digital es tuya, no genérica.
+Reportes avanzados
+Análisis más profundos: segmentación de socios, proyecciones de ingresos, retención, comportamiento de asistencia. Ideal para tomar decisiones estratégicas.
+Gestión de actividades
+Creás y administrás clases grupales, talleres y actividades con cupos, inscripción online, listas de espera y control de asistencia.
+
+ENTERPRISE – Más de 2.000 socios – 249 dólares
+
+Todo lo del plan Premium
+Incluye app de marca, reportes avanzados y gestión de actividades.
+Onboarding dedicado
+Un equipo de Fitnexia te acompaña personalmente en la implementación: configuración, migración de datos, capacitación del staff y puesta en marcha.
+Integraciones a medida
+Conectamos Fitnexia con los sistemas que ya usás: software de control de acceso, torniquetes, contabilidad, CRM u otras herramientas específicas de tu operación.
+Soporte dedicado
+Tenés un contacto directo asignado a tu cuenta — no un chat genérico. Alguien que conoce tu club y responde con contexto y urgencia.
+
+
+
+BÁSICO — Gratis
+Comisión 10%. Sin costo mensual, se cobra comisión por cada transacción. Para usuarios e instructores que recién empiezan.
+PRO — USD 29/mes
+Comisión 8%. Para instructores independientes que quieren comisión reducida y herramientas profesionales.
+INSTITUCIONAL — Sin comisiones
+Para gimnasios y centros deportivos con múltiples instructores. Suscripción mensual según cantidad de socios:
+Básico — hasta 100 socios — USD 49/mes
+Profesional — hasta 500 socios — USD 99/mes (más elegido)
+Premium — hasta 1.999 socios — USD 149/mes
+Enterprise — +2.000 socios — USD 249/mes
+
+2)F-13 · Clases Recurrentes — Especificación de flujo
+
+Quién puede usarla
+Instructor y Gimnasio/Colegio (mismo flujo para ambos).
+
+Flujo de creación
+1.El instructor accede a "Nueva clase" desde su panel.
+2.Completa los datos habituales: nombre, descripción, disciplina, modalidad, precio, cupo.
+3.En el campo Frecuencia activa la opción "Clase recurrente".
+4.Selecciona uno o más días de la semana (ej: lunes y miércoles).
+5.Define el horario — se aplica igual a todos los días seleccionados.
+6.Sin fecha de fin: la serie se genera indefinidamente hasta que el instructor la pause o elimine.
+7.Confirma → la serie queda publicada y cada instancia aparece visible en el buscador con su fecha y hora correspondiente.
+
+Comportamiento de la serie
+1. Cada clase de la serie es una instancia independiente en el calendario, pero todas comparten los mismos datos base (precio, cupo, descripción).
+2. Los usuarios reservan y pagan por instancia, igual que una clase normal.
+3. El buscador muestra cada fecha por separado (no "una entrada genérica").
+
+Edición y modificación
+Cuando el instructor edita una clase recurrente, la app le pregunta:
+¿Qué querés modificar?
+1. Solo esta clase → cambia únicamente esa instancia puntual.
+2. Esta y todas las siguientes → aplica el cambio desde esa fecha en adelante.
+⚠️ Las instancias pasadas nunca se modifican (son historial).
+
+Pausa y eliminación
+1. Pausar la serie: deja de generar nuevas instancias futuras. Las reservas ya confirmadas siguen en pie.
+2. Eliminar la serie: cancela todas las instancias futuras sin reservas. Las que ya tienen reservas requieren cancelación manual (con reembolso automático según F-17).
+
+Cancelación de una instancia con reservas
+Aplica la regla general de F-17:
+1. Si el instructor cancela → reembolso automático a todos los usuarios reservados.
+2. Los usuarios reciben notificación push + email.
+
+Notificaciones relevantes
+Evento	A quién	Canal
+Nueva instancia publicada (generación automática)	Nadie (silencioso)	—
+Alguien reserva una instancia	Instructor	Push
+Instructor modifica/cancela una instancia	Usuarios reservados	Push + Email
+Instructor pausa o elimina la serie	Usuarios con reservas futuras	Push + Email
+
+3)F-03 · Verificación de Perfil — Especificación de flujo
+
+Quién aplica:
+Instructores/Profesores e Instituciones (Gimnasios/Colegios). Los usuarios/atletas no se verifican.
+
+Estados posibles de un perfil:
+ESTADO	BUDGE VISIBLE	PUEDE PUBLICAR CLASES
+No verificado	Sin badge	Si, con advertencia visible
+Verificación pendiente	“en revisión”	Si
+Verificado	Badge azul Fitnexia	Si
+Rechazado	Sin badge	Si, puede reintentar
+
+
+Flujo del instructor:
+1.Completa su perfil básico y puede empezar a publicar clases inmediatamente — aparece como "No verificado" en su perfil público.
+2.En su panel ve un banner persistente: "Verificá tu perfil para generar más confianza y aparecer mejor posicionado."
+3.Hace clic en "Verificar perfil" → se abre el flujo de verificación.
+4.Sube los dos documentos requeridos:
+DNI o documento de identidad (foto frente y dorso).
+Título profesional o certificación deportiva (foto o PDF).
+5.Confirma el envío → su estado cambia a "Verificación pendiente".
+6.Recibe email de confirmación: "Recibimos tu solicitud. Te avisamos en un plazo de X días hábiles."
+
+Flujo del equipo Fitnexia (Panel Admin):
+1.En el panel de administración (F-36) aparece una cola de solicitudes pendientes.
+2.El admin ve: nombre del instructor, fecha de solicitud, documentos adjuntos.
+3.Abre la solicitud y revisa los documentos.
+4.Toma una decisión:
+
+✅ Aprobar → el perfil recibe el badge verificado. El instructor recibe push + email.
+❌ Rechazar → el admin escribe el motivo. El instructor recibe push + email con la razón y puede volver a intentarlo.
+
+Comportamiento en el buscador:
+1. Los perfiles verificados aparecen con badge azul visible en la tarjeta de resultados y en su perfil completo.
+2. Los perfiles no verificados aparecen sin badge — sin ocultarlos ni penalizarlos explícitamente, pero el badge genera diferenciación visual clara.
+3. Recomendación: en los filtros de búsqueda (F-08) agregar opción "Solo verificados" como filtro opcional.
+
+Notificaciones:
+EVENTO	CANAL
+Solicitud recibida	Email al instructor
+Perfil aprobado	Push + email
+Perfil rechazado (con motivo)	Push + email
+Recordatorio si lleva 7 días sin verificarse	Email (único)
+
+
+Requerimiento técnico para el dev
+
+1. Los documentos subidos se almacenan en S3 privado (no públicos, solo accesibles desde el panel admin).
+2. No se muestran en ningún perfil público bajo ninguna circunstancia.
+3. El campo verification_status en la base de datos admite cuatro valores: unverified / pending / verified / rejected.
+4. El campo rejection_reason se guarda para historial interno aunque no se muestre completo al instructor.
+
+
+
+[ GYM PLANS ]
+BASIC — Up to 100 members — $49/month
+
+- MVP (build now)
+1. Gym subscription & member limit
+Gym chooses Basic plan and sees member count (e.g. 87/100).
+System blocks adding members when limit is reached.
+
+2. Manual payment tracking
+Gym records each member’s payment as paid or pending (cash, transfer, etc.).
+System sends automatic reminders before due date (already in backend).
+
+3. Club profile
+Club page with name, logo, description, address, opening hours, phone, email.
+
+4. Job postings
+Gym posts job offers (instructor, trainer, staff). Instructors browse and apply.
+
+5. Member management (already built — keep)
+
+Add members, invite members, membership plans, member list with status filters.
+
+Backend (MVP): Gym tier storage, member limit check, manual mark-paid endpoint, profile fields (hours, contact), job postings API, 0% commission for gyms on Basic.
+
+Conditions before launch: Confirm member count rules (active only). Confirm gyms pay $49 even without in-app payments. Support email ready. No Mercado Pago required if payments are manual only.
+
+
+- V1 (add after MVP)
+1. Automated gym billing
+Gym is charged $49/month automatically (Mercado Pago or Stripe).
+
+2. Institution search
+Athletes can search and find clubs on the platform.
+
+
+PROFESSIONAL — Up to 500 members — $99/month
+
+- MVP (build now)
+Professional includes everything in Basic MVP. 
+
+Backend (MVP): Store Professional tier and 500-member limit. Entitlement flag: recurring_billing, reports_basic.
+
+- V1 (add after MVP)
+1. Recurring member billing
+Monthly dues charged automatically via Mercado Pago (debit authorization).
+Gym does not create each payment manually.
+
+2. Reports and statistics
+Dashboard: monthly revenue, active vs inactive members, delinquency rate, member growth.
+
+3. Professional staff management
+Invite instructors by email. View staff schedules and class assignments.
+
+4. Priority support
+Professional gyms get faster support response.
+
+Conditions: Production Mercado Pago. Each gym connects MP seller account. Test full flow: athlete authorizes → charge → member active. Define priority support SLA.
+
+- V2 (add later)
+1. Attendance tracking
+Gym marks who attended each class.
+
+2. Waitlist
+When class is full, athlete joins waitlist and gets spot if someone cancels.
+
+PREMIUM — Up to 1,999 members — $149/month
+
+- MVP (build now)
+Premium includes Basic MVP. 
+
+- V1 (add after MVP)
+Premium includes all Professional V1 features (auto-billing, reports, staff, priority support). No extra V1-only features.
+
+- V2 (add later)
+1. Branded club experience
+Club logo and colors inside the app when members view that club.
+
+2. Advanced reports
+Member segments, retention, revenue trends, attendance patterns.
+
+3. Activity management
+Create classes, workshops, and events with capacity, registration, and waitlist.
+
+
+
+ENTERPRISE — 2,000+ members — $249/month
+
+- MVP (build now)
+Enterprise includes Basic MVP. 
+
+- V1 (add after MVP)
+Enterprise includes all Professional V1 features.
+
+- V2 (add later)
+1. Dedicated onboarding (process + light software)
+Checklist: config, data migration, staff training, launch.
+
+2. Custom integrations
+Connect access control, accounting, CRM via webhooks or API keys.
+
+3. Dedicated support
+Named account contact, not generic chat.
+
+
+
+
+[ INSTRUCTOR PLANS (separate from gym plans) ]
+
+INSTRUCTOR BASIC — Free — 10% commission
+
+- MVP (build now)
+Instructor publishes classes. Athlete books and pays. Fitnexia keeps 10%, instructor receives 90% (when marketplace enabled).
+Instructor browses and applies to gym job posts (see Basic gym MVP).
+
+Conditions: Mercado Pago only if taking real payments at launch. Instructor connects MP to receive payouts.
+
+
+INSTRUCTOR PRO — $29/month — 8% commission
+
+- MVP (build now)
+Show Pro plan and 8% commission on Plan screen. Commission logic works if plan is set manually.
+
+- V1 (add after MVP)
+1. Pro subscription billing
+Instructor pays $29/month in app. Commission drops to 8% while active.
+
+Conditions: Billing provider. Pro subscription product at $29/month. Refund/cancel policy.
+
+

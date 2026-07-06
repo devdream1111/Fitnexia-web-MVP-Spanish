@@ -28,13 +28,13 @@ function ContactItem({
   href?: string;
 }) {
   const body = (
-    <div className="flex items-start gap-4 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 p-4 transition hover:border-[var(--fn-primary)]/30">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
-        <Icon size={18} />
+    <div className="flex items-start gap-2.5 rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 p-3 transition hover:border-[var(--fn-primary)]/30">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
+        <Icon size={15} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-bold uppercase tracking-wide text-[var(--fn-text-muted)]">{label}</p>
-        <p className="mt-1 break-words text-sm font-semibold text-[var(--fn-text)]">{value}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">{label}</p>
+        <p className="mt-0.5 break-words text-sm font-medium text-[var(--fn-text)]">{value}</p>
       </div>
     </div>
   );
@@ -87,30 +87,29 @@ export function PublicClubProfile({ institution }: { institution: Institution })
   ];
 
   return (
-    <div className="space-y-6 pb-10">
-      <header className="overflow-hidden rounded-[2rem] border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-xl">
-        <div className="relative bg-gradient-to-br from-violet-700 via-indigo-800 to-slate-900 px-6 py-8 md:px-10 md:py-10">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12),_transparent_55%)]" />
-          <div className="relative flex flex-col gap-6 md:flex-row md:items-center">
+    <div className="space-y-4 pb-6">
+      <header className="overflow-hidden rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+        <div className="relative bg-gradient-to-br from-violet-700 via-indigo-800 to-slate-900 px-4 py-5 sm:px-6">
+          <div className="relative flex items-center gap-4">
             {institution.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={institution.logoUrl}
                 alt=""
-                className="h-28 w-28 shrink-0 rounded-3xl border-4 border-white/25 object-cover shadow-2xl md:h-32 md:w-32"
+                className="h-20 w-20 shrink-0 rounded-xl border-2 border-white/25 object-cover shadow-lg sm:h-24 sm:w-24"
               />
             ) : (
-              <span className="flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl border-2 border-white/25 bg-white/10 text-4xl font-black text-white backdrop-blur md:h-32 md:w-32">
+              <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/10 text-2xl font-black text-white backdrop-blur sm:h-24 sm:w-24">
                 {institution.name.charAt(0)}
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <p className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-white/65">
-                <Sparkles size={12} />
+              <p className="mb-1 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/65">
+                <Sparkles size={11} />
                 {PUBLIC_CLUB_LABELS.eyebrow}
               </p>
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl font-black tracking-tight text-white md:text-4xl">{institution.name}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{institution.name}</h1>
                 {institution.verified ? <Badge label="Verificado" variant="success" size="sm" /> : null}
               </div>
             </div>
@@ -118,16 +117,16 @@ export function PublicClubProfile({ institution }: { institution: Institution })
         </div>
       </header>
 
-      <section className="rounded-[1.75rem] border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6 shadow-sm md:p-8">
-        <h2 className="text-lg font-extrabold text-[var(--fn-text)]">{PUBLIC_CLUB_LABELS.description}</h2>
-        <p className="mt-4 whitespace-pre-wrap text-base leading-relaxed text-[var(--fn-text-secondary)]">
+      <section className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
+        <h2 className="text-sm font-bold text-[var(--fn-text)]">{PUBLIC_CLUB_LABELS.description}</h2>
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--fn-text-secondary)]">
           {institution.description?.trim() || PUBLIC_CLUB_LABELS.notAvailable}
         </p>
       </section>
 
-      <section className="rounded-[1.75rem] border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6 shadow-sm md:p-8">
-        <h2 className="mb-5 text-lg font-extrabold text-[var(--fn-text)]">{PUBLIC_CLUB_LABELS.contact}</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
+      <section className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
+        <h2 className="mb-3 text-sm font-bold text-[var(--fn-text)]">{PUBLIC_CLUB_LABELS.contact}</h2>
+        <div className="grid gap-2 sm:grid-cols-2">
           {contactItems.map((item) => (
             <ContactItem
               key={item.key}
@@ -140,13 +139,13 @@ export function PublicClubProfile({ institution }: { institution: Institution })
         </div>
       </section>
 
-      <section className="rounded-[1.75rem] border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6 shadow-sm md:p-8">
-        <h2 className="mb-5 flex items-center gap-2 text-lg font-extrabold text-[var(--fn-text)]">
-          <Clock size={20} className="text-[var(--fn-primary)]" />
+      <section className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--fn-text)]">
+          <Clock size={16} className="text-[var(--fn-primary)]" />
           {PUBLIC_CLUB_LABELS.openingHours}
         </h2>
         {hasHours ? (
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
             {formatOpeningHoursLine(hours).map((line, i) => {
               const dayKey = OPENING_HOURS_DAY_KEYS[i];
               const isToday = dayKey === todayKey;
@@ -154,9 +153,9 @@ export function PublicClubProfile({ institution }: { institution: Institution })
                 <li
                   key={line}
                   className={[
-                    'rounded-xl px-4 py-3 text-sm',
+                    'rounded-lg px-3 py-2 text-xs',
                     isToday
-                      ? 'bg-[var(--fn-primary-muted)] font-bold text-[var(--fn-primary)] ring-1 ring-[var(--fn-primary)]/25'
+                      ? 'bg-[var(--fn-primary-muted)] font-semibold text-[var(--fn-primary)] ring-1 ring-[var(--fn-primary)]/25'
                       : 'bg-[var(--fn-surface-muted)]/60 text-[var(--fn-text-secondary)]',
                   ].join(' ')}
                 >
@@ -171,16 +170,16 @@ export function PublicClubProfile({ institution }: { institution: Institution })
       </section>
 
       {institution.instructors && institution.instructors.length > 0 ? (
-        <section className="rounded-[1.75rem] border border-[var(--fn-border)] bg-gradient-to-br from-[var(--fn-surface)] to-[var(--fn-primary-muted)]/25 p-6 shadow-sm md:p-8">
-          <h2 className="mb-5 flex items-center gap-2 text-lg font-extrabold text-[var(--fn-text)]">
-            <Users size={20} className="text-[var(--fn-primary)]" />
+        <section className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--fn-text)]">
+            <Users size={16} className="text-[var(--fn-primary)]" />
             {PUBLIC_CLUB_LABELS.team}
           </h2>
-          <ul className="flex flex-wrap gap-2">
+          <ul className="flex flex-wrap gap-1.5">
             {institution.instructors.map((i) => (
               <li
                 key={i.id}
-                className="rounded-full border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-2 text-sm font-bold text-[var(--fn-text)] shadow-sm"
+                className="rounded-full border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/50 px-3 py-1 text-xs font-semibold text-[var(--fn-text)]"
               >
                 {i.displayName}
               </li>

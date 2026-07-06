@@ -11,6 +11,9 @@ import { PaymentsProvider } from '@/contexts/payments-context';
 import { ReviewsProvider } from '@/contexts/reviews-context';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { GlobalLoadingOverlay } from '@/components/layout/global-loading-overlay';
+import { purgeLocalStorageOnce } from '@/utils/purge-local-storage';
+
+purgeLocalStorageOnce();
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (

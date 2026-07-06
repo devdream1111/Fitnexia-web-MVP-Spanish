@@ -4,18 +4,29 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import { CheckoutPageUI } from '@/components/booking/checkout-page-ui';
+import { DigitalWalletsPanel } from '@/components/mock-v2v3/digital-wallets-panel';
+import { LoyaltyCreditsPanel } from '@/components/mock-v2v3/loyalty-credits-panel';
 import { PageHeader } from '@/components/layout/page-header';
+import { IS_MOCK_V2V3_ENABLED } from '@/config/mock-v2v3';
 import { useClasses } from '@/contexts/classes-context';
 import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
+import { useNoticeModal } from '@/contexts/notice-modal-context';
+import { useFeature } from '@/hooks/use-feature';
+import { applyMockCredits, getMockCreditBalance } from '@/services/mock/credits.mock';
 import { ApiClientError } from '@/services/api-client';
-import { apiGetClassBookingPaymentOptions, apiGetPaymentsConfig } from '@/services/api';
+import { apiGetClassBookingPaymentOptions, apiGetPaymentsConfig, apiJoinClassWaitlist } from '@/services/api';
 import {
   buildCreateBookingRequest,
   findPaymentOption,
 } from '@/utils/booking-payments';
-import { BUTTON_LABELS, SCREEN_TITLES, GENERAL_LABELS } from '@/constants/labels';
-import { useFeature } from '@/hooks/use-feature';
+import {
+  ALERT_LABELS,
+  BUTTON_LABELS,
+  MOCK_V2V3_LABELS,
+  SCREEN_TITLES,
+  GENERAL_LABELS,
+} from '@/constants/labels';
 import type { BillingPeriod, ClassBookingPaymentOptions, ClassListItem, PaymentModel } from '@/types/api';
 
 export default function BookPage() {
@@ -35,6 +46,9 @@ function BookContent() {
   const { user } = useAuth();
   const waitlistEnabled = useFeature('waitlist');
   const subscriptionModelsEnabled = useFeature('subscriptionPaymentModels');
+  const loyaltyEnabled = useFeature('loyaltyCredits');
+  const walletsEnabled = useFeature('digitalWallets');
+  const { showNotice } = useNoticeModal();
   const [cls, setCls] = useState<ClassListItem | undefined>(() =>
     classId ? getClassById(classId) : undefined,
   );
@@ -45,6 +59,8 @@ function BookContent() {
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [paymentsEnabled, setPaymentsEnabled] = useState(false);
   const [error, setError] = useState('');
+  const [applyCredits, setApplyCredits] = useState(false);
+  const creditBalance = user && loyaltyEnabled && IS_MOCK_V2V3_ENABLED ? getMockCreditBalance(user.id) : null;
   const isWaitlist = searchParams.get('waitlist') === '1' && waitlistEnabled;
 
   useEffect(() => {
@@ -120,7 +136,28 @@ function BookContent() {
       return;
     }
 
-    if (isWaitlist) return;
+    if (isWaitlist) {
+      setLoading(true);
+      setError('');
+      try {
+        await apiJoinClassWaitlist(cls.id);
+        showNotice({
+          title: ALERT_LABELS.savedTitle,
+          message: MOCK_V2V3_LABELS.waitlistJoined,
+          variant: 'success',
+        });
+        router.push('/athlete/bookings?tab=waitlist');
+      } catch (e) {
+        setError(e instanceof ApiClientError ? e.message : 'No se pudo unir a la lista de espera');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (loyaltyEnabled && applyCredits && user?.id) {
+      applyMockCredits(user.id, 30);
+    }
 
     if (subscriptionModelsEnabled && paymentModel === 'per_period' && !billingPeriod) {
       setError('Elegí un período de pago (semanal, mensual o trimestral).');
@@ -157,6 +194,31 @@ function BookContent() {
 
   const pageTitle = isWaitlist ? BUTTON_LABELS.joinWaitlistShort : BUTTON_LABELS.confirmBooking;
 
+  const checkoutExtras =
+    !isWaitlist && IS_MOCK_V2V3_ENABLED ? (
+      <>
+        {loyaltyEnabled && creditBalance ? (
+          <LoyaltyCreditsPanel
+            balance={creditBalance}
+            applyCredits={applyCredits}
+            onApplyCreditsChange={setApplyCredits}
+          />
+        ) : null}
+        {walletsEnabled && !selectedOption?.coveredBySubscription ? (
+          <DigitalWalletsPanel
+            disabled={loading}
+            onSelect={() => {
+              showNotice({
+                title: MOCK_V2V3_LABELS.digitalWallets,
+                message: MOCK_V2V3_LABELS.walletDemoNote,
+                variant: 'info',
+              });
+            }}
+          />
+        ) : null}
+      </>
+    ) : null;
+
   return (
     <CheckoutPageUI
       title={pageTitle}
@@ -175,6 +237,7 @@ function BookContent() {
       loading={loading}
       confirmLabel={confirmLabel}
       onConfirm={confirm}
+      checkoutExtras={checkoutExtras}
     />
   );
 }

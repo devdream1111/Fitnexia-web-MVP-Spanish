@@ -5,9 +5,17 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/layout/page-header';
 import { PlanCards } from '@/components/mvp/plan-cards';
 import { apiGetInstructorMe, apiGetPlans, type PlanOption } from '@/services/api';
+import { InstructorProSubscribePanel } from '@/components/mock-v2v3/gym-plan-panels';
+import { MockDataBadge } from '@/components/mock-v2v3/mock-data-badge';
 import { GENERAL_LABELS, INSTRUCTOR_JOB_LABELS, PROFILE_MENU_LABELS } from '@/constants/labels';
+import { useFeature } from '@/hooks/use-feature';
+import { useAuth } from '@/contexts/auth-context';
+import { getLinkedInstructorId } from '@/utils/instructor';
 
 export default function InstructorPlanPage() {
+  const { user } = useAuth();
+  const showProBilling = useFeature('instructorProBilling');
+  const instructorId = getLinkedInstructorId(user) || 'mock-instructor';
   const [plans, setPlans] = useState<PlanOption[]>([]);
   const [currentPlanId, setCurrentPlanId] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
@@ -42,7 +50,15 @@ export default function InstructorPlanPage() {
       {loading ? (
         <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
       ) : (
-        <PlanCards plans={plans} currentPlanId={currentPlanId} />
+        <>
+          <PlanCards plans={plans} currentPlanId={currentPlanId} />
+          {showProBilling ? (
+            <div className="space-y-2">
+              <MockDataBadge />
+              <InstructorProSubscribePanel instructorId={instructorId} />
+            </div>
+          ) : null}
+        </>
       )}
     </div>
   );

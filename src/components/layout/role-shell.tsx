@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { 
-  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, IdCard, Briefcase
+  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, IdCard, Briefcase, MapPin, MessageSquare, UsersRound
 } from 'lucide-react';
 
 import { Logo } from './Logo';
-import { TAB_LABELS, DROPDOWN_LABELS, ROLE_TITLES } from '@/constants/labels';
+import { TAB_LABELS, DROPDOWN_LABELS, ROLE_TITLES, MOCK_V2V3_LABELS } from '@/constants/labels';
 import { useAuth } from '@/contexts/auth-context';
 import { useAppTheme } from '@/contexts/theme-context';
 import { useNotifications } from '@/contexts/notifications-context';
@@ -46,6 +46,36 @@ const GYM_NAV_MEMBERS: NavItem = {
   icon: <IdCard size={18} />,
 };
 
+function buildAthleteNav(flags: {
+  courtBooking: boolean;
+  openGames: boolean;
+  chat: boolean;
+}): NavItem[] {
+  const items = [...ATHLETE_NAV];
+  if (flags.courtBooking) {
+    items.splice(3, 0, {
+      href: '/athlete/courts',
+      label: MOCK_V2V3_LABELS.courtsBook,
+      icon: <MapPin size={18} />,
+    });
+  }
+  if (flags.openGames) {
+    items.push({
+      href: '/athlete/open-games',
+      label: MOCK_V2V3_LABELS.openGamesTitle,
+      icon: <UsersRound size={18} />,
+    });
+  }
+  if (flags.chat) {
+    items.push({
+      href: '/athlete/messages',
+      label: MOCK_V2V3_LABELS.chatTitle,
+      icon: <MessageSquare size={18} />,
+    });
+  }
+  return items;
+}
+
 function buildGymNav(showMembers: boolean): NavItem[] {
   const items = [...GYM_NAV_BASE];
   if (showMembers) items.splice(2, 0, GYM_NAV_MEMBERS);
@@ -55,10 +85,11 @@ function buildGymNav(showMembers: boolean): NavItem[] {
 function navForRole(
   role: UserRole,
   gymNav: NavItem[],
+  athleteNav: NavItem[],
 ): NavItem[] {
   if (role === 'instructor') return INSTRUCTOR_NAV;
   if (role === 'institution') return gymNav;
-  return ATHLETE_NAV;
+  return athleteNav;
 }
 
 function getProfileLink(role: UserRole): string {
@@ -80,7 +111,15 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
   const { isDark, toggleDarkMode } = useAppTheme();
   const { unreadCount } = useNotifications();
   const showClubMembers = useFeature('clubMembers');
+  const showCourtBooking = useFeature('courtBooking');
+  const showOpenGames = useFeature('openGames');
+  const showChat = useFeature('userInstructorChat');
   const gymNav = buildGymNav(showClubMembers);
+  const athleteNav = buildAthleteNav({
+    courtBooking: showCourtBooking,
+    openGames: showOpenGames,
+    chat: showChat,
+  });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
@@ -116,7 +155,7 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
     router.replace('/auth/login');
   };
 
-  const nav = navForRole(user.role, gymNav);
+  const nav = navForRole(user.role, gymNav, athleteNav);
   const profileLink = getProfileLink(user.role);
 
   return (
@@ -235,12 +274,12 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="fn-layout-shell flex-1 py-5 pb-24 md:pb-5">
+      <main className="fn-layout-shell flex-1 py-5 pb-8 md:pb-6">
         {children}
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fn-mobile-tabbar fixed bottom-0 left-0 right-0 border-t border-[var(--fn-border)] bg-[var(--fn-surface)] md:hidden">
+      <nav className="fn-mobile-tabbar fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--fn-border)] bg-[var(--fn-surface)] md:hidden">
         <div className="flex w-full min-w-0">
         {[...nav, { href: profileLink, label: DROPDOWN_LABELS.myProfile, icon: <User size={18} /> }].map((item) => {
           const active = pathname === item.href;

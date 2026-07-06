@@ -6,11 +6,16 @@ type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 const variantClass: Record<Variant, string> = {
-  primary: 'bg-[var(--fn-primary)] text-white border-transparent hover:opacity-90',
-  secondary: 'bg-[var(--fn-text)] text-[var(--fn-surface)] border-transparent',
-  outline: 'bg-transparent text-[var(--fn-primary)] border-[var(--fn-primary)] border-[1.5px]',
-  ghost: 'bg-[var(--fn-primary-muted)] text-[var(--fn-primary-text)] border-transparent',
-  danger: 'bg-[var(--fn-error)] text-white border-transparent',
+  primary:
+    'bg-[var(--fn-primary)] text-white border-transparent hover:opacity-90 active:opacity-95',
+  secondary:
+    'bg-[var(--fn-text)] text-[var(--fn-surface)] border-transparent hover:opacity-90 active:opacity-95',
+  outline:
+    'bg-transparent text-[var(--fn-primary)] border-[var(--fn-primary)] border-[1.5px] hover:bg-[var(--fn-primary-muted)] active:bg-[var(--fn-primary-muted)]',
+  ghost:
+    'bg-[var(--fn-primary-muted)] text-[var(--fn-primary-text)] border-transparent hover:opacity-90 active:opacity-95',
+  danger:
+    'bg-[var(--fn-error)] text-white border-transparent hover:opacity-90 active:opacity-95',
 };
 
 const sizeClass: Record<Size, string> = {
@@ -32,21 +37,34 @@ export function Button({
   title?: string;
   variant?: Variant;
   size?: Size;
+  /** Inline spinner on the button; label stays in layout so width does not shrink. */
   loading?: boolean;
   children?: React.ReactNode;
 }) {
   const isDisabled = disabled || loading;
+  const label = children ?? title;
+
   return (
     <button
       type="button"
       disabled={isDisabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:opacity-50 ${variantClass[variant]} ${sizeClass[size]} ${className}`}
-      {...rest}>
+      aria-busy={loading || undefined}
+      className={`relative inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${variantClass[variant]} ${sizeClass[size]} ${loading ? 'cursor-wait' : ''} ${className}`}
+      {...rest}
+    >
+      <span
+        className={`inline-flex items-center justify-center gap-2 ${loading ? 'invisible' : ''}`}
+      >
+        {label}
+      </span>
       {loading ? (
-        <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      ) : (
-        children || title
-      )}
+        <span
+          className="absolute inset-0 flex items-center justify-center"
+          aria-hidden="true"
+        >
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        </span>
+      ) : null}
     </button>
   );
 }

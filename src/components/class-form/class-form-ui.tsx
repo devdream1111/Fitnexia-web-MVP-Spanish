@@ -13,6 +13,7 @@ import {
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { formatClassDate, formatMoney } from '@/utils/format';
 import type { ClassFormat, Modality } from '@/types/api';
+import { RECURRENCE_LABELS } from '@/constants/labels';
 
 export function ClassFormShell({ children }: { children: ReactNode }) {
   return <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 md:px-6 md:py-10">{children}</div>;
@@ -118,6 +119,7 @@ export function ClassFormPreview({
   capacity,
   instructorName,
   locationLabel,
+  recurrencePreview,
 }: {
   title: string;
   discipline: string;
@@ -129,6 +131,7 @@ export function ClassFormPreview({
   capacity: number;
   instructorName: string;
   locationLabel?: string;
+  recurrencePreview?: string[];
 }) {
   const price = formatMoney({ amount: priceAmount, currency: DEFAULT_CURRENCY });
   const disciplineLabel =
@@ -156,7 +159,25 @@ export function ClassFormPreview({
           <div>
             <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">Cuándo</dt>
             <dd className="mt-1 font-medium text-[var(--fn-text)]">
-              {startAt ? formatClassDate(startAt) : '—'}
+              {recurrencePreview && recurrencePreview.length > 0 ? (
+                <ul className="space-y-1">
+                  <li className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-primary)]">
+                    {RECURRENCE_LABELS.previewInstances}
+                  </li>
+                  {recurrencePreview.slice(0, 4).map((iso) => (
+                    <li key={iso}>{formatClassDate(iso)}</li>
+                  ))}
+                  {recurrencePreview.length > 4 ? (
+                    <li className="text-[var(--fn-text-muted)]">
+                      +{recurrencePreview.length - 4} más
+                    </li>
+                  ) : null}
+                </ul>
+              ) : startAt ? (
+                formatClassDate(startAt)
+              ) : (
+                '—'
+              )}
             </dd>
           </div>
           {modality === 'in_person' ? (

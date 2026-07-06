@@ -17,9 +17,14 @@ type ServerFeatures = Partial<{
   googleSignIn: boolean;
   geolocationMap: boolean;
   integratedPayments: boolean;
+  advancedSearch: boolean;
   waitlist: boolean;
   loyaltyCredits: boolean;
   subscriptionPaymentModels: boolean;
+  reviewResponses: boolean;
+  inAppNotificationCenter: boolean;
+  analyticsMetrics: boolean;
+  courts: boolean;
   clubMemberships: boolean;
   clubMembershipPlans: boolean;
   clubMembers: boolean;
@@ -41,7 +46,13 @@ const SERVER_FEATURE_MAP: Partial<Record<FeatureKey, keyof ServerFeatures>> = {
   googleSignIn: 'googleSignIn',
   geolocationMap: 'geolocationMap',
   integratedPayments: 'integratedPayments',
+  advancedSearch: 'advancedSearch',
   waitlist: 'waitlist',
+  reviewResponses: 'reviewResponses',
+  inAppNotificationCenter: 'inAppNotificationCenter',
+  analyticsMetrics: 'analyticsMetrics',
+  courtManagement: 'courts',
+  courtBooking: 'courts',
   loyaltyCredits: 'loyaltyCredits',
   subscriptionPaymentModels: 'subscriptionPaymentModels',
   clubMembershipPlans: 'clubMembershipPlans',

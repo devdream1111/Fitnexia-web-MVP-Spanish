@@ -1,13 +1,12 @@
 'use client';
 
-import { PageHeader } from '@/components/layout/page-header';
-import { SCREEN_TITLES } from '@/constants/labels';
+import {
+  PlatformSupportPage,
+  PlatformSupportPlaceholderPage,
+} from '@/components/mock-v2v3/platform-support-page';
+import { useFeature } from '@/hooks/use-feature';
 
 export default function SupportPage() {
-  return (
-    <div>
-      <PageHeader title={SCREEN_TITLES.helpSupport} showBack />
-      <p className="text-[var(--fn-text-muted)]">Support tickets — coming in a future release.</p>
-    </div>
-  );
+  const enabled = useFeature('platformSupport');
+  return enabled ? <PlatformSupportPage /> : <PlatformSupportPlaceholderPage />;
 }

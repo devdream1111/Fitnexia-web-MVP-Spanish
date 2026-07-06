@@ -24,7 +24,7 @@ export function PageBackground({ children }: { children: React.ReactNode }) {
           style={{ backgroundImage: `url(${isDark ? PAGE_BACKGROUNDS.dark : PAGE_BACKGROUNDS.light})` }}
         />
       ) : null}
-      <div className="relative z-10 flex flex-1 flex-col">{children}</div>
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col">{children}</div>
       {showFooter ? <Footer /> : null}
     </div>
   );

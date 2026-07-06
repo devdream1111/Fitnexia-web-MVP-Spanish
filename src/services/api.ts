@@ -7,6 +7,8 @@ import type {
   Class,
   ClassBookingPaymentOptions,
   ClassListItem,
+  ClassSeries,
+  ClassSeriesInstance,
   ClubInvitePreview,
   ClubMember,
   ClubMemberFeeStatus,
@@ -28,6 +30,7 @@ import type {
   HomeFeed,
   Institution,
   Instructor,
+  InstructorGender,
   JobApplication,
   JobPosting,
   JobRoleType,
@@ -36,6 +39,8 @@ import type {
   PaginatedResponse,
   User,
   UserRole,
+  VerificationRequestStatus,
+  VerificationStatus,
 } from '@/types/api';
 import { buildFallbackPaymentOptions } from '@/utils/booking-payments';
 import {
@@ -73,6 +78,8 @@ export interface RegisterBody {
   institutionName?: string;
   photoUrl?: string;
   acceptTerms?: boolean;
+  /** Required when role is instructor (backend validation). */
+  gender?: InstructorGender;
 }
 
 export interface BookingRecord extends Booking {
@@ -95,6 +102,8 @@ export interface ApiReview {
   rating: number;
   comment?: string;
   authorName: string;
+  response?: string | null;
+  responseAt?: string | null;
   createdAt: string;
 }
 
@@ -181,9 +190,15 @@ export interface AppConfig {
     googleSignIn: boolean;
     geolocationMap: boolean;
     integratedPayments: boolean;
+    advancedSearch?: boolean;
     waitlist: boolean;
     loyaltyCredits: boolean;
     subscriptionPaymentModels?: boolean;
+    reviewResponses?: boolean;
+    inAppNotificationCenter?: boolean;
+    analyticsMetrics?: boolean;
+    courts?: boolean;
+    clubMemberships?: boolean;
   };
   currency: string;
 }
@@ -205,6 +220,11 @@ export interface ClassSearchParams {
   sort?: string;
   page?: number;
   limit?: number;
+  verifiedOnly?: boolean;
+  /** F-11 — advanced search (server-side filters) */
+  level?: string;
+  language?: string;
+  instructorGender?: InstructorGender;
 }
 
 export interface MapMarker {
@@ -216,12 +236,23 @@ export interface MapMarker {
   startAt: string;
 }
 
+export interface CreateClassRecurrenceBody {
+  enabled: boolean;
+  frequency: 'weekly';
+  weekdays: number[];
+  until?: string | null;
+}
+
+export type ClassEditScope = 'this' | 'following';
+
 export interface CreateClassBody {
   title: string;
   description?: string;
   discipline: string;
   modality: string;
   classFormat?: string;
+  level?: string;
+  language?: string;
   startAt: string;
   durationMinutes: number;
   price: { amount: number; currency: string };
@@ -230,6 +261,8 @@ export interface CreateClassBody {
   location?: { lat: number; lng: number; label: string };
   instructorId?: string;
   institutionId?: string;
+  recurrence?: CreateClassRecurrenceBody;
+  editScope?: ClassEditScope;
 }
 
 // --- Auth ---
@@ -301,6 +334,48 @@ export function apiUpdateUserEmail(email: string) {
   return apiRequest<User>('/users/me', {
     method: 'PATCH',
     body: JSON.stringify({ email }),
+  });
+}
+
+export function apiDeleteAccount() {
+  return apiRequest<{ id: string; status: string }>('/users/me', {
+    method: 'DELETE',
+  });
+}
+
+export interface VerificationStatusResponse {
+  verificationStatus: VerificationStatus;
+  verified: boolean;
+  latestRequest: {
+    id: string;
+    status: VerificationRequestStatus;
+    submittedAt: string;
+    reviewedAt?: string;
+    rejectionReason?: string;
+  } | null;
+}
+
+export interface VerificationSubmitResponse {
+  id: string;
+  status: VerificationRequestStatus;
+  verificationStatus: VerificationStatus;
+  submittedAt: string;
+}
+
+export type VerificationDocumentField = 'dni_front' | 'dni_back' | 'certification';
+
+export function apiGetVerificationStatus() {
+  return apiRequest<VerificationStatusResponse>('/verification-requests/me');
+}
+
+export function apiSubmitVerification(files: Record<VerificationDocumentField, File>) {
+  const form = new FormData();
+  form.append('dni_front', files.dni_front);
+  form.append('dni_back', files.dni_back);
+  form.append('certification', files.certification);
+  return apiRequest<VerificationSubmitResponse>('/verification-requests', {
+    method: 'POST',
+    body: form,
   });
 }
 
@@ -528,6 +603,28 @@ export function apiCancelClass(id: string) {
   return apiRequest<void>(`/classes/${id}/cancel`, { method: 'POST' });
 }
 
+// --- F-13 Class series ---
+
+export function apiGetClassSeries(id: string) {
+  return apiRequest<ClassSeries>(`/class-series/${id}`);
+}
+
+export function apiGetClassSeriesInstances(id: string) {
+  return apiRequest<{ data: ClassSeriesInstance[] }>(`/class-series/${id}/instances`);
+}
+
+export function apiPauseClassSeries(id: string) {
+  return apiRequest<ClassSeries>(`/class-series/${id}/pause`, { method: 'POST' });
+}
+
+export function apiResumeClassSeries(id: string) {
+  return apiRequest<ClassSeries>(`/class-series/${id}/resume`, { method: 'POST' });
+}
+
+export function apiDeleteClassSeries(id: string) {
+  return apiRequest<ClassSeries>(`/class-series/${id}/delete`, { method: 'POST' });
+}
+
 // --- Feed ---
 
 export function apiGetHomeFeed() {
@@ -582,6 +679,77 @@ export function apiGetStaffReviews(instructorId: string) {
   return apiRequest<{ data: StaffReviewRecord[] }>(`/instructors/${instructorId}/staff-reviews`, {
     auth: false,
   });
+}
+
+export function apiRespondToReview(reviewId: string, response: string) {
+  return apiRequest<ApiReview>(`/reviews/${reviewId}/response`, {
+    method: 'POST',
+    body: JSON.stringify({ response }),
+  });
+}
+
+// --- Waitlist (F-18) ---
+
+export interface WaitlistEntry {
+  id: string;
+  classId: string;
+  classTitle?: string;
+  classStartAt?: string;
+  position: number;
+  status: 'waiting' | 'spot_offered' | 'confirmed' | 'expired' | 'cancelled';
+  offerExpiresAt?: string | null;
+  createdAt: string;
+}
+
+export function apiJoinClassWaitlist(classId: string) {
+  return apiRequest<WaitlistEntry>(`/classes/${classId}/waitlist`, { method: 'POST' });
+}
+
+export function apiGetMyWaitlist() {
+  return apiRequest<{ data: WaitlistEntry[] }>('/waitlist/me');
+}
+
+export function apiConfirmWaitlistSpot(waitlistId: string) {
+  return apiRequest<CreateBookingResponse>(`/waitlist/${waitlistId}/confirm`, { method: 'POST' });
+}
+
+export function apiLeaveWaitlist(waitlistId: string) {
+  return apiRequest<{ ok: boolean }>(`/waitlist/${waitlistId}`, { method: 'DELETE' });
+}
+
+// --- In-app notification inbox (F-32) ---
+
+export interface InboxNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+  data?: Record<string, unknown>;
+}
+
+export function apiGetNotifications(params?: { page?: number; limit?: number; unreadOnly?: boolean }) {
+  const qs = new URLSearchParams();
+  if (params?.page) qs.set('page', String(params.page));
+  if (params?.limit) qs.set('limit', String(params.limit));
+  if (params?.unreadOnly) qs.set('unreadOnly', 'true');
+  const query = qs.toString();
+  return apiRequest<PaginatedResponse<InboxNotification>>(
+    `/notifications${query ? `?${query}` : ''}`,
+  );
+}
+
+export function apiGetNotificationsUnreadCount() {
+  return apiRequest<{ unread: number }>('/notifications/unread-count');
+}
+
+export function apiMarkNotificationRead(id: string) {
+  return apiRequest<{ ok: boolean }>(`/notifications/${id}/read`, { method: 'PATCH' });
+}
+
+export function apiMarkAllNotificationsRead() {
+  return apiRequest<{ ok: boolean }>('/notifications/read-all', { method: 'POST' });
 }
 
 // --- Payouts ---

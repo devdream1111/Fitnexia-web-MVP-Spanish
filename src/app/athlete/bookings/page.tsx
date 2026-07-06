@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 
+import { AthleteBookingActions } from '@/components/booking/athlete-booking-actions';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/calendar/Calendar';
 import { useClasses } from '@/contexts/classes-context';
 import { useBookings } from '@/contexts/bookings-context';
@@ -12,20 +13,32 @@ import { useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { formatClassDate, formatMoney, isClassOnCalendarDay, parseClassStartAt } from '@/utils/format';
 import { formatBookingPaymentLabel } from '@/utils/booking-payments';
-import { canCancelBooking, getRefundAmount } from '@/utils/booking';
-import { filterClassesByScheduleTab } from '@/utils/calendar';
-import { GENERAL_LABELS } from '@/constants/labels';
+import { filterAthleteBookingsByTab } from '@/utils/calendar';
+import { ALERT_LABELS, GENERAL_LABELS, INSTRUCTOR_LABELS, MOCK_V2V3_LABELS } from '@/constants/labels';
+import { useFeature } from '@/hooks/use-feature';
+import {
+  apiConfirmWaitlistSpot,
+  apiGetMyWaitlist,
+  apiLeaveWaitlist,
+  type WaitlistEntry,
+} from '@/services/api';
+import { ApiClientError } from '@/services/api-client';
 import type { ClassListItem } from '@/types/api';
 import type { BookingRecord } from '@/services/api';
 
 export default function BookingsPage() {
-  const { classes, getClassById, fetchClassById } = useClasses();
+  const waitlistEnabled = useFeature('waitlist');
+  const { getClassById, fetchClassById } = useClasses();
   const { bookings, cancelBooking, syncPayment, refreshBookings } = useBookings();
   const { user } = useAuth();
   const { showNotice } = useNoticeModal();
+  const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistActionId, setWaitlistActionId] = useState<string | null>(null);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [showCalendar, setShowCalendar] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(null);
   const [classCache, setClassCache] = useState<Record<string, ClassListItem>>({});
@@ -33,6 +46,26 @@ export default function BookingsPage() {
   useEffect(() => {
     refreshBookings();
   }, [refreshBookings]);
+
+  const refreshWaitlist = useCallback(async () => {
+    if (!waitlistEnabled || !user) {
+      setWaitlistEntries([]);
+      return;
+    }
+    setWaitlistLoading(true);
+    try {
+      const { data } = await apiGetMyWaitlist();
+      setWaitlistEntries(data);
+    } catch {
+      setWaitlistEntries([]);
+    } finally {
+      setWaitlistLoading(false);
+    }
+  }, [user, waitlistEnabled]);
+
+  useEffect(() => {
+    refreshWaitlist();
+  }, [refreshWaitlist]);
 
   const resolveClass = useCallback(
     (booking: BookingRecord): ClassListItem | undefined =>
@@ -67,22 +100,17 @@ export default function BookingsPage() {
     };
   }, [bookings, classCache, fetchClassById, getClassById]);
 
-  const userBookings = user ? bookings.filter((b) => b.userId === user.id) : [];
+  const userBookings = useMemo(
+    () =>
+      user ? bookings.filter((b) => b.userId === 'me' || b.userId === user.id) : [],
+    [bookings, user],
+  );
 
-  const list = useMemo(() => {
-    return userBookings.filter((booking) => {
-      const cls = resolveClass(booking);
-      if (!cls?.startAt) return false;
-      const upcoming = new Date(cls.startAt).getTime() > Date.now();
-      if (tab === 'upcoming') {
-        return upcoming && ['confirmed', 'pending_payment'].includes(booking.status);
-      }
-      return (
-        !upcoming ||
-        ['completed', 'cancelled', 'refunded', 'no_show'].includes(booking.status)
-      );
-    });
-  }, [userBookings, tab, resolveClass]);
+  const list = useMemo(
+    () =>
+      filterAthleteBookingsByTab(userBookings, tab, (booking) => resolveClass(booking)?.startAt),
+    [userBookings, tab, resolveClass],
+  );
 
   useEffect(() => {
     setSelectedDate(null);
@@ -98,25 +126,22 @@ export default function BookingsPage() {
       .filter((e): e is { booking: BookingRecord; cls: ClassListItem } => e !== null);
   }, [list, resolveClass]);
 
-  const bookedClasses = useMemo(() => {
+  const calendarClasses = useMemo(() => {
     const byId = new Map<string, ClassListItem>();
-    for (const booking of userBookings) {
-      const cls = resolveClass(booking);
-      if (cls?.startAt && !byId.has(cls.id)) {
-        byId.set(cls.id, cls);
-      }
+    for (const { cls } of entries) {
+      if (!byId.has(cls.id)) byId.set(cls.id, cls);
     }
-    return filterClassesByScheduleTab(Array.from(byId.values()), tab);
-  }, [userBookings, resolveClass, tab]);
+    return Array.from(byId.values());
+  }, [entries]);
 
   const calendarFocusDate = useMemo(() => {
-    const dates = bookedClasses
+    const dates = calendarClasses
       .map((c) => parseClassStartAt(c.startAt))
       .filter((d) => !Number.isNaN(d.getTime()));
     if (dates.length === 0) return undefined;
-    dates.sort((a, b) => a.getTime() - b.getTime());
+    dates.sort((a, b) => (tab === 'upcoming' ? a.getTime() - b.getTime() : b.getTime() - a.getTime()));
     return dates[0];
-  }, [bookedClasses]);
+  }, [calendarClasses, tab]);
 
   const handleCancel = (bookingId: string) => {
     setShowCancelConfirm(bookingId);
@@ -130,6 +155,7 @@ export default function BookingsPage() {
     try {
       await cancelBooking(bookingId);
       setShowCancelConfirm(null);
+      setSelectedDate(null);
       if (cls && booking) {
         showNotice({
           title: GENERAL_LABELS.bookingCancelledTitle,
@@ -147,12 +173,12 @@ export default function BookingsPage() {
       window.location.href = booking.checkoutUrl;
       return;
     }
-    setCancellingId(booking.id);
+    setPayingId(booking.id);
     try {
       const updated = await syncPayment(booking.id);
       if (updated.checkoutUrl) window.location.href = updated.checkoutUrl;
     } finally {
-      setCancellingId(null);
+      setPayingId(null);
     }
   };
 
@@ -178,6 +204,116 @@ export default function BookingsPage() {
         </button>
       </div>
 
+      {waitlistEnabled ? (
+        <section className="mb-8 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
+          <h2 className="mb-3 text-sm font-bold text-[var(--fn-text)]">{MOCK_V2V3_LABELS.waitlistTitle}</h2>
+          {waitlistLoading ? (
+            <p className="text-sm text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
+          ) : waitlistEntries.length === 0 ? (
+            <p className="text-sm text-[var(--fn-text-muted)]">{MOCK_V2V3_LABELS.waitlistEmpty}</p>
+          ) : (
+            <ul className="space-y-3">
+              {waitlistEntries.map((entry) => (
+                <li
+                  key={entry.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--fn-border)] p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[var(--fn-text)]">
+                      {entry.classTitle ?? 'Clase'}
+                    </p>
+                    <p className="text-sm text-[var(--fn-text-muted)]">
+                      {entry.classStartAt ? formatClassDate(entry.classStartAt) : '—'} ·{' '}
+                      {MOCK_V2V3_LABELS.waitlistPosition(entry.position)}
+                    </p>
+                    {entry.status === 'spot_offered' ? (
+                      <p className="mt-1 text-xs font-medium text-[var(--fn-primary)]">
+                        {MOCK_V2V3_LABELS.waitlistSpotOffer}
+                        {entry.offerExpiresAt
+                          ? ` · Expira ${formatClassDate(entry.offerExpiresAt)}`
+                          : ''}
+                      </p>
+                    ) : null}
+                    <div className="mt-2">
+                      <Badge
+                        label={
+                          entry.status === 'spot_offered'
+                            ? MOCK_V2V3_LABELS.waitlistStatusOffered
+                            : MOCK_V2V3_LABELS.waitlistStatusWaiting
+                        }
+                        variant={entry.status === 'spot_offered' ? 'success' : 'default'}
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    {entry.status === 'spot_offered' ? (
+                      <Button
+                        title={MOCK_V2V3_LABELS.waitlistConfirmSpot}
+                        size="sm"
+                        loading={waitlistActionId === entry.id}
+                        onClick={async () => {
+                          setWaitlistActionId(entry.id);
+                          try {
+                            const result = await apiConfirmWaitlistSpot(entry.id);
+                            if (result.payment?.checkoutUrl) {
+                              window.location.href = result.payment.checkoutUrl;
+                              return;
+                            }
+                            await refreshBookings();
+                            await refreshWaitlist();
+                            showNotice({
+                              title: ALERT_LABELS.savedTitle,
+                              message: GENERAL_LABELS.bookingConfirmedTitle,
+                              variant: 'success',
+                            });
+                          } catch (e) {
+                            showNotice({
+                              title: ALERT_LABELS.missingInfoTitle,
+                              message:
+                                e instanceof ApiClientError
+                                  ? e.message
+                                  : 'No se pudo confirmar el cupo',
+                              variant: 'error',
+                            });
+                          } finally {
+                            setWaitlistActionId(null);
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <Button
+                      title={MOCK_V2V3_LABELS.leaveWaitlist}
+                      variant="outline"
+                      size="sm"
+                      loading={waitlistActionId === entry.id}
+                      onClick={async () => {
+                        setWaitlistActionId(entry.id);
+                        try {
+                          await apiLeaveWaitlist(entry.id);
+                          await refreshWaitlist();
+                        } catch (e) {
+                          showNotice({
+                            title: ALERT_LABELS.missingInfoTitle,
+                            message:
+                              e instanceof ApiClientError
+                                ? e.message
+                                : 'No se pudo salir de la lista',
+                            variant: 'error',
+                          });
+                        } finally {
+                          setWaitlistActionId(null);
+                        }
+                      }}
+                    />
+                  </div>
+                </li>
+                ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
       <div className="mb-6 flex rounded-xl bg-[var(--fn-surface-muted)] p-1">
         {(['upcoming', 'past'] as const).map((t) => (
           <button
@@ -187,7 +323,7 @@ export default function BookingsPage() {
             className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
               tab === t
                 ? 'bg-[var(--fn-surface)] text-[var(--fn-text)] shadow-sm'
-                : 'text-[var(--fn-text-muted)]'
+                : 'text-[var(--fn-text-muted)] hover:bg-[var(--fn-surface)]/60 hover:text-[var(--fn-text)]'
             }`}
           >
             {t === 'upcoming' ? GENERAL_LABELS.upcoming : GENERAL_LABELS.history}
@@ -198,10 +334,11 @@ export default function BookingsPage() {
       {showCalendar ? (
         <div className="mb-8">
           <Calendar
-            classes={bookedClasses}
+            classes={calendarClasses}
             focusDate={calendarFocusDate}
             onDateClick={(date) => setSelectedDate(date)}
             showSidePanel={false}
+            labels={INSTRUCTOR_LABELS.calendar}
           />
         </div>
       ) : null}
@@ -236,16 +373,29 @@ export default function BookingsPage() {
                     className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-4"
                   >
                     <p className="font-semibold text-[var(--fn-text)]">{cls.title}</p>
-                  <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
-                  <p className="text-sm text-[var(--fn-primary)]">{formatMoney(booking.price)}</p>
-                  {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod) ? (
-                    <p className="text-xs text-[var(--fn-text-muted)]">
-                      {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod)}
-                    </p>
-                  ) : null}
+                    <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
+                    <p className="text-sm text-[var(--fn-primary)]">{formatMoney(booking.price)}</p>
+                    {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod) ? (
+                      <p className="text-xs text-[var(--fn-text-muted)]">
+                        {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod)}
+                      </p>
+                    ) : null}
                     <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
                       {GENERAL_LABELS.status}: {booking.status}
                     </p>
+                    <AthleteBookingActions
+                      booking={booking}
+                      cls={cls}
+                      tab={tab}
+                      payingId={payingId}
+                      cancellingId={cancellingId}
+                      showCancelConfirm={showCancelConfirm}
+                      onPay={handlePay}
+                      onCancel={handleCancel}
+                      onConfirmCancel={confirmCancel}
+                      onDismissCancel={() => setShowCancelConfirm(null)}
+                      layout="stack"
+                    />
                   </div>
                 ))
               )}
@@ -257,89 +407,39 @@ export default function BookingsPage() {
       {entries.length === 0 ? (
         <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noBookingsInTab}</p>
       ) : (
-        entries.map(({ booking, cls }) => {
-          const policyHours = 24;
-          const canCancel =
-            ['confirmed', 'pending_payment'].includes(booking.status) &&
-            canCancelBooking(cls.startAt, policyHours);
-          const refundAmount = getRefundAmount(booking, cls.startAt, policyHours);
-
-          return (
+        entries.map(({ booking, cls }) => (
             <div
               key={booking.id}
               className="mb-4 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6"
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-lg font-bold">{cls.title}</p>
-                  <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
-                  <p className="mt-2 text-sm">
-                    {formatMoney(booking.price)} · {booking.status}
-                  </p>
-                  {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod) ? (
-                    <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
-                      {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod)}
-                    </p>
-                  ) : null}
-                </div>
-                {['confirmed', 'pending_payment'].includes(booking.status) && tab === 'upcoming' ? (
-                  <div className="flex flex-col gap-2">
-                    {booking.status === 'pending_payment' ? (
-                      <Button
-                        title="Completar pago"
-                        size="sm"
-                        loading={cancellingId === booking.id}
-                        onClick={() => handlePay(booking)}
-                      />
-                    ) : null}
-                    <Button
-                      title={GENERAL_LABELS.cancel}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCancel(booking.id)}
-                      loading={cancellingId === booking.id}
-                      disabled={!canCancel}
-                    />
-                  </div>
-                ) : null}
+              <p className="text-lg font-bold">{cls.title}</p>
+              <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{formatClassDate(cls.startAt)}</p>
+              <p className="mt-2 text-sm">
+                {formatMoney(booking.price)} · {booking.status}
+              </p>
+              {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod) ? (
+                <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
+                  {formatBookingPaymentLabel(booking.paymentModel, booking.billingPeriod)}
+                </p>
+              ) : null}
+              <div className="mt-4">
+                <AthleteBookingActions
+                  booking={booking}
+                  cls={cls}
+                  tab={tab}
+                  payingId={payingId}
+                  cancellingId={cancellingId}
+                  showCancelConfirm={showCancelConfirm}
+                  onPay={handlePay}
+                  onCancel={handleCancel}
+                  onConfirmCancel={confirmCancel}
+                  onDismissCancel={() => setShowCancelConfirm(null)}
+                  showReviewLink
+                  layout="stack"
+                />
               </div>
-
-              {showCancelConfirm === booking.id ? (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/30">
-                  <p className="mb-2 font-bold">{GENERAL_LABELS.cancelBooking}</p>
-                  <p className="mb-4 text-sm">
-                    {canCancel
-                      ? GENERAL_LABELS.fullRefund.replace('{amount}', formatMoney(refundAmount))
-                      : GENERAL_LABELS.partialRefund.replace('{amount}', formatMoney(refundAmount))}
-                  </p>
-                  <div className="flex gap-3">
-                    <Button
-                      title={GENERAL_LABELS.confirmCancel}
-                      variant="danger"
-                      size="sm"
-                      onClick={() => confirmCancel(booking.id)}
-                      loading={cancellingId === booking.id}
-                    />
-                    <Button
-                      title={GENERAL_LABELS.keepBooking}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCancelConfirm(null)}
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {booking.status === 'completed' ? (
-                <div className="mt-4">
-                  <Link href={`/review/${booking.id}`} className="inline-block">
-                    <Button title={GENERAL_LABELS.leaveReview} size="sm" variant="outline" />
-                  </Link>
-                </div>
-              ) : null}
             </div>
-          );
-        })
+          ))
       )}
     </div>
   );

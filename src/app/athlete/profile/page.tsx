@@ -6,49 +6,89 @@ import {
   Search,
   Heart,
   CreditCard,
-  Bell,
   Dumbbell,
   Building2,
+  Video,
+  Sparkles,
+  LifeBuoy,
+  MapPin,
+  MessageSquare,
+  UsersRound,
+  Signal,
 } from 'lucide-react';
 
+import { DisplayCurrencySelector } from '@/components/mock-v2v3/display-currency-selector';
+import { MockDataBadge } from '@/components/mock-v2v3/mock-data-badge';
 import { PageHeader } from '@/components/layout/page-header';
+import { IS_MOCK_V2V3_ENABLED } from '@/config/mock-v2v3';
+import { useFeature } from '@/hooks/use-feature';
+import { getMockCreditBalance } from '@/services/mock/credits.mock';
+import { mockCurrencyService } from '@/services/mock/currency.mock';
+import { disciplineSelectOptions, filterValidDisciplines } from '@/utils/disciplines';
+import type { ImageUploadInput } from '@/utils/media';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Select } from '@/components/ui/select';
 import {
   ProfileHero,
   ProfileStatCard,
   ProfileQuickLinks,
-  ProfileSettingsCard,
+  ProfileNotificationsHub,
   ProfileEditFields,
   ProfilePasswordPanel,
+  ProfileDetailsCard,
+  ProfileDetailRow,
+  ProfileStatsGrid,
+  ProfileCardShell,
   PROFILE_GRADIENTS,
+  PROFILE_PAGE_GAP,
   toggleVisible,
+  type QuickLinkGroup,
 } from '@/components/profile/profile-page-ui';
+import { ProfileDangerZone } from '@/components/profile/profile-danger-zone';
 import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
+import { useNotifications } from '@/contexts/notifications-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useBookings } from '@/contexts/bookings-context';
 import {
   ALERT_LABELS,
   AUTH_LABELS,
+  ADVANCED_SEARCH_LABELS,
   DISCIPLINE_LABELS,
-  DROPDOWN_LABELS,
   GENERAL_LABELS,
   PROFILE_MENU_LABELS,
   PROFILE_PAGE_LABELS,
   ROLE_TITLES,
-  SCREEN_TITLES,
   TAB_LABELS,
+  MOCK_V2V3_LABELS,
+  SCREEN_TITLES,
 } from '@/constants/labels';
-import { disciplineSelectOptions, filterValidDisciplines } from '@/utils/disciplines';
-import type { ImageUploadInput } from '@/utils/media';
-import { useFeature } from '@/hooks/use-feature';
+import { CLASS_LEVELS } from '@/constants/fitnexia';
+import { levelLabel } from '@/utils/advanced-search';
+import {
+  getAthleteTrainingLevel,
+  setAthleteTrainingLevel,
+} from '@/utils/athlete-preferences';
+import type { ClassLevel } from '@/types/api';
 
 export default function AthleteProfilePage() {
   const { user, updateProfile } = useAuth();
+  const { unreadCount } = useNotifications();
   const { showNotice } = useNoticeModal();
   const { bookings } = useBookings();
   const showPaymentMethods = useFeature('savedPaymentMethods');
   const showClubMembership = useFeature('clubMemberPortal');
+  const showAccountDeletion = useFeature('accountDeletion');
+  const showRecordedLibrary = useFeature('recordedClasses');
+  const showLoyaltyCredits = useFeature('loyaltyCredits');
+  const showMultiCurrency = useFeature('multipleCurrencies');
+  const showPlatformSupport = useFeature('platformSupport');
+  const showCourtBooking = useFeature('courtBooking');
+  const showOpenGames = useFeature('openGames');
+  const showChat = useFeature('userInstructorChat');
+  const [displayCurrency, setDisplayCurrency] = useState(() => mockCurrencyService.getDisplayCurrency());
+  const creditBalance =
+    user && showLoyaltyCredits && IS_MOCK_V2V3_ENABLED ? getMockCreditBalance(user.id) : null;
 
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
@@ -58,6 +98,12 @@ export default function AthleteProfilePage() {
   const [favoriteSports, setFavoriteSports] = useState<string[]>(
     filterValidDisciplines(user?.favoriteSports ?? []),
   );
+  const [trainingLevel, setTrainingLevel] = useState<ClassLevel | ''>('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setTrainingLevel(getAthleteTrainingLevel());
+  }, []);
 
   useEffect(() => {
     if (!isEditing) {
@@ -66,6 +112,7 @@ export default function AthleteProfilePage() {
       setEmail(user?.email ?? '');
       setAvatarUri(user?.avatarUri ?? null);
       setFavoriteSports(filterValidDisciplines(user?.favoriteSports ?? []));
+      setTrainingLevel(getAthleteTrainingLevel());
     }
   }, [user, isEditing]);
 
@@ -79,6 +126,7 @@ export default function AthleteProfilePage() {
   );
 
   const handleSave = async () => {
+    setSaving(true);
     try {
       await updateProfile({
         firstName,
@@ -87,6 +135,7 @@ export default function AthleteProfilePage() {
         avatarUri,
         favoriteSports: filterValidDisciplines(favoriteSports),
       });
+      setAthleteTrainingLevel(trainingLevel);
       setIsEditing(false);
       showNotice({
         title: ALERT_LABELS.savedTitle,
@@ -99,6 +148,8 @@ export default function AthleteProfilePage() {
         message: getAuthErrorMessage(error),
         variant: 'error',
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -108,26 +159,58 @@ export default function AthleteProfilePage() {
     setEmail(user?.email ?? '');
     setAvatarUri(user?.avatarUri ?? null);
     setFavoriteSports(filterValidDisciplines(user?.favoriteSports ?? []));
+    setTrainingLevel(getAthleteTrainingLevel());
     setIsEditing(false);
   };
 
-  const quickLinks = [
-    { href: '/athlete/bookings', label: GENERAL_LABELS.myBookings, icon: Calendar, count: upcomingCount },
-    { href: '/athlete/search', label: TAB_LABELS.athlete.search, icon: Search },
-    { href: '/athlete/payment-history', label: GENERAL_LABELS.paymentHistory, icon: CreditCard },
-    ...(showPaymentMethods
-      ? [{ href: '/athlete/profile/payment-methods', label: PROFILE_MENU_LABELS.paymentMethods, icon: CreditCard }]
-      : []),
-    ...(showClubMembership
-      ? [{ href: '/athlete/club-membership', label: SCREEN_TITLES.clubMembership, icon: Building2 }]
-      : []),
-  ];
+  const quickLinkGroups: QuickLinkGroup[] = [
+    {
+      title: 'Actividad',
+      links: [
+        { href: '/athlete/bookings', label: GENERAL_LABELS.myBookings, icon: Calendar, count: upcomingCount },
+        { href: '/athlete/search', label: TAB_LABELS.athlete.search, icon: Search },
+        { href: '/athlete/payment-history', label: GENERAL_LABELS.paymentHistory, icon: CreditCard },
+        ...(showRecordedLibrary
+          ? [{ href: '/athlete/library', label: SCREEN_TITLES.recordedLibrary, icon: Video }]
+          : []),
+      ],
+    },
+    {
+      title: 'Club y reservas',
+      links: [
+        ...(showClubMembership
+          ? [{ href: '/athlete/club-membership', label: SCREEN_TITLES.clubMembership, icon: Building2 }]
+          : []),
+        ...(showCourtBooking
+          ? [
+              { href: '/athlete/courts', label: MOCK_V2V3_LABELS.courtsBook, icon: MapPin },
+              { href: '/athlete/court-bookings', label: MOCK_V2V3_LABELS.courtsMyBookings, icon: Calendar },
+            ]
+          : []),
+        ...(showOpenGames
+          ? [{ href: '/athlete/open-games', label: MOCK_V2V3_LABELS.openGamesTitle, icon: UsersRound }]
+          : []),
+        ...(showChat ? [{ href: '/athlete/messages', label: MOCK_V2V3_LABELS.chatTitle, icon: MessageSquare }] : []),
+      ].filter(Boolean) as QuickLinkGroup['links'],
+    },
+    {
+      title: 'Cuenta',
+      links: [
+        ...(showPaymentMethods
+          ? [{ href: '/athlete/profile/payment-methods', label: PROFILE_MENU_LABELS.paymentMethods, icon: CreditCard }]
+          : []),
+        ...(showPlatformSupport
+          ? [{ href: '/athlete/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy }]
+          : []),
+      ].filter(Boolean) as QuickLinkGroup['links'],
+    },
+  ].filter((group) => group.links.length > 0);
 
   return (
-    <div className="space-y-8">
+    <div className={PROFILE_PAGE_GAP}>
       <PageHeader title={PROFILE_PAGE_LABELS.title} showBack />
 
-      <div className="overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+      <ProfileCardShell>
         <ProfileHero
           gradientClass={PROFILE_GRADIENTS.athlete}
           badgeLabel={ROLE_TITLES.athlete}
@@ -136,6 +219,7 @@ export default function AthleteProfilePage() {
           avatarUri={isEditing ? avatarUri : user?.avatarUri}
           uploadRole="athlete"
           isEditing={isEditing}
+          saving={saving}
           onEdit={() => setIsEditing(true)}
           onSave={handleSave}
           onCancel={handleCancel}
@@ -148,20 +232,24 @@ export default function AthleteProfilePage() {
             })
           }
         />
-        <div className="grid gap-4 p-6 md:grid-cols-3 md:p-8">
+        <ProfileStatsGrid>
           <ProfileStatCard icon={Calendar} label="Reservas activas" value={upcomingCount} accent="success" />
           <ProfileStatCard
             icon={Heart}
             label={PROFILE_PAGE_LABELS.favoriteSports}
             value={user?.favoriteSports.length ?? 0}
-            accent="default"
           />
-          <ProfileStatCard icon={Dumbbell} label="Total de reservas" value={userBookings.length} accent="warning" />
-        </div>
-      </div>
+          <ProfileStatCard icon={Dumbbell} label="Total reservas" value={userBookings.length} accent="warning" />
+          <ProfileStatCard
+            icon={Signal}
+            label={PROFILE_PAGE_LABELS.trainingLevel}
+            value={trainingLevel ? levelLabel(trainingLevel) : '—'}
+          />
+        </ProfileStatsGrid>
+      </ProfileCardShell>
 
       <ProfileEditFields visible={isEditing}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <Input label={AUTH_LABELS.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
           <Input label={AUTH_LABELS.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)} />
           <Input
@@ -171,39 +259,80 @@ export default function AthleteProfilePage() {
             className="md:col-span-2"
           />
         </div>
-        <div className="mt-4">
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
           <MultiSelect
             label={PROFILE_MENU_LABELS.favoriteSports}
             value={favoriteSports}
             onChange={setFavoriteSports}
             options={disciplineSelectOptions()}
           />
+          <Select
+            label={PROFILE_PAGE_LABELS.trainingLevel}
+            value={trainingLevel}
+            onChange={(value) => setTrainingLevel((value as ClassLevel) || '')}
+            options={[
+              { value: '', label: ADVANCED_SEARCH_LABELS.anyLevel },
+              ...CLASS_LEVELS.map((item) => ({ value: item.id, label: item.label })),
+            ]}
+          />
         </div>
+        <p className="mt-2 text-xs text-[var(--fn-text-muted)]">{PROFILE_PAGE_LABELS.trainingLevelHint}</p>
       </ProfileEditFields>
 
-      <div className={toggleVisible(!isEditing, 'rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6')}>
-        <h3 className="mb-4 text-lg font-bold">{PROFILE_PAGE_LABELS.favoriteSports}</h3>
-        <p className="text-sm text-[var(--fn-text-muted)]">
-          {user?.favoriteSports.length
-            ? user.favoriteSports
-                .map((d) => DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] ?? d)
-                .join(' · ')
-            : GENERAL_LABELS.none}
-        </p>
+      <div className={toggleVisible(!isEditing)}>
+        <ProfileDetailsCard>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ProfileDetailRow
+              label={PROFILE_PAGE_LABELS.favoriteSports}
+              value={
+                user?.favoriteSports.length
+                  ? user.favoriteSports
+                      .map((d) => DISCIPLINE_LABELS[d as keyof typeof DISCIPLINE_LABELS] ?? d)
+                      .join(' · ')
+                  : GENERAL_LABELS.none
+              }
+            />
+            <ProfileDetailRow
+              label={PROFILE_PAGE_LABELS.trainingLevel}
+              value={trainingLevel ? levelLabel(trainingLevel) : GENERAL_LABELS.none}
+            />
+          </div>
+        </ProfileDetailsCard>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ProfileQuickLinks links={quickLinks} />
-        <ProfileSettingsCard
-          title={PROFILE_PAGE_LABELS.notificationsTitle}
-          subtitle={PROFILE_PAGE_LABELS.notificationsSubtitle}
-          href="/athlete/profile/notifications"
-          buttonLabel={DROPDOWN_LABELS.settings}
-          icon={Bell}
+      {creditBalance ? (
+        <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Sparkles size={18} className="text-amber-600" />
+            <h3 className="text-sm font-bold text-[var(--fn-text)]">{MOCK_V2V3_LABELS.creditsBalance}</h3>
+            <MockDataBadge />
+          </div>
+          <p className="mt-1 text-xl font-extrabold text-[var(--fn-text)]">{creditBalance.balance}</p>
+          <p className="mt-0.5 text-xs text-[var(--fn-text-muted)]">
+            {MOCK_V2V3_LABELS.creditsHint(creditBalance.balance, creditBalance.creditsUntilReward)}
+          </p>
+        </section>
+      ) : null}
+
+      {showMultiCurrency && IS_MOCK_V2V3_ENABLED ? (
+        <DisplayCurrencySelector
+          value={displayCurrency}
+          onChange={(currency) => setDisplayCurrency(mockCurrencyService.setDisplayCurrency(currency))}
+        />
+      ) : null}
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <ProfileQuickLinks groups={quickLinkGroups} />
+        <ProfileNotificationsHub
+          inboxHref="/athlete/notifications"
+          preferencesHref="/athlete/profile/notifications"
+          unreadCount={unreadCount}
         />
       </div>
 
       <ProfilePasswordPanel />
+
+      {showAccountDeletion && user?.email ? <ProfileDangerZone email={user.email} /> : null}
     </div>
   );
 }

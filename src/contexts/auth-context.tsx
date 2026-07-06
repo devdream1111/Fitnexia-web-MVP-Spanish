@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState, useEf
 
 import { DEFAULT_COUNTRY_CODE, resolveCountryCode } from '@/constants/countries';
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
-import type { Certification, OpeningHours, UserRole, WeeklySchedule } from '@/types/api';
+import type { Certification, InstructorGender, OpeningHours, UserRole, VerificationStatus, WeeklySchedule } from '@/types/api';
 import { defaultOpeningHours } from '@/utils/opening-hours';
 import { ApiClientError } from '@/services/api-client';
 import {
@@ -15,6 +15,7 @@ import {
   apiLogin,
   apiLogout,
   apiRegister,
+  apiDeleteAccount,
   apiUpdateAthleteProfile,
   apiUpdateInstructor,
   apiSetAvailableNow,
@@ -60,6 +61,8 @@ export interface InstructorProfileData {
   weeklySchedule: WeeklySchedule;
   hourlyRate: string;
   verified: boolean;
+  verificationStatus: VerificationStatus;
+  gender?: InstructorGender;
 }
 
 export interface InstructorInvite {
@@ -76,6 +79,7 @@ export interface InstitutionProfileData {
   city: string;
   country: string;
   verified: boolean;
+  verificationStatus: VerificationStatus;
   gallery: string[];
   instructorIds: string[];
   pendingInvites: InstructorInvite[];
@@ -131,6 +135,7 @@ export function defaultInstructorProfile(
     weeklySchedule: defaultWeeklySchedule(),
     hourlyRate: '',
     verified: false,
+    verificationStatus: 'unverified',
   };
 }
 
@@ -142,6 +147,7 @@ export function defaultInstitutionProfile(name: string): InstitutionProfileData 
     city: '',
     country: DEFAULT_COUNTRY_CODE,
     verified: false,
+    verificationStatus: 'unverified',
     gallery: [],
     instructorIds: [],
     pendingInvites: [],
@@ -163,6 +169,7 @@ export type RegisterParams = {
   disciplines?: string[];
   institutionName?: string;
   acceptTerms?: boolean;
+  gender?: InstructorGender;
 };
 
 export type UpdateProfileParams = Partial<
@@ -190,6 +197,7 @@ interface AuthContextValue {
   }) => Promise<AuthUser>;
   updateProfile: (updates: UpdateProfileParams) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -281,6 +289,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       institutionName: params.institutionName,
       photoUrl,
       acceptTerms: params.acceptTerms ?? true,
+      ...(params.role === 'instructor' && params.gender ? { gender: params.gender } : {}),
     };
 
     const auth = await apiRegister(body);
@@ -386,6 +395,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             currency: DEFAULT_CURRENCY,
           };
         }
+        if (ip?.gender !== undefined) body.gender = ip.gender;
         if (updates.avatarUri !== undefined) {
           const photoUrl = await resolveUploadableImageUrl(updates.avatarUri);
           if (photoUrl) body.photoUrl = photoUrl;
@@ -470,6 +480,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    await apiDeleteAccount();
+    clearTokens();
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    setUser(null);
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -482,6 +499,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       googleSignIn,
       updateProfile,
       changePassword,
+      deleteAccount,
       logout,
       refreshUser,
     }),
@@ -496,6 +514,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       googleSignIn,
       updateProfile,
       changePassword,
+      deleteAccount,
       logout,
       refreshUser,
     ],

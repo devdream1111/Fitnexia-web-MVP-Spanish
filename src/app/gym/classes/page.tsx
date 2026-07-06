@@ -52,7 +52,7 @@ export default function GymClassesPage() {
         ) : (
           <DashboardClassGrid>
             {gymClasses.map((c) => (
-              <ClassCard key={c.id} item={c} />
+              <ClassCard key={c.id} item={c} showEdit editHref={`/gym/edit-class/${c.id}`} />
             ))}
           </DashboardClassGrid>
         )}

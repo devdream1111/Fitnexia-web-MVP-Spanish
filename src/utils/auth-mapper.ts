@@ -60,6 +60,8 @@ export function mapMeToAuthUser(data: MeResponse): AuthUser {
           defaultWeeklySchedule(),
         hourlyRate: p.hourlyRate ? String(p.hourlyRate.amount / 100) : '',
         verified: p.verified,
+        verificationStatus: p.verificationStatus ?? (p.verified ? 'verified' : 'unverified'),
+        gender: p.gender,
       },
     };
   }
@@ -79,6 +81,7 @@ export function mapMeToAuthUser(data: MeResponse): AuthUser {
         city: p.location?.city ?? '',
         country: resolveCountryCode(p.location?.country),
         verified: p.verified,
+        verificationStatus: p.verificationStatus ?? (p.verified ? 'verified' : 'unverified'),
         gallery: (p.gallery ?? []).map((url) => resolveMediaUrl(url) ?? url),
         instructorIds: (p.instructors ?? []).map((i) => i.id),
         pendingInvites: [],

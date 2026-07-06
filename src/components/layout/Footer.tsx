@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Mail, Phone, MapPin, Heart, Star, User } from 'lucide-react';
 
 import { useAuth } from '@/contexts/auth-context';
+import { useFeature } from '@/hooks/use-feature';
 import { Logo } from './Logo';
 import type { UserRole } from '@/types/api';
 
@@ -58,13 +59,19 @@ function quickLinksForRole(role: UserRole): FooterLink[] {
   return LANDING_QUICK_LINKS;
 }
 
-function forYouLinksForRole(role: UserRole): FooterLink[] {
+function supportHref(role: UserRole): string {
+  if (role === 'instructor') return '/instructor/profile/support';
+  if (role === 'institution') return '/gym/profile/support';
+  return '/athlete/profile/support';
+}
+
+function forYouLinksForRole(role: UserRole, showPlatformSupport: boolean): FooterLink[] {
   if (role === 'athlete') {
     return [
       { label: 'Encontrar clases', href: '/athlete/search' },
       { label: 'Mi perfil', href: '/athlete/profile' },
       { label: 'Historial de pagos', href: '/athlete/payment-history' },
-      { label: 'Soporte', href: '/athlete/profile/support' },
+      ...(showPlatformSupport ? [{ label: 'Soporte', href: supportHref(role) }] : []),
     ];
   }
   if (role === 'instructor') {
@@ -73,6 +80,7 @@ function forYouLinksForRole(role: UserRole): FooterLink[] {
       { label: 'Mis ganancias', href: '/instructor/earnings' },
       { label: 'Mi perfil', href: '/instructor/profile' },
       { label: 'Crear clase', href: '/instructor/create-class' },
+      ...(showPlatformSupport ? [{ label: 'Soporte', href: supportHref(role) }] : []),
     ];
   }
   if (role === 'institution') {
@@ -81,6 +89,7 @@ function forYouLinksForRole(role: UserRole): FooterLink[] {
       { label: 'Ganancias', href: '/gym/earnings' },
       { label: 'Perfil del gimnasio', href: '/gym/profile' },
       { label: 'Crear clase', href: '/gym/create-class' },
+      ...(showPlatformSupport ? [{ label: 'Soporte', href: supportHref(role) }] : []),
     ];
   }
   return LANDING_FOR_YOU_LINKS;
@@ -92,13 +101,16 @@ function footerLinkClassName() {
 
 export function Footer() {
   const { user } = useAuth();
+  const showPlatformSupport = useFeature('platformSupport');
   const quickLinks = user ? quickLinksForRole(user.role) : LANDING_QUICK_LINKS;
-  const forYouLinks = user ? forYouLinksForRole(user.role) : LANDING_FOR_YOU_LINKS;
+  const forYouLinks = user ? forYouLinksForRole(user.role, showPlatformSupport) : LANDING_FOR_YOU_LINKS;
 
   return (
     <footer
-      className={`relative z-10 border-t border-[#334155] bg-[#121C2D] ${
-        user ? 'mb-16 md:mb-0' : ''
+      className={`border-t border-[#334155] bg-[#121C2D] ${
+        user
+          ? 'pb-[max(5rem,env(safe-area-inset-bottom,0px))] md:pb-10'
+          : 'pb-8'
       }`}
     >
       <div className="fn-layout-shell py-12 md:py-16">

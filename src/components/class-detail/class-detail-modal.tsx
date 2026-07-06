@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
 
 import { ClassDetailView } from '@/components/class-detail/class-detail-view';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 
 export function ClassDetailModal({ classId }: { classId: string }) {
   const router = useRouter();
@@ -14,10 +15,10 @@ export function ClassDetailModal({ classId }: { classId: string }) {
     router.back();
   }, [router]);
 
+  useBodyScrollLock(isClassRoute);
+
   useEffect(() => {
     if (!isClassRoute) return;
-
-    document.body.style.overflow = 'hidden';
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
@@ -25,16 +26,9 @@ export function ClassDetailModal({ classId }: { classId: string }) {
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [close, isClassRoute]);
-
-  useEffect(() => {
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
 
   if (!isClassRoute) {
     return null;

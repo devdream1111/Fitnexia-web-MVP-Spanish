@@ -15,11 +15,19 @@ import {
   apiUpdateGymSubscription,
 } from '@/services/api';
 import { ApiClientError } from '@/services/api-client';
-import { ALERT_LABELS, GENERAL_LABELS, GYM_LABELS, PROFILE_MENU_LABELS } from '@/constants/labels';
+import { GymBillingPanel } from '@/components/mock-v2v3/gym-plan-panels';
+import { MockDataBadge } from '@/components/mock-v2v3/mock-data-badge';
+import { ALERT_LABELS, GENERAL_LABELS, GYM_LABELS, MOCK_V2V3_LABELS, PROFILE_MENU_LABELS } from '@/constants/labels';
+import { useFeature } from '@/hooks/use-feature';
+import { useAuth } from '@/contexts/auth-context';
+import { resolveInstitutionId } from '@/utils/gym-classes';
 import type { GymSaasTier, GymSubscription, GymTierCatalog } from '@/types/api';
 
 export default function GymPlanPage() {
   const { showNotice } = useNoticeModal();
+  const { user } = useAuth();
+  const showGymBilling = useFeature('gymSaasBilling');
+  const institutionId = resolveInstitutionId(user) || 'mock-gym';
   const [tiers, setTiers] = useState<GymTierCatalog[]>([]);
   const [subscription, setSubscription] = useState<GymSubscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,6 +96,15 @@ export default function GymPlanPage() {
       ) : (
         <>
           {subscription ? <GymSubscriptionBanner subscription={subscription} /> : null}
+          {showGymBilling && subscription ? (
+            <div className="space-y-2">
+              <MockDataBadge />
+              <GymBillingPanel
+                institutionId={institutionId}
+                monthlyFeeCents={subscription.monthlyFeeCents}
+              />
+            </div>
+          ) : null}
           <div>
             <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-[var(--fn-text-muted)]">
               Planes disponibles

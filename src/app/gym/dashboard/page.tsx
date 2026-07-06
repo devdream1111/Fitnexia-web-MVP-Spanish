@@ -20,13 +20,20 @@ import { apiGetClubMembersSummary } from '@/services/api';
 import { useFeature } from '@/hooks/use-feature';
 import { computeGymDashboardStats, resolveInstitutionId } from '@/utils/gym-classes';
 import { formatAttendanceRate, formatRevenueCompact } from '@/utils/gym-metrics';
-import { CLUB_LABELS, GYM_LABELS } from '@/constants/labels';
+import { CLUB_LABELS, GYM_LABELS, MOCK_V2V3_LABELS } from '@/constants/labels';
 import { normalizeClubMembersSummary } from '@/utils/club-members';
+import { VerificationBanner } from '@/components/verification/verification-banner';
+import { resolveVerificationStatus } from '@/utils/verification';
 
 export default function GymDashboardPage() {
   const { user } = useAuth();
+  const showProfileVerification = useFeature('profileVerification');
   const { classes } = useClasses();
   const showDelinquency = useFeature('clubDelinquencyAlerts') && useFeature('clubMembers');
+  const showAnalytics = useFeature('analyticsMetrics');
+  const showCollections = useFeature('clubCollectionsPanel');
+  const showCourts = useFeature('courtManagement');
+  const showGymReports = useFeature('gymReportsBasic') || useFeature('gymReportsAdvanced');
   const institutionId = resolveInstitutionId(user);
   const stats = computeGymDashboardStats(institutionId, classes);
   const gymClasses = classes.filter((c) => c.institution?.id === institutionId).slice(0, 4);
@@ -41,11 +48,41 @@ export default function GymDashboardPage() {
 
   return (
     <DashboardPage>
+      {showProfileVerification ? (
+        <VerificationBanner
+          status={resolveVerificationStatus(user?.institutionProfile)}
+          verifyHref="/gym/profile/verification"
+        />
+      ) : null}
+
       <DashboardHero
         gradient={DASHBOARD_GRADIENTS.gym}
         eyebrow={user?.institutionProfile?.name ?? 'Gym'}
         title={GYM_LABELS.dashboard.controlPanel}
-      />
+      >
+        <div className="flex flex-wrap gap-2">
+          {showAnalytics ? (
+            <Link href="/gym/analytics">
+              <Button title={MOCK_V2V3_LABELS.analyticsTitle} variant="outline" className="shadow-lg shadow-black/10" />
+            </Link>
+          ) : null}
+          {showCollections ? (
+            <Link href="/gym/collections">
+              <Button title={MOCK_V2V3_LABELS.collectionsTitle} variant="outline" className="shadow-lg shadow-black/10" />
+            </Link>
+          ) : null}
+          {showCourts ? (
+            <Link href="/gym/courts">
+              <Button title={MOCK_V2V3_LABELS.courtsTitle} variant="outline" className="shadow-lg shadow-black/10" />
+            </Link>
+          ) : null}
+          {showGymReports ? (
+            <Link href="/gym/reports">
+              <Button title={MOCK_V2V3_LABELS.gymReportsBasicTitle} variant="outline" className="shadow-lg shadow-black/10" />
+            </Link>
+          ) : null}
+        </div>
+      </DashboardHero>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <DashboardStatCard

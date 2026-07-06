@@ -4,16 +4,17 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Award,
-  Building2,
   Sparkles,
-  Star,
   Target,
   UserRound,
   Zap,
 } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
 import { DASHBOARD_GRADIENTS } from '@/components/dashboard/dashboard-ui';
+import {
+  InstructorReviewsSection,
+  RatingSummary,
+} from '@/components/reviews/instructor-rating-display';
 import {
   BADGE_LABELS,
   DISCIPLINE_LABELS,
@@ -30,20 +31,6 @@ function initials(name: string) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-}
-
-function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {
-  return (
-    <span className="inline-flex gap-0.5 text-amber-400" aria-label={`${rating} de 5`}>
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star
-          key={i}
-          size={size}
-          className={i < rating ? 'fill-amber-400 text-amber-400' : 'fill-transparent text-amber-200/60'}
-        />
-      ))}
-    </span>
-  );
 }
 
 function ProfileSection({
@@ -79,28 +66,6 @@ function CertificationCard({ cert }: { cert: Certification }) {
         <p className="mt-0.5 text-sm text-[var(--fn-text-muted)]">{cert.issuer}</p>
         <p className="mt-1 text-xs font-semibold text-[var(--fn-primary)]">{cert.year}</p>
       </div>
-    </article>
-  );
-}
-
-function ReviewCard({ review }: { review: Review }) {
-  return (
-    <article className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 p-5">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="font-bold text-[var(--fn-text)]">{review.authorName}</p>
-        {review.verified ? <Badge label={BADGE_LABELS.verified} variant="success" size="sm" /> : null}
-      </div>
-      <StarRow rating={review.rating} />
-      {review.comment ? (
-        <p className="mt-3 text-sm leading-relaxed text-[var(--fn-text-secondary)]">{review.comment}</p>
-      ) : null}
-      <p className="mt-3 text-xs text-[var(--fn-text-muted)]">
-        {new Date(review.createdAt).toLocaleDateString('es-UY', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}
-      </p>
     </article>
   );
 }
@@ -171,15 +136,16 @@ export function InstructorPublicProfile({
                 ) : null}
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold backdrop-blur-sm">
-                  <Star size={15} className="fill-amber-300 text-amber-300" />
-                  {instructor.averageRating.toFixed(1)}
-                  <span className="font-normal text-white/80">
-                    ({instructor.reviewCount} {GENERAL_LABELS.reviews})
-                  </span>
+                <span className="rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-sm">
+                  <RatingSummary
+                    averageRating={instructor.averageRating}
+                    reviewCount={instructor.reviewCount}
+                    variant="compact"
+                    inverse
+                  />
                 </span>
                 {instructor.hourlyRate ? (
-                  <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-bold backdrop-blur-sm">
+                  <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-bold backdrop-blur-sm text-white">
                     {labels.from} {formatMoney(instructor.hourlyRate)}/hr
                   </span>
                 ) : null}
@@ -210,87 +176,58 @@ export function InstructorPublicProfile({
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_min(22rem,100%)]">
-        <div className="space-y-6">
-          <ProfileSection title={labels.bio} icon={Sparkles}>
-            {instructor.bio?.trim() ? (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--fn-text-secondary)] md:text-base">
-                {instructor.bio.trim()}
-              </p>
-            ) : (
-              <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.bioEmpty}</p>
-            )}
-          </ProfileSection>
+      <div className="space-y-6">
+        <ProfileSection title={labels.bio} icon={Sparkles}>
+          {instructor.bio?.trim() ? (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--fn-text-secondary)] md:text-base">
+              {instructor.bio.trim()}
+            </p>
+          ) : (
+            <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.bioEmpty}</p>
+          )}
+        </ProfileSection>
 
-          <ProfileSection title={labels.expertise} icon={Target}>
-            {disciplineList.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {disciplineList.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full border border-[var(--fn-primary)]/25 bg-[var(--fn-primary-muted)]/50 px-4 py-2 text-sm font-semibold text-[var(--fn-primary)]"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.expertiseEmpty}</p>
-            )}
-          </ProfileSection>
+        <ProfileSection title={labels.expertise} icon={Target}>
+          {disciplineList.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {disciplineList.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-[var(--fn-primary)]/25 bg-[var(--fn-primary-muted)]/50 px-4 py-2 text-sm font-semibold text-[var(--fn-primary)]"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.expertiseEmpty}</p>
+          )}
+        </ProfileSection>
 
-          <ProfileSection title={labels.certifications} icon={Award}>
-            {instructor.certifications && instructor.certifications.length > 0 ? (
-              <div className="space-y-3">
-                {instructor.certifications.map((cert, index) => (
-                  <CertificationCard key={`${cert.name}-${cert.year}-${index}`} cert={cert} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.certificationsEmpty}</p>
-            )}
-          </ProfileSection>
-        </div>
-
-        <div className="space-y-6">
-          <ProfileSection title={`${GENERAL_LABELS.reviews} (${reviews.length})`} icon={Star}>
-            {reviewsLoading ? (
-              <p className="text-sm text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
-            ) : reviews.length > 0 ? (
-              <div className="space-y-4">
-                {reviews.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.reviewsEmpty}</p>
-            )}
-          </ProfileSection>
-
-          {staffReviews.length > 0 ? (
-            <ProfileSection title={labels.staffReviews} icon={Building2}>
-              <p className="mb-4 text-sm text-[var(--fn-text-muted)]">{labels.staffReviewsHint}</p>
-              <div className="space-y-4">
-                {staffReviews.map((review) => (
-                  <article
-                    key={review.id}
-                    className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4"
-                  >
-                    <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--fn-text)]">
-                      <Building2 size={15} className="text-violet-600" />
-                      {review.institutionName}
-                    </div>
-                    <StarRow rating={review.rating} size={14} />
-                    {review.comment ? (
-                      <p className="mt-2 text-sm text-[var(--fn-text-muted)]">{review.comment}</p>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            </ProfileSection>
-          ) : null}
-        </div>
+        <ProfileSection title={labels.certifications} icon={Award}>
+          {instructor.certifications && instructor.certifications.length > 0 ? (
+            <div className="space-y-3">
+              {instructor.certifications.map((cert, index) => (
+                <CertificationCard key={`${cert.name}-${cert.year}-${index}`} cert={cert} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.certificationsEmpty}</p>
+          )}
+        </ProfileSection>
       </div>
+
+      <InstructorReviewsSection
+        title={GENERAL_LABELS.reviews}
+        averageRating={instructor.averageRating}
+        reviewCount={instructor.reviewCount}
+        reviews={reviews}
+        staffReviews={staffReviews}
+        staffReviewsTitle={labels.staffReviews}
+        staffReviewsHint={labels.staffReviewsHint}
+        reviewsEmpty={labels.reviewsEmpty}
+        loading={reviewsLoading}
+      />
     </div>
   );
 }

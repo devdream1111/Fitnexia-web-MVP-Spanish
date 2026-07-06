@@ -17,10 +17,12 @@ import {
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
-import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS } from '@/constants/labels';
+import { ALERT_LABELS, AUTH_LABELS, BUTTON_LABELS, GENERAL_LABELS, ADVANCED_SEARCH_LABELS } from '@/constants/labels';
+import { INSTRUCTOR_GENDERS } from '@/constants/fitnexia';
 import { useFeature } from '@/hooks/use-feature';
-import type { UserRole } from '@/types/api';
+import type { InstructorGender, UserRole } from '@/types/api';
 import type { ImageUploadInput } from '@/utils/media';
 
 function RegisterPageContent() {
@@ -38,6 +40,7 @@ function RegisterPageContent() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [gender, setGender] = useState<InstructorGender | ''>('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -78,6 +81,10 @@ function RegisterPageContent() {
       setError(ALERT_LABELS.fillAllFields);
       return;
     }
+    if (role === 'instructor' && !gender) {
+      setError('Seleccioná tu género para completar el registro como instructor.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -92,6 +99,7 @@ function RegisterPageContent() {
         disciplines: [],
         institutionName: role === 'institution' ? institutionName.trim() : undefined,
         acceptTerms: true,
+        gender: role === 'instructor' ? (gender as InstructorGender) : undefined,
       });
       const home =
         role === 'instructor'
@@ -175,6 +183,18 @@ function RegisterPageContent() {
           autoComplete="new-password"
           placeholder="Mínimo 8 caracteres"
         />
+
+        {role === 'instructor' ? (
+          <Select
+            label={ADVANCED_SEARCH_LABELS.instructorGender}
+            value={gender}
+            onChange={(value) => setGender(value as InstructorGender)}
+            options={[
+              { value: '', label: 'Seleccionar…' },
+              ...INSTRUCTOR_GENDERS.map((item) => ({ value: item.id, label: item.label })),
+            ]}
+          />
+        ) : null}
 
         <AuthTermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} />
 

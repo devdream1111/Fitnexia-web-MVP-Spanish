@@ -7,6 +7,7 @@ import {
   apiCreateStaffReview,
   apiGetInstructorReviews,
   apiGetStaffReviews,
+  apiRespondToReview,
   type ApiReview,
   type StaffReviewRecord,
 } from '@/services/api';
@@ -21,6 +22,7 @@ interface ReviewsContextValue {
   getReviewsForClass: (classId: string, instructorId: string) => Review[];
   getReviewsForInstructor: (instructorId: string) => Review[];
   addReview: (body: { bookingId: string; rating: number; comment?: string }) => Promise<void>;
+  respondToReview: (instructorId: string, reviewId: string, response: string) => Promise<void>;
   getStaffReviewsForInstructor: (instructorId: string) => StaffReview[];
   addStaffReview: (body: {
     instructorId: string;
@@ -43,6 +45,7 @@ function mapApiReview(r: ApiReview, instructorId: string): Review {
     rating: r.rating,
     comment: r.comment,
     authorName: r.authorName,
+    response: r.response ?? undefined,
     createdAt: r.createdAt,
     verified: true,
   };
@@ -114,6 +117,25 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const respondToReview = useCallback(
+    async (instructorId: string, reviewId: string, response: string) => {
+      const updated = await apiRespondToReview(reviewId, response);
+      setReviewsByInstructor((prev) => ({
+        ...prev,
+        [instructorId]: (prev[instructorId] ?? []).map((r) =>
+          r.id === reviewId
+            ? {
+                ...r,
+                response: updated.response ?? response,
+                responseAt: updated.responseAt ?? new Date().toISOString(),
+              }
+            : r,
+        ),
+      }));
+    },
+    [],
+  );
+
   const addStaffReview = useCallback(
     async (body: {
       instructorId: string;
@@ -150,6 +172,7 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
       getReviewsForClass,
       getReviewsForInstructor,
       addReview,
+      respondToReview,
       getStaffReviewsForInstructor,
       addStaffReview,
       removeReview,
@@ -163,6 +186,7 @@ export function ReviewsProvider({ children }: { children: React.ReactNode }) {
       getReviewsForClass,
       getReviewsForInstructor,
       addReview,
+      respondToReview,
       getStaffReviewsForInstructor,
       addStaffReview,
       removeReview,

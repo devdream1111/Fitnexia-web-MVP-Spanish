@@ -7,7 +7,6 @@ import {
   BookOpen,
   Building2,
   Sparkles,
-  Star,
   Target,
   UserRound,
   Zap,
@@ -15,6 +14,11 @@ import {
 
 import { ClassCard } from '@/components/class-card';
 import { Badge } from '@/components/ui/badge';
+import {
+  InstructorReviewsSection,
+  RatingSummary,
+  StarRating,
+} from '@/components/reviews/instructor-rating-display';
 import {
   BADGE_LABELS,
   DISCIPLINE_LABELS,
@@ -33,20 +37,6 @@ function initials(name: string) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-}
-
-function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {
-  return (
-    <span className="inline-flex gap-0.5 text-amber-400" aria-label={`${rating} de 5`}>
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star
-          key={i}
-          size={size}
-          className={i < rating ? 'fill-amber-400 text-amber-400' : 'fill-transparent text-amber-200/60'}
-        />
-      ))}
-    </span>
-  );
 }
 
 function Section({
@@ -146,12 +136,13 @@ export function GymInstructorDetail({
                 ) : null}
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold backdrop-blur-sm">
-                  <Star size={15} className="fill-amber-300 text-amber-300" />
-                  {instructor.averageRating.toFixed(1)}
-                  <span className="font-normal text-white/80">
-                    ({instructor.reviewCount} {GENERAL_LABELS.reviews})
-                  </span>
+                <span className="rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-sm">
+                  <RatingSummary
+                    averageRating={instructor.averageRating}
+                    reviewCount={instructor.reviewCount}
+                    variant="compact"
+                    inverse
+                  />
                 </span>
                 {roster?.staffStatus === 'linked' ? (
                   <Badge label={GYM_LABELS.instructors.onStaff} variant="success" size="sm" />
@@ -176,139 +167,100 @@ export function GymInstructorDetail({
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_min(22rem,100%)]">
-        <div className="space-y-6">
-          <Section title={labels.affiliation} icon={Building2}>
-            <p className="text-sm font-semibold text-[var(--fn-primary)]">{affiliationLabel(roster)}</p>
-            {roster?.staffReview ? (
-              <div className="mt-4 rounded-xl border border-[var(--fn-primary)]/20 bg-[var(--fn-primary-muted)]/40 p-4">
-                <p className="text-xs font-bold uppercase tracking-wide text-[var(--fn-text-muted)]">
-                  {labels.yourStaffReview}
-                </p>
-                <div className="mt-2">
-                  <StarRow rating={roster.staffReview.rating} size={14} />
-                </div>
-              </div>
-            ) : null}
-          </Section>
-
-          <Section title={labels.disciplines} icon={Target}>
-            {disciplineList.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {disciplineList.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full border border-[var(--fn-primary)]/25 bg-[var(--fn-primary-muted)]/50 px-4 py-2 text-sm font-semibold text-[var(--fn-primary)]"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm italic text-[var(--fn-text-muted)]">{GENERAL_LABELS.none}</p>
-            )}
-          </Section>
-
-          {instructor.bio?.trim() ? (
-            <Section title="Biografía" icon={Sparkles}>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--fn-text-secondary)] md:text-base">
-                {instructor.bio.trim()}
+      <div className="space-y-6">
+        <Section title={labels.affiliation} icon={Building2}>
+          <p className="text-sm font-semibold text-[var(--fn-primary)]">{affiliationLabel(roster)}</p>
+          {roster?.staffReview ? (
+            <div className="mt-4 rounded-xl border border-[var(--fn-primary)]/20 bg-[var(--fn-primary-muted)]/40 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-[var(--fn-text-muted)]">
+                {labels.yourStaffReview}
               </p>
-            </Section>
-          ) : null}
-
-          {instructor.certifications && instructor.certifications.length > 0 ? (
-            <Section title="Certificaciones" icon={Award}>
-              <ul className="space-y-3">
-                {instructor.certifications.map((cert, index) => (
-                  <li
-                    key={`${cert.name}-${index}`}
-                    className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-4 py-3"
-                  >
-                    <p className="font-bold text-[var(--fn-text)]">{cert.name}</p>
-                    <p className="text-sm text-[var(--fn-text-muted)]">
-                      {cert.issuer} · {cert.year}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          ) : null}
-
-          <Section title={labels.classesAtGym} icon={BookOpen}>
-            {classes.length > 0 ? (
-              <div className="grid gap-4">
-                {classes.map((c) => (
-                  <ClassCard key={c.id} item={c} />
-                ))}
+              <div className="mt-2">
+                <StarRating value={roster.staffReview.rating} size={14} />
               </div>
-            ) : (
-              <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.noClasses}</p>
-            )}
+            </div>
+          ) : null}
+        </Section>
+
+        <Section title={labels.disciplines} icon={Target}>
+          {disciplineList.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {disciplineList.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-[var(--fn-primary)]/25 bg-[var(--fn-primary-muted)]/50 px-4 py-2 text-sm font-semibold text-[var(--fn-primary)]"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm italic text-[var(--fn-text-muted)]">{GENERAL_LABELS.none}</p>
+          )}
+        </Section>
+
+        {instructor.bio?.trim() ? (
+          <Section title="Biografía" icon={Sparkles}>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--fn-text-secondary)] md:text-base">
+              {instructor.bio.trim()}
+            </p>
           </Section>
-        </div>
+        ) : null}
 
-        <div className="space-y-6">
-          <Section title={`${labels.athleteReviews} (${reviews.length})`} icon={Star}>
-            {reviewsLoading ? (
-              <p className="text-sm text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
-            ) : reviews.length > 0 ? (
-              <div className="space-y-4">
-                {reviews.map((review) => (
-                  <article
-                    key={review.id}
-                    className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 p-4"
-                  >
-                    <p className="font-bold text-[var(--fn-text)]">{review.authorName}</p>
-                    <div className="mt-2">
-                      <StarRow rating={review.rating} size={14} />
-                    </div>
-                    {review.comment ? (
-                      <p className="mt-2 text-sm text-[var(--fn-text-muted)]">{review.comment}</p>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm italic text-[var(--fn-text-muted)]">Sin reseñas públicas aún.</p>
-            )}
+        {instructor.certifications && instructor.certifications.length > 0 ? (
+          <Section title="Certificaciones" icon={Award}>
+            <ul className="space-y-3">
+              {instructor.certifications.map((cert, index) => (
+                <li
+                  key={`${cert.name}-${index}`}
+                  className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-4 py-3"
+                >
+                  <p className="font-bold text-[var(--fn-text)]">{cert.name}</p>
+                  <p className="text-sm text-[var(--fn-text-muted)]">
+                    {cert.issuer} · {cert.year}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </Section>
+        ) : null}
 
-          {staffReviews.length > 0 ? (
-            <Section title={labels.staffReviews} icon={Building2}>
-              <div className="space-y-4">
-                {staffReviews.map((review) => (
-                  <article
-                    key={review.id}
-                    className={`rounded-xl border p-4 ${
-                      review.institutionName === gymName
-                        ? 'border-[var(--fn-primary)]/30 bg-[var(--fn-primary-muted)]/30'
-                        : 'border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30'
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-[var(--fn-text)]">{review.institutionName}</p>
-                    <div className="mt-2">
-                      <StarRow rating={review.rating} size={14} />
-                    </div>
-                    {review.comment ? (
-                      <p className="mt-2 text-sm text-[var(--fn-text-muted)]">{review.comment}</p>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            </Section>
-          ) : null}
-
-          {gymStaffReview && !roster?.staffReview ? (
-            <Section title={labels.yourStaffReview} icon={Star}>
-              <StarRow rating={gymStaffReview.rating} size={14} />
-              {gymStaffReview.comment ? (
-                <p className="mt-2 text-sm text-[var(--fn-text-muted)]">{gymStaffReview.comment}</p>
-              ) : null}
-            </Section>
-          ) : null}
-        </div>
+        <Section title={labels.classesAtGym} icon={BookOpen}>
+          {classes.length > 0 ? (
+            <div className="grid gap-4">
+              {classes.map((c) => (
+                <ClassCard key={c.id} item={c} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm italic text-[var(--fn-text-muted)]">{labels.noClasses}</p>
+          )}
+        </Section>
       </div>
+
+      <InstructorReviewsSection
+        title={labels.athleteReviews}
+        averageRating={instructor.averageRating}
+        reviewCount={instructor.reviewCount}
+        reviews={reviews}
+        staffReviews={staffReviews}
+        staffReviewsTitle={labels.staffReviews}
+        loading={reviewsLoading}
+      />
+
+      {gymStaffReview && !roster?.staffReview ? (
+        <section className="overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+          <div className="border-b border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/50 px-5 py-4 md:px-6">
+            <h2 className="text-base font-bold text-[var(--fn-text)] md:text-lg">{labels.yourStaffReview}</h2>
+          </div>
+          <div className="p-5 md:p-6">
+            <StarRating value={gymStaffReview.rating} size={16} />
+            {gymStaffReview.comment ? (
+              <p className="mt-3 text-sm text-[var(--fn-text-muted)]">{gymStaffReview.comment}</p>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

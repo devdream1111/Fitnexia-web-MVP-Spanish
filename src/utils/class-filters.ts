@@ -1,5 +1,10 @@
 import type { ClassListItem } from '@/types/api';
 import type { ScheduleFilter } from '@/constants/fitnexia';
+import {
+  type AdvancedSearchFilters,
+  DEFAULT_ADVANCED_SEARCH_FILTERS,
+  matchesAdvancedSearch,
+} from '@/utils/advanced-search';
 
 export interface ClassSearchFilters {
   query: string;
@@ -9,6 +14,7 @@ export interface ClassSearchFilters {
   schedule: ScheduleFilter;
   priceMin: number | null;
   priceMax: number | null;
+  advanced?: AdvancedSearchFilters;
 }
 
 function classHour(iso: string): number {
@@ -83,6 +89,9 @@ export function filterClasses(
         .toLowerCase();
       if (!haystack.includes(q)) return false;
     }
+
+    const advanced = filters.advanced ?? DEFAULT_ADVANCED_SEARCH_FILTERS;
+    if (!matchesAdvancedSearch(item, advanced)) return false;
 
     return true;
   });

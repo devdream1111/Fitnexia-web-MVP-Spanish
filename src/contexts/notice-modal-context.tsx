@@ -11,6 +11,7 @@ import React, {
 
 import { Button } from '@/components/ui/button';
 import { BUTTON_LABELS } from '@/constants/labels';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 
 type NoticeVariant = 'success' | 'error' | 'info';
 
@@ -35,11 +36,10 @@ export function NoticeModalProvider({ children }: { children: React.ReactNode })
     setNotice(options);
   }, []);
 
+  useBodyScrollLock(Boolean(notice));
+
   useEffect(() => {
     if (!notice) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
@@ -47,7 +47,6 @@ export function NoticeModalProvider({ children }: { children: React.ReactNode })
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [notice, close]);

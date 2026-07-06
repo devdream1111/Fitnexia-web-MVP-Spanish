@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   Calendar,
@@ -16,11 +16,16 @@ import {
   ClassDetailTitleBlock,
   Clock,
   DollarSign,
+  Languages,
   MapPin,
+  Signal,
+  UserRound,
   Users,
 } from '@/components/class-detail/class-detail-ui';
 import { Badge } from '@/components/ui/badge';
+import { RegularClassBadge } from '@/components/regular-class-badge';
 import { useAuth } from '@/contexts/auth-context';
+import { useBookings } from '@/contexts/bookings-context';
 import { useClasses } from '@/contexts/classes-context';
 import { useInstructors, instructorFromSummary } from '@/contexts/instructors-context';
 import { useReviews } from '@/contexts/reviews-context';
@@ -36,7 +41,17 @@ import {
   classSpotsLabel,
   modalityBadgeLabel,
 } from '@/constants/labels';
+import { LiveStreamPanel } from '@/components/mock-v2v3/live-stream-panel';
+import { IS_MOCK_V2V3_ENABLED } from '@/config/mock-v2v3';
+import { getMockStreamSession } from '@/services/mock/streaming.mock';
 import { useFeature } from '@/hooks/use-feature';
+import {
+  instructorGenderLabel,
+  languageLabel,
+  levelLabel,
+} from '@/utils/advanced-search';
+import { findActiveUserBooking } from '@/utils/user-bookings';
+import { canCancelBooking, getRefundAmount } from '@/utils/booking';
 import type { Class, Instructor } from '@/types/api';
 
 export function ClassDetailView({
@@ -50,16 +65,26 @@ export function ClassDetailView({
 }) {
   const router = useRouter();
   const { user } = useAuth();
+  const { bookings, refreshBookings, cancelBooking, syncPayment } = useBookings();
   const { getClassById, fetchClassById } = useClasses();
   const { cacheInstructor } = useInstructors();
   const { getReviewsForInstructor, fetchInstructorReviews } = useReviews();
   const waitlistEnabled = useFeature('waitlist');
+  const liveStreamingEnabled = useFeature('liveStreaming');
   const [cls, setCls] = useState<Class | undefined>(() => {
     const cached = getClassById(classId);
     return cached as Class | undefined;
   });
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [loading, setLoading] = useState(!cls);
+  const [bookingActionLoading, setBookingActionLoading] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'athlete') {
+      void refreshBookings();
+    }
+  }, [refreshBookings, user?.role]);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,8 +119,9 @@ export function ClassDetailView({
     };
   }, [cacheInstructor, classId, fetchClassById, fetchInstructorReviews, getClassById]);
 
-  const reviews =
+  const rawReviews =
     cls && hasAssignedInstructor(cls) ? getReviewsForInstructor(cls.instructor!.id) : [];
+  const reviews = rawReviews;
   const isModal = variant === 'modal';
   const role = user?.role;
   const isAthleteView = !role || role === 'athlete';
@@ -121,6 +147,11 @@ export function ClassDetailView({
   const showInstructorPriceSidebar = isInstructorView && isModal;
   const showPriceInFactGrid = !isModal || (!showBookingSidebar && !showInstructorPriceSidebar);
 
+  const activeBooking = useMemo(() => {
+    if (!cls || !user || user.role !== 'athlete') return undefined;
+    return findActiveUserBooking(bookings, cls.id, user.id);
+  }, [bookings, cls, user]);
+
   if (loading && !cls) {
     return (
       <div className={isModal ? 'p-5' : 'mx-auto max-w-5xl px-4 py-8'}>
@@ -141,6 +172,10 @@ export function ClassDetailView({
   }
 
   const full = cls.spotsLeft === 0;
+  const existingBooking =
+    activeBooking?.status === 'confirmed' || activeBooking?.status === 'pending_payment'
+      ? { status: activeBooking.status }
+      : undefined;
   const whereValue =
     cls.modality === 'online'
       ? CLASS_DETAIL_LABELS.onlineSessionLink
@@ -149,7 +184,38 @@ export function ClassDetailView({
     ? classSpotsLabel(cls.spotsLeft ?? 0, cls.capacity, { waitlistEnabled })
     : undefined;
 
+  const instructorGender =
+    displayInstructor?.gender ?? cls.instructor?.gender ?? undefined;
+
+  const buildFactGrid = () => (
+    <ClassDetailFactGrid>
+      <ClassDetailFact icon={Calendar} label={CLASS_DETAIL_LABELS.when} value={formatClassDate(cls.startAt)} />
+      <ClassDetailFact icon={Clock} label={CLASS_DETAIL_LABELS.duration} value={`${cls.durationMinutes} min`} />
+      {showPriceInFactGrid ? (
+        <ClassDetailFact icon={DollarSign} label={CLASS_DETAIL_LABELS.price} value={formatMoney(cls.price)} />
+      ) : null}
+      <ClassDetailFact icon={MapPin} label={CLASS_DETAIL_LABELS.where} value={whereValue} />
+      {spotsValue ? (
+        <ClassDetailFact icon={Users} label={CLASS_DETAIL_LABELS.spots} value={spotsValue} />
+      ) : null}
+      {cls.level ? (
+        <ClassDetailFact icon={Signal} label={CLASS_DETAIL_LABELS.level} value={levelLabel(cls.level)} />
+      ) : null}
+      {cls.language ? (
+        <ClassDetailFact icon={Languages} label={CLASS_DETAIL_LABELS.language} value={languageLabel(cls.language)} />
+      ) : null}
+      {instructorGender ? (
+        <ClassDetailFact
+          icon={UserRound}
+          label={CLASS_DETAIL_LABELS.instructorGender}
+          value={instructorGenderLabel(instructorGender)}
+        />
+      ) : null}
+    </ClassDetailFactGrid>
+  );
+
   const badges = [
+    <RegularClassBadge key="regular" item={cls} size="default" />,
     <Badge key="mod" label={modalityBadgeLabel(cls.modality)} />,
     <Badge
       key="fmt"
@@ -157,7 +223,9 @@ export function ClassDetailView({
       variant={cls.classFormat === 'individual' ? 'warning' : 'default'}
     />,
     <Badge key="disc" label={cls.discipline} />,
-  ];
+    cls.level ? <Badge key="level" label={levelLabel(cls.level)} variant="success" /> : null,
+    cls.language ? <Badge key="lang" label={languageLabel(cls.language)} /> : null,
+  ].filter(Boolean);
 
   const goBook = () => {
     router.push(`/book/${cls.id}`);
@@ -165,6 +233,52 @@ export function ClassDetailView({
   const goWaitlist = () => {
     router.push(`/book/${cls.id}?waitlist=1`);
   };
+
+  const handleCompletePayment = async () => {
+    if (!activeBooking) return;
+    if (activeBooking.checkoutUrl) {
+      window.location.href = activeBooking.checkoutUrl;
+      return;
+    }
+    setBookingActionLoading(true);
+    try {
+      const updated = await syncPayment(activeBooking.id);
+      if (updated.checkoutUrl) window.location.href = updated.checkoutUrl;
+    } finally {
+      setBookingActionLoading(false);
+    }
+  };
+
+  const handleCancelBooking = async () => {
+    if (!activeBooking) return;
+    setBookingActionLoading(true);
+    try {
+      await cancelBooking(activeBooking.id);
+      setShowCancelConfirm(false);
+      if (onClose) onClose();
+      else router.push('/athlete/bookings');
+    } finally {
+      setBookingActionLoading(false);
+    }
+  };
+
+  const cancellationPolicyHours = 24;
+  const cancelRefundMessage = activeBooking
+    ? canCancelBooking(cls.startAt, cancellationPolicyHours)
+      ? GENERAL_LABELS.fullRefund.replace(
+          '{amount}',
+          formatMoney(getRefundAmount(activeBooking, cls.startAt, cancellationPolicyHours)),
+        )
+      : GENERAL_LABELS.partialRefund.replace(
+          '{amount}',
+          formatMoney(getRefundAmount(activeBooking, cls.startAt, cancellationPolicyHours)),
+        )
+    : '';
+
+  const streamSession =
+    liveStreamingEnabled && IS_MOCK_V2V3_ENABLED && cls.modality === 'online'
+      ? getMockStreamSession(cls)
+      : null;
 
   const descriptionSection =
     cls.description?.trim() ? (
@@ -188,6 +302,19 @@ export function ClassDetailView({
       onWaitlist={goWaitlist}
       compact={isModal}
       showActions={showBookingActions}
+      existingBooking={existingBooking}
+      completePaymentLabel={BUTTON_LABELS.completePayment}
+      cancelBookingLabel={GENERAL_LABELS.cancel}
+      onCompletePayment={() => void handleCompletePayment()}
+      onCancelBooking={() => setShowCancelConfirm(true)}
+      actionLoading={bookingActionLoading}
+      showCancelConfirm={showCancelConfirm}
+      cancelConfirmTitle={GENERAL_LABELS.cancelBooking}
+      cancelConfirmMessage={cancelRefundMessage}
+      confirmCancelLabel={GENERAL_LABELS.confirmCancel}
+      keepBookingLabel={GENERAL_LABELS.keepBooking}
+      onConfirmCancel={() => void handleCancelBooking()}
+      onDismissCancel={() => setShowCancelConfirm(false)}
     />
   ) : null;
 
@@ -196,19 +323,7 @@ export function ClassDetailView({
       <ClassDetailPricePanel price={formatMoney(cls.price)} compact={isModal} />
     ) : null;
 
-  const factGrid = (
-    <ClassDetailFactGrid>
-      <ClassDetailFact icon={Calendar} label={CLASS_DETAIL_LABELS.when} value={formatClassDate(cls.startAt)} />
-      <ClassDetailFact icon={Clock} label={CLASS_DETAIL_LABELS.duration} value={`${cls.durationMinutes} min`} />
-      {showPriceInFactGrid ? (
-        <ClassDetailFact icon={DollarSign} label={CLASS_DETAIL_LABELS.price} value={formatMoney(cls.price)} />
-      ) : null}
-      <ClassDetailFact icon={MapPin} label={CLASS_DETAIL_LABELS.where} value={whereValue} />
-      {spotsValue ? (
-        <ClassDetailFact icon={Users} label={CLASS_DETAIL_LABELS.spots} value={spotsValue} />
-      ) : null}
-    </ClassDetailFactGrid>
-  );
+  const factGrid = buildFactGrid();
 
   if (isModal) {
     const sidebar = bookingPanel ?? instructorPricePanel;
@@ -217,15 +332,16 @@ export function ClassDetailView({
     return (
       <div className="flex min-h-0 min-w-0 flex-col">
         <ClassDetailHeader title={cls.title} onClose={onClose} variant="modal" />
-        <div className="min-w-0 overflow-x-hidden p-6 md:p-8">
-          <div className="mb-6 flex flex-wrap gap-2">{badges}</div>
+        <div className="min-w-0 overflow-x-hidden p-4 md:p-5">
+          <div className="mb-4 flex flex-wrap gap-1.5">{badges}</div>
           <div
-            className={`grid min-w-0 gap-8 ${
-              hasSidebar ? 'lg:grid-cols-[minmax(0,1fr)_min(20rem,100%)]' : ''
+            className={`grid min-w-0 gap-5 ${
+              hasSidebar ? 'lg:grid-cols-[minmax(0,1fr)_min(18rem,100%)]' : ''
             }`}
           >
-            <div className="min-w-0 space-y-6">
+            <div className="min-w-0 space-y-4">
               {factGrid}
+              {streamSession ? <LiveStreamPanel session={streamSession} /> : null}
               {descriptionSection}
               {showInstructorSection ? (
                 <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
@@ -264,6 +380,7 @@ export function ClassDetailView({
         >
           <div className="min-w-0 space-y-8">
             {factGrid}
+            {streamSession ? <LiveStreamPanel session={streamSession} /> : null}
             {descriptionSection}
             {showInstructorSection ? (
               <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>

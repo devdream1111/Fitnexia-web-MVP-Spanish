@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { BUTTON_LABELS, LANDING_LABELS } from '@/constants/labels';
 import { useAppTheme } from '@/contexts/theme-context';
 import { handleHashLinkClick } from '@/utils/smooth-scroll';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 
 const NAV_ITEMS = [
   { href: '#que-es', label: LANDING_LABELS.nav.what },
@@ -29,6 +30,8 @@ export function LandingHeader() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useBodyScrollLock(menuOpen);
+
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   useEffect(() => {
@@ -36,10 +39,8 @@ export function LandingHeader() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') closeMenu();
     };
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [menuOpen, closeMenu]);

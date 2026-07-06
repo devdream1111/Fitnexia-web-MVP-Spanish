@@ -10,7 +10,9 @@ import {
   ChevronRight,
   Clock,
   DollarSign,
+  Languages,
   MapPin,
+  Signal,
   Star,
   UserRound,
   Users,
@@ -23,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BADGE_LABELS } from '@/constants/labels';
 import type { Review } from '@/types/api';
+import { forceUnlockBodyScroll } from '@/utils/body-scroll-lock';
 
 export function ClassDetailHeader({
   title,
@@ -90,20 +93,20 @@ export function ClassDetailFact({
   value: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
-        <Icon size={18} />
+    <div className="flex gap-2.5 rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface)] p-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
+        <Icon size={16} />
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">{label}</p>
-        <p className="mt-1 break-words text-sm font-semibold leading-snug text-[var(--fn-text)] sm:text-base">{value}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--fn-text-muted)]">{label}</p>
+        <p className="mt-0.5 break-words text-sm font-semibold leading-snug text-[var(--fn-text)]">{value}</p>
       </div>
     </div>
   );
 }
 
 export function ClassDetailFactGrid({ children }: { children: ReactNode }) {
-  return <div className="grid min-w-0 gap-3 sm:grid-cols-2">{children}</div>;
+  return <div className="grid min-w-0 gap-2 sm:grid-cols-2">{children}</div>;
 }
 
 export function ClassDetailInstructorCard({
@@ -175,7 +178,7 @@ export function ClassDetailInstructorCard({
         <button
           type="button"
           onClick={() => {
-            document.body.style.overflow = '';
+            forceUnlockBodyScroll();
             onProfileNavigate?.();
             router.replace(href);
           }}
@@ -246,6 +249,16 @@ export function ClassDetailReviews({
             {review.comment ? (
               <p className="mt-3 text-sm leading-relaxed text-[var(--fn-text-muted)]">{review.comment}</p>
             ) : null}
+            {review.response ? (
+              <div className="mt-4 rounded-lg border border-[var(--fn-primary)]/20 bg-[var(--fn-primary-muted)]/30 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--fn-primary)]">
+                  Respuesta del instructor
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-[var(--fn-text-secondary)]">
+                  {review.response}
+                </p>
+              </div>
+            ) : null}
             <p className="mt-3 text-xs text-[var(--fn-text-muted)]">
               {new Date(review.createdAt).toLocaleDateString('es-UY', {
                 year: 'numeric',
@@ -272,6 +285,19 @@ export function ClassDetailBookingPanel({
   onWaitlist,
   compact,
   showActions = true,
+  existingBooking,
+  completePaymentLabel,
+  cancelBookingLabel,
+  onCompletePayment,
+  onCancelBooking,
+  actionLoading = false,
+  showCancelConfirm = false,
+  cancelConfirmTitle,
+  cancelConfirmMessage,
+  confirmCancelLabel,
+  keepBookingLabel,
+  onConfirmCancel,
+  onDismissCancel,
 }: {
   price: string;
   spotsLabel?: string;
@@ -284,7 +310,78 @@ export function ClassDetailBookingPanel({
   onWaitlist: () => void;
   compact?: boolean;
   showActions?: boolean;
+  existingBooking?: { status: 'confirmed' | 'pending_payment' };
+  completePaymentLabel?: string;
+  cancelBookingLabel?: string;
+  onCompletePayment?: () => void;
+  onCancelBooking?: () => void;
+  actionLoading?: boolean;
+  showCancelConfirm?: boolean;
+  cancelConfirmTitle?: string;
+  cancelConfirmMessage?: string;
+  confirmCancelLabel?: string;
+  keepBookingLabel?: string;
+  onConfirmCancel?: () => void;
+  onDismissCancel?: () => void;
 }) {
+  const renderActions = () => {
+    if (showCancelConfirm && existingBooking?.status === 'confirmed') {
+      return (
+        <div className="space-y-3">
+          <p className="text-sm font-bold text-[var(--fn-text)]">{cancelConfirmTitle}</p>
+          <p className="text-sm text-[var(--fn-text-secondary)]">{cancelConfirmMessage}</p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              title={confirmCancelLabel ?? 'Confirmar'}
+              variant="danger"
+              size="sm"
+              className="flex-1"
+              loading={actionLoading}
+              onClick={onConfirmCancel}
+            />
+            <Button
+              title={keepBookingLabel ?? 'Mantener'}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={onDismissCancel}
+              disabled={actionLoading}
+            />
+          </div>
+        </div>
+      );
+    }
+    if (existingBooking?.status === 'pending_payment') {
+      return (
+        <Button
+          title={completePaymentLabel ?? 'Completar pago'}
+          className="w-full"
+          loading={actionLoading}
+          onClick={onCompletePayment}
+        />
+      );
+    }
+    if (existingBooking?.status === 'confirmed') {
+      return (
+        <Button
+          title={cancelBookingLabel ?? 'Cancelar reserva'}
+          variant="outline"
+          className="w-full"
+          loading={actionLoading}
+          onClick={onCancelBooking}
+        />
+      );
+    }
+    if (full) {
+      return waitlistEnabled ? (
+        <Button title={waitlistLabel} variant="secondary" className="w-full" onClick={onWaitlist} />
+      ) : (
+        <Button title={fullLabel} disabled className="w-full" />
+      );
+    }
+    return <Button title={bookLabel} className="w-full" onClick={onBook} />;
+  };
+
   return (
     <aside
       className={`rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] ${
@@ -302,19 +399,7 @@ export function ClassDetailBookingPanel({
             <p className="text-sm font-medium text-[var(--fn-text-secondary)]">{spotsLabel}</p>
           </div>
         ) : null}
-        {showActions ? (
-          <div className="pt-1">
-            {full ? (
-              waitlistEnabled ? (
-                <Button title={waitlistLabel} variant="secondary" className="w-full" onClick={onWaitlist} />
-              ) : (
-                <Button title={fullLabel} disabled className="w-full" />
-              )
-            ) : (
-              <Button title={bookLabel} className="w-full" onClick={onBook} />
-            )}
-          </div>
-        ) : null}
+        {showActions ? <div className="pt-1">{renderActions()}</div> : null}
       </div>
     </aside>
   );
@@ -337,4 +422,4 @@ export function ClassDetailModalityIcon({ online }: { online: boolean }) {
   return online ? Video : MapPin;
 }
 
-export { Calendar, Clock, DollarSign, MapPin, Users };
+export { Calendar, Clock, DollarSign, Languages, MapPin, Signal, UserRound, Users };

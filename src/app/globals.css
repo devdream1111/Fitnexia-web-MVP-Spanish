@@ -2037,6 +2037,25 @@ html:has(.fn-legal-page) {
   margin-inline: auto;
 }
 
+/* Modal overlay — portaled to body, above header/footer/tab bar */
+.fn-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+}
+
+.fn-modal-panel {
+  max-height: min(90dvh, calc(100dvh - 2rem));
+  overflow-y: auto;
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 640px) {
+  .fn-modal-panel {
+    margin-bottom: 0;
+  }
+}
+
 /* Full-screen loading overlay */
 .fn-fullscreen-loader {
   position: fixed;

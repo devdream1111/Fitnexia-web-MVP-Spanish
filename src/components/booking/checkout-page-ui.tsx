@@ -74,6 +74,7 @@ export function CheckoutPageUI({
   loading,
   confirmLabel,
   onConfirm,
+  checkoutExtras,
 }: {
   title: string;
   cls: ClassListItem;
@@ -91,6 +92,7 @@ export function CheckoutPageUI({
   loading: boolean;
   confirmLabel: string;
   onConfirm: () => void;
+  checkoutExtras?: React.ReactNode;
 }) {
   const router = useRouter();
   const locationLabel =
@@ -208,6 +210,8 @@ export function CheckoutPageUI({
                 ) : null}
               </section>
             ) : null}
+
+            {checkoutExtras}
 
             {!paymentsEnabled && !isWaitlist && !selectedOptionCovered ? (
               <div className="fn-checkout-demo-note">

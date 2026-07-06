@@ -49,8 +49,8 @@ export default function PublicClubPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--fn-surface-muted)]/40 via-transparent to-transparent">
-      <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--fn-surface-muted)]/30 to-transparent">
+      <div className="mx-auto max-w-4xl px-4 py-5 md:px-6">
         <Link
           href="/"
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--fn-text-muted)] transition hover:text-[var(--fn-primary)]"

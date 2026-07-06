@@ -76,3 +76,27 @@ export function filterClassesByScheduleTab<T extends { startAt: string }>(
     return tab === 'upcoming' ? upcoming : !upcoming;
   });
 }
+
+const ACTIVE_UPCOMING_STATUSES = ['confirmed', 'pending_payment'] as const;
+const PAST_TAB_STATUSES = ['completed', 'cancelled', 'refunded', 'no_show'] as const;
+
+/** Athlete bookings list + calendar: same tab rules for status and class date. */
+export function filterAthleteBookingsByTab<T extends { status: string }>(
+  bookings: T[],
+  tab: ScheduleTab,
+  getStartAt: (booking: T) => string | undefined,
+  now = Date.now(),
+): T[] {
+  return bookings.filter((booking) => {
+    const startAt = getStartAt(booking);
+    if (!startAt) return false;
+    const upcoming = isClassUpcoming(startAt, now);
+    if (tab === 'upcoming') {
+      return upcoming && ACTIVE_UPCOMING_STATUSES.includes(booking.status as (typeof ACTIVE_UPCOMING_STATUSES)[number]);
+    }
+    return (
+      !upcoming ||
+      PAST_TAB_STATUSES.includes(booking.status as (typeof PAST_TAB_STATUSES)[number])
+    );
+  });
+}

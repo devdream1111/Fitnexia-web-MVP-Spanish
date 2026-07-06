@@ -4,11 +4,16 @@ interface ToggleButtonProps {
   checked: boolean;
   onChange: () => void;
   label: string;
+  disabled?: boolean;
 }
 
-export function ToggleButton({ checked, onChange, label }: ToggleButtonProps) {
+export function ToggleButton({ checked, onChange, label, disabled }: ToggleButtonProps) {
   return (
-    <label className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 transition-all hover:bg-[var(--fn-surface-muted)]">
+    <label
+      className={`flex cursor-pointer items-center justify-between rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface)] px-3 py-2 transition-all hover:bg-[var(--fn-surface-muted)] ${
+        disabled ? 'pointer-events-none opacity-60' : ''
+      }`}
+    >
       <span className="text-[var(--fn-text)] font-medium">{label}</span>
       <div
         role="switch"

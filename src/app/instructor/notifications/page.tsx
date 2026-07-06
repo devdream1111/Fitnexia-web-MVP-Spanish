@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useNotifications } from '@/contexts/notifications-context';
-import { ALERT_LABELS, GYM_LABELS, SCREEN_TITLES } from '@/constants/labels';
+import { ALERT_LABELS, GYM_LABELS, NOTIFICATIONS_LABELS, SCREEN_TITLES } from '@/constants/labels';
 import { ApiClientError } from '@/services/api-client';
 
 export default function InstructorNotificationsPage() {
@@ -17,9 +17,12 @@ export default function InstructorNotificationsPage() {
   const {
     notifications,
     instructorInvites,
+    inboxLoading,
     markNotificationAsRead,
+    markAllNotificationsAsRead,
     acceptInstructorInvite,
     refreshInstructorInvites,
+    unreadCount,
   } = useNotifications();
   const { showNotice } = useNoticeModal();
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export default function InstructorNotificationsPage() {
     setAcceptingId(inviteId);
     try {
       const result = await acceptInstructorInvite(inviteId);
-      markNotificationAsRead(inviteId);
+      await markNotificationAsRead(inviteId);
       showNotice({
         title: ALERT_LABELS.savedTitle,
         message: `${GYM_LABELS.instructors.inviteAccepted} ${result.institutionName}.`,
@@ -59,7 +62,20 @@ export default function InstructorNotificationsPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title={SCREEN_TITLES.notifications} showBack />
 
-      {isEmpty ? (
+      {unreadCount > 0 ? (
+        <div className="flex justify-end">
+          <Button
+            title={NOTIFICATIONS_LABELS.markAllRead}
+            variant="outline"
+            size="sm"
+            onClick={() => void markAllNotificationsAsRead()}
+          />
+        </div>
+      ) : null}
+
+      {inboxLoading && isEmpty ? (
+        <p className="text-sm text-[var(--fn-text-muted)]">{NOTIFICATIONS_LABELS.noNotificationsYet}</p>
+      ) : isEmpty ? (
         <NotificationInboxEmpty
           preferencesHref="/instructor/profile/notifications"
           hint="Las invitaciones de gimnasios y alertas de reservas aparecerán aquí."
@@ -120,7 +136,7 @@ export default function InstructorNotificationsPage() {
                         title="Marcar como leída"
                         variant="ghost"
                         size="sm"
-                        onClick={() => markNotificationAsRead(invite.id)}
+                        onClick={() => void markNotificationAsRead(invite.id)}
                       />
                     </div>
                   </li>
@@ -135,7 +151,7 @@ export default function InstructorNotificationsPage() {
                 <button
                   key={notification.id}
                   type="button"
-                  onClick={() => markNotificationAsRead(notification.id)}
+                  onClick={() => void markNotificationAsRead(notification.id)}
                   className={`w-full rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 text-left transition hover:shadow-md ${
                     !notification.read ? 'border-l-4 border-l-[var(--fn-primary)]' : ''
                   }`}

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { BUTTON_LABELS, GENERAL_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 
 export function ClassCancelPanel({
   onCancel,
@@ -20,11 +21,10 @@ export function ClassCancelPanel({
     setConfirmOpen(false);
   }, [loading]);
 
+  useBodyScrollLock(confirmOpen);
+
   useEffect(() => {
     if (!confirmOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') closeConfirm();
@@ -32,13 +32,13 @@ export function ClassCancelPanel({
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [confirmOpen, closeConfirm]);
 
   const handleConfirm = async () => {
     await onCancel();
+    setConfirmOpen(false);
   };
 
   return (

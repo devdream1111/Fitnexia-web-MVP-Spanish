@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import { BADGE_LABELS, CLASS_CARD_LABELS, classFormatBadgeLabel, modalityLocationLabel, BUTTON_LABELS } from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/utils/format';
 import { classHostLabel } from '@/utils/class-instructor';
+import { levelLabel, languageLabel } from '@/utils/advanced-search';
+import { hostIsVerified } from '@/utils/verification';
+import { RegularClassBadge } from '@/components/regular-class-badge';
 import type { ClassListItem } from '@/types/api';
 
 function ClassCardInner({ item, compact, showEdit, editHref }: { 
@@ -25,9 +28,10 @@ function ClassCardInner({ item, compact, showEdit, editHref }: {
         <Dumbbell size={36} className="text-white drop-shadow-sm" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
-        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start justify-between gap-2">
           <h3 className="truncate text-lg font-bold text-[var(--fn-text)]">{item.title}</h3>
           <div className="flex items-center gap-2 shrink-0">
+            <RegularClassBadge item={item} size="sm" />
             {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
             {showEdit && editHref ? (
               <Link href={editHref} onClick={(e) => e.stopPropagation()}>
@@ -39,9 +43,22 @@ function ClassCardInner({ item, compact, showEdit, editHref }: {
           </div>
         </div>
         <p className="text-sm text-[var(--fn-text-muted)] truncate">
-          {item.discipline} · {classFormatBadgeLabel(item.classFormat)} · {formatClassDate(item.startAt)}
+          {[
+            item.level ? levelLabel(item.level) : null,
+            item.language ? languageLabel(item.language) : null,
+            item.discipline,
+            classFormatBadgeLabel(item.classFormat),
+            formatClassDate(item.startAt),
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
-        <p className="text-sm text-[var(--fn-text-secondary)] truncate">{classHostLabel(item)}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-sm text-[var(--fn-text-secondary)]">{classHostLabel(item)}</p>
+          {hostIsVerified(item) ? (
+            <Badge label={BADGE_LABELS.verified} variant="success" size="sm" />
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <span className="flex items-center gap-2 text-sm text-[var(--fn-text-muted)] min-w-0 flex-1">
             {item.modality === 'online' ? <Video size={16} className="shrink-0" /> : <MapPin size={16} className="shrink-0" />}
