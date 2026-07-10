@@ -8,12 +8,14 @@ import { NotificationInboxEmpty } from '@/components/mvp/notification-inbox';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
+import { useNotificationNavigation } from '@/hooks/use-notification-navigation';
+import { getNotificationHref } from '@/utils/notification-navigation';
 import { useNotifications } from '@/contexts/notifications-context';
 import { ALERT_LABELS, GYM_LABELS, NOTIFICATIONS_LABELS, SCREEN_TITLES } from '@/constants/labels';
 import { ApiClientError } from '@/services/api-client';
 
 export default function InstructorNotificationsPage() {
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const {
     notifications,
     instructorInvites,
@@ -25,6 +27,7 @@ export default function InstructorNotificationsPage() {
     unreadCount,
   } = useNotifications();
   const { showNotice } = useNoticeModal();
+  const navigateNotification = useNotificationNavigation();
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
   const inviteIds = useMemo(() => new Set(instructorInvites.map((i) => i.id)), [instructorInvites]);
@@ -147,19 +150,33 @@ export default function InstructorNotificationsPage() {
 
           {otherNotifications.length > 0 ? (
             <div className="space-y-3">
-              {otherNotifications.map((notification) => (
-                <button
-                  key={notification.id}
-                  type="button"
-                  onClick={() => void markNotificationAsRead(notification.id)}
-                  className={`w-full rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 text-left transition hover:shadow-md ${
-                    !notification.read ? 'border-l-4 border-l-[var(--fn-primary)]' : ''
-                  }`}
-                >
-                  <p className="font-bold">{notification.title}</p>
-                  <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{notification.body}</p>
-                </button>
-              ))}
+              {otherNotifications.map((notification) => {
+                const href = getNotificationHref(notification, user?.role);
+                return (
+                  <button
+                    key={notification.id}
+                    type="button"
+                    onClick={() => {
+                      if (href) {
+                        navigateNotification(notification);
+                        return;
+                      }
+                      void markNotificationAsRead(notification.id);
+                    }}
+                    className={`w-full rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 text-left transition hover:shadow-md ${
+                      !notification.read ? 'border-l-4 border-l-[var(--fn-primary)]' : ''
+                    }`}
+                  >
+                    <p className="font-bold">{notification.title}</p>
+                    <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{notification.body}</p>
+                    {href ? (
+                      <p className="mt-2 text-xs font-semibold text-[var(--fn-primary-text)]">
+                        Tocá para abrir →
+                      </p>
+                    ) : null}
+                  </button>
+                );
+              })}
             </div>
           ) : null}
         </>

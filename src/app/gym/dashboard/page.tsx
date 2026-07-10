@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, CalendarCheck, DollarSign, Users } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
+import { LiveStreamJoinLink } from '@/components/live-stream/live-stream-join-link';
 import {
   DashboardClassGrid,
   DashboardHero,
@@ -24,15 +25,13 @@ import { CLUB_LABELS, GYM_LABELS, MOCK_V2V3_LABELS } from '@/constants/labels';
 import { normalizeClubMembersSummary } from '@/utils/club-members';
 import { VerificationBanner } from '@/components/verification/verification-banner';
 import { resolveVerificationStatus } from '@/utils/verification';
+import { isOnlineClass } from '@/utils/live-stream';
 
 export default function GymDashboardPage() {
   const { user } = useAuth();
   const showProfileVerification = useFeature('profileVerification');
   const { classes } = useClasses();
   const showDelinquency = useFeature('clubDelinquencyAlerts') && useFeature('clubMembers');
-  const showAnalytics = useFeature('analyticsMetrics');
-  const showCollections = useFeature('clubCollectionsPanel');
-  const showCourts = useFeature('courtManagement');
   const showGymReports = useFeature('gymReportsBasic') || useFeature('gymReportsAdvanced');
   const institutionId = resolveInstitutionId(user);
   const stats = computeGymDashboardStats(institutionId, classes);
@@ -61,21 +60,15 @@ export default function GymDashboardPage() {
         title={GYM_LABELS.dashboard.controlPanel}
       >
         <div className="flex flex-wrap gap-2">
-          {showAnalytics ? (
-            <Link href="/gym/analytics">
-              <Button title={MOCK_V2V3_LABELS.analyticsTitle} variant="outline" className="shadow-lg shadow-black/10" />
-            </Link>
-          ) : null}
-          {showCollections ? (
-            <Link href="/gym/collections">
-              <Button title={MOCK_V2V3_LABELS.collectionsTitle} variant="outline" className="shadow-lg shadow-black/10" />
-            </Link>
-          ) : null}
-          {showCourts ? (
-            <Link href="/gym/courts">
-              <Button title={MOCK_V2V3_LABELS.courtsTitle} variant="outline" className="shadow-lg shadow-black/10" />
-            </Link>
-          ) : null}
+          <Link href="/gym/analytics">
+            <Button title={MOCK_V2V3_LABELS.analyticsTitle} variant="outline" className="shadow-lg shadow-black/10" />
+          </Link>
+          <Link href="/gym/collections">
+            <Button title={MOCK_V2V3_LABELS.collectionsTitle} variant="outline" className="shadow-lg shadow-black/10" />
+          </Link>
+          <Link href="/gym/courts">
+            <Button title={MOCK_V2V3_LABELS.courtsTitle} variant="outline" className="shadow-lg shadow-black/10" />
+          </Link>
           {showGymReports ? (
             <Link href="/gym/reports">
               <Button title={MOCK_V2V3_LABELS.gymReportsBasicTitle} variant="outline" className="shadow-lg shadow-black/10" />
@@ -133,7 +126,17 @@ export default function GymDashboardPage() {
       <DashboardSection title={GYM_LABELS.dashboard.upcomingClasses}>
         <DashboardClassGrid>
           {gymClasses.map((c) => (
-            <ClassCard key={c.id} item={c} />
+            <div key={c.id} className="flex flex-col gap-2">
+              <ClassCard item={c} />
+              {isOnlineClass(c.modality) ? (
+                <LiveStreamJoinLink
+                  classId={c.id}
+                  startAt={c.startAt}
+                  durationMinutes={c.durationMinutes}
+                  className="self-start"
+                />
+              ) : null}
+            </div>
           ))}
         </DashboardClassGrid>
       </DashboardSection>

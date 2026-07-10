@@ -1,5 +1,4 @@
-import type { CreditBalance, Notification, Review } from '@/types/api';
-import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
+import type { Notification } from '@/types/api';
 
 export interface MockWaitlistEntry {
   id: string;
@@ -20,15 +19,6 @@ export interface MockPaymentMethod {
   isDefault: boolean;
 }
 
-export interface MockSupportTicket {
-  id: string;
-  subject: string;
-  message: string;
-  status: 'open' | 'in_progress' | 'resolved';
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface MockRecordedClass {
   id: string;
   title: string;
@@ -40,35 +30,11 @@ export interface MockRecordedClass {
   watchProgressPct: number;
 }
 
-export interface MockStreamSession {
-  classId: string;
-  joinUrl: string;
-  meetingId: string;
-  passcode: string;
-}
-
-export interface MockReviewResponse {
-  reviewId: string;
-  response: string;
-  respondedAt: string;
-}
-
 export interface MockWeeklyScheduleDay {
   weekday: number;
   enabled: boolean;
   startTime: string;
   endTime: string;
-}
-
-export interface MockAnalyticsSnapshot {
-  bookings: number;
-  revenueCents: number;
-  attendanceRate: number;
-  bookingsChangePct: number;
-  revenueChangePct: number;
-  attendanceChangePct: number;
-  daily: { label: string; bookings: number; revenueCents: number; attendancePct: number }[];
-  topClasses: { title: string; attendancePct: number; bookings: number }[];
 }
 
 export function seedNotifications(userId: string, role: string): Notification[] {
@@ -149,19 +115,6 @@ export function seedNotifications(userId: string, role: string): Notification[] 
   ];
 }
 
-export function seedCreditBalance(): CreditBalance {
-  const expires = new Date();
-  expires.setMonth(expires.getMonth() + 2);
-  return {
-    balance: 120,
-    creditsUntilReward: 30,
-    expiresAt: expires.toISOString(),
-    lastBookingAt: new Date().toISOString(),
-    freeClassEligible: false,
-    maxFreeClassValue: { amount: 250000, currency: DEFAULT_CURRENCY },
-  };
-}
-
 export function seedPaymentMethods(): MockPaymentMethod[] {
   return [
     {
@@ -215,17 +168,6 @@ export function seedRecordedClasses(): MockRecordedClass[] {
   ];
 }
 
-export function seedReviewResponses(): MockReviewResponse[] {
-  return [
-    {
-      reviewId: 'mock-review-1',
-      response:
-        '¡Gracias por tu reseña! Me alegra que hayas disfrutado la sesión. Te espero la próxima semana.',
-      respondedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-    },
-  ];
-}
-
 export function seedWeeklySchedule(): MockWeeklyScheduleDay[] {
   return [
     { weekday: 1, enabled: true, startTime: '09:00', endTime: '13:00' },
@@ -236,38 +178,4 @@ export function seedWeeklySchedule(): MockWeeklyScheduleDay[] {
     { weekday: 6, enabled: true, startTime: '10:00', endTime: '14:00' },
     { weekday: 0, enabled: false, startTime: '10:00', endTime: '14:00' },
   ];
-}
-
-export function seedAnalytics(): MockAnalyticsSnapshot {
-  return {
-    bookings: 47,
-    revenueCents: 385000,
-    attendanceRate: 0.78,
-    bookingsChangePct: 0.12,
-    revenueChangePct: 0.08,
-    attendanceChangePct: -0.03,
-    daily: [
-      { label: 'Lun', bookings: 6, revenueCents: 48000, attendancePct: 0.72 },
-      { label: 'Mar', bookings: 8, revenueCents: 62000, attendancePct: 0.81 },
-      { label: 'Mié', bookings: 5, revenueCents: 41000, attendancePct: 0.68 },
-      { label: 'Jue', bookings: 9, revenueCents: 71000, attendancePct: 0.85 },
-      { label: 'Vie', bookings: 11, revenueCents: 89000, attendancePct: 0.79 },
-      { label: 'Sáb', bookings: 5, revenueCents: 42000, attendancePct: 0.74 },
-      { label: 'Dom', bookings: 3, revenueCents: 32000, attendancePct: 0.65 },
-    ],
-    topClasses: [
-      { title: 'Functional HIIT', attendancePct: 0.92, bookings: 14 },
-      { title: 'Yoga flow', attendancePct: 0.86, bookings: 11 },
-      { title: 'Spinning', attendancePct: 0.79, bookings: 9 },
-    ],
-  };
-}
-
-export function enrichReviewsWithMockResponses(reviews: Review[]): Review[] {
-  const responses = seedReviewResponses();
-  const map = new Map(responses.map((r) => [r.reviewId, r.response]));
-  return reviews.map((review) => {
-    const response = map.get(review.id) ?? review.response;
-    return response ? { ...review, response } : review;
-  });
 }

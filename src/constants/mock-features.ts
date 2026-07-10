@@ -2,20 +2,11 @@ import type { FeatureKey } from '@/constants/features';
 
 /** Post-MVP flags implemented with virtual data until backend APIs ship. */
 export const MOCK_V2V3_FEATURE_KEYS = [
-  'liveStreaming',
   'recordedClasses',
   'multipleCurrencies',
   'digitalWallets',
-  'loyaltyCredits',
-  'analyticsMetrics',
-  'platformSupport',
   'savedPaymentMethods',
-  'courtManagement',
-  'courtBooking',
-  'courtRecurringShifts',
   'qrAccessControl',
-  'openGames',
-  'clubCollectionsPanel',
   'userInstructorChat',
   'gymSaasBilling',
   'institutionSearch',

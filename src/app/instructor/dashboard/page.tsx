@@ -7,6 +7,7 @@ import { BookOpen, CalendarCheck, DollarSign } from 'lucide-react';
 import { MOCK_V2V3_LABELS } from '@/constants/labels';
 
 import { ClassCard } from '@/components/class-card';
+import { LiveStreamJoinLink } from '@/components/live-stream/live-stream-join-link';
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,11 +28,11 @@ import { INSTRUCTOR_LABELS } from '@/constants/labels';
 import { VerificationBanner } from '@/components/verification/verification-banner';
 import { useFeature } from '@/hooks/use-feature';
 import { resolveVerificationStatus } from '@/utils/verification';
+import { isOnlineClass } from '@/utils/live-stream';
 
 export default function InstructorDashboardPage() {
   const { user } = useAuth();
   const showProfileVerification = useFeature('profileVerification');
-  const showAnalytics = useFeature('analyticsMetrics');
   const { getClassesByInstructor, refreshMyClasses } = useClasses();
   const instructorId = getLinkedInstructorId(user);
   const allClasses = getClassesByInstructor(instructorId);
@@ -74,15 +75,13 @@ export default function InstructorDashboardPage() {
         title={INSTRUCTOR_LABELS.dashboard.todayOverview}
       >
         <div className="flex flex-wrap gap-2">
-          {showAnalytics ? (
-            <Link href="/instructor/analytics">
-              <Button
-                title={MOCK_V2V3_LABELS.analyticsTitle}
-                variant="outline"
-                className="shadow-lg shadow-black/10"
-              />
-            </Link>
-          ) : null}
+          <Link href="/instructor/analytics">
+            <Button
+              title={MOCK_V2V3_LABELS.analyticsTitle}
+              variant="outline"
+              className="shadow-lg shadow-black/10"
+            />
+          </Link>
           <Link href="/instructor/create-class">
             <Button title={INSTRUCTOR_LABELS.dashboard.newClass} className="shadow-lg shadow-black/20" />
           </Link>
@@ -113,7 +112,17 @@ export default function InstructorDashboardPage() {
       <DashboardSection title={INSTRUCTOR_LABELS.dashboard.todayClasses}>
         <DashboardClassGrid>
           {todayClasses.map((c) => (
-            <ClassCard key={c.id} item={c} />
+            <div key={c.id} className="flex flex-col gap-2">
+              <ClassCard item={c} />
+              {isOnlineClass(c.modality) ? (
+                <LiveStreamJoinLink
+                  classId={c.id}
+                  startAt={c.startAt}
+                  durationMinutes={c.durationMinutes}
+                  className="self-start"
+                />
+              ) : null}
+            </div>
           ))}
         </DashboardClassGrid>
       </DashboardSection>

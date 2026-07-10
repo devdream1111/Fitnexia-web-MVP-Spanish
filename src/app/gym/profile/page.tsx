@@ -74,10 +74,6 @@ export default function GymProfilePage() {
   const { showNotice } = useNoticeModal();
   const showProfileVerification = useFeature('profileVerification');
   const showAccountDeletion = useFeature('accountDeletion');
-  const showAnalytics = useFeature('analyticsMetrics');
-  const showPlatformSupport = useFeature('platformSupport');
-  const showCourts = useFeature('courtManagement');
-  const showCollections = useFeature('clubCollectionsPanel');
   const showGymReports = useFeature('gymReportsBasic') || useFeature('gymReportsAdvanced');
   const showStaffSchedules = useFeature('staffSchedules');
   const showAttendance = useFeature('attendanceTracking');
@@ -185,9 +181,7 @@ export default function GymProfilePage() {
       links: [
         { href: '/gym/profile/payout-account', label: PROFILE_MENU_LABELS.payoutAccount, icon: Wallet },
         { href: '/gym/profile/plan', label: PROFILE_MENU_LABELS.planCommission, icon: Building },
-        ...(showCollections
-          ? [{ href: '/gym/collections', label: MOCK_V2V3_LABELS.collectionsTitle, icon: DollarSign }]
-          : []),
+        { href: '/gym/collections', label: MOCK_V2V3_LABELS.collectionsTitle, icon: DollarSign },
         ...(showGymReports
           ? [{ href: '/gym/reports', label: MOCK_V2V3_LABELS.gymReportsBasicTitle, icon: LineChart }]
           : []),
@@ -196,7 +190,7 @@ export default function GymProfilePage() {
     {
       title: 'Instalaciones',
       links: [
-        ...(showCourts ? [{ href: '/gym/courts', label: MOCK_V2V3_LABELS.courtsTitle, icon: MapPin }] : []),
+        { href: '/gym/courts', label: MOCK_V2V3_LABELS.courtsTitle, icon: MapPin },
         ...(showStaffSchedules
           ? [{ href: '/gym/staff/schedules', label: MOCK_V2V3_LABELS.staffSchedulesTitle, icon: Clock }]
           : []),
@@ -209,12 +203,8 @@ export default function GymProfilePage() {
     {
       title: 'Más',
       links: [
-        ...(showAnalytics
-          ? [{ href: '/gym/analytics', label: MOCK_V2V3_LABELS.analyticsTitle, icon: LineChart }]
-          : []),
-        ...(showPlatformSupport
-          ? [{ href: '/gym/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy }]
-          : []),
+        { href: '/gym/analytics', label: MOCK_V2V3_LABELS.analyticsTitle, icon: LineChart },
+        { href: '/gym/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy },
         ...(showBranding
           ? [{ href: '/gym/profile/branding', label: MOCK_V2V3_LABELS.brandingTitle, icon: Palette }]
           : []),
@@ -333,7 +323,7 @@ export default function GymProfilePage() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={8}
-          placeholder="Presenta tu gimnasio y club: instalaciones, servicios y lo que os hace únicos…"
+          placeholder="Presenta tu gimnasio/club: instalaciones, servicios y lo que os hace únicos…"
           className="min-h-[200px] resize-y text-base leading-relaxed"
         />
         <div className="mt-6">

@@ -19,6 +19,7 @@ import {
 } from '@/components/class-form/class-form-ui';
 import { ClassLocationField } from '@/components/class-form/class-location-field';
 import { ClassMetadataFields } from '@/components/class-form/class-metadata-fields';
+import { ClassCancellationPolicyField } from '@/components/class-form/class-cancellation-policy-field';
 import {
   ClassRecurrenceFields,
   type RecurrenceFormState,
@@ -38,6 +39,7 @@ import {
   recurringStartAtFromDateAndTime,
 } from '@/utils/class-recurrence';
 import { classStartAtFromForm, dateToTimeString, defaultClassStart, formatLocalDateInput } from '@/utils/schedule';
+import { DEFAULT_CANCELLATION_POLICY_HOURS } from '@/utils/booking';
 import { ApiClientError } from '@/services/api-client';
 import type { ClassFormat, ClassLevel, Modality } from '@/types/api';
 
@@ -61,6 +63,9 @@ export default function CreateClassPage() {
   const [duration, setDuration] = useState('60');
   const [price, setPrice] = useState(String(DEFAULT_CLASS_PRICE_UYU));
   const [capacity, setCapacity] = useState('12');
+  const [cancellationPolicyHours, setCancellationPolicyHours] = useState(
+    String(DEFAULT_CANCELLATION_POLICY_HOURS),
+  );
   const [level, setLevel] = useState<ClassLevel | ''>('');
   const [language, setLanguage] = useState('');
   const [locationLabel, setLocationLabel] = useState('');
@@ -148,6 +153,8 @@ export default function CreateClassPage() {
         durationMinutes,
         price: { amount: priceAmount, currency: DEFAULT_CURRENCY },
         capacity: cap,
+        cancellationPolicyHours:
+          Math.max(0, parseInt(cancellationPolicyHours, 10) || DEFAULT_CANCELLATION_POLICY_HOURS),
         spotsLeft: cap,
         instructor: { id: instructorId, displayName: instructorName },
         location: buildLocationPayload(modality, locationLabel),
@@ -296,6 +303,10 @@ export default function CreateClassPage() {
                   disabled={isPrivate}
                 />
               </div>
+              <ClassCancellationPolicyField
+                value={cancellationPolicyHours}
+                onChange={setCancellationPolicyHours}
+              />
               {isPrivate ? (
                 <p className="text-sm text-[var(--fn-text-muted)]">
                   Las clases privadas tienen capacidad fija de 1 participante.

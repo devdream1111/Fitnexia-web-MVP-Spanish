@@ -40,7 +40,7 @@ import {
   type QuickLinkGroup,
 } from '@/components/profile/profile-page-ui';
 import { ProfileDangerZone } from '@/components/profile/profile-danger-zone';
-import { InstructorReviewResponsesPanel } from '@/components/mock-v2v3/instructor-review-responses-panel';
+import { InstructorReviewResponsesPanel } from '@/components/reviews/instructor-review-responses-panel';
 import { InstructorReviewsSection } from '@/components/reviews/instructor-rating-display';
 import { VerificationBanner } from '@/components/verification/verification-banner';
 import { getAuthErrorMessage, useAuth } from '@/contexts/auth-context';
@@ -84,8 +84,6 @@ export default function InstructorProfilePage() {
   } = useReviews();
   const showProfileVerification = useFeature('profileVerification');
   const showAccountDeletion = useFeature('accountDeletion');
-  const showAnalytics = useFeature('analyticsMetrics');
-  const showPlatformSupport = useFeature('platformSupport');
   const profile = user?.instructorProfile;
   const verificationStatus = resolveVerificationStatus(profile);
   const heroBadge = getProfileHeroBadge(verificationStatus, ROLE_TITLES.instructor);
@@ -242,12 +240,8 @@ export default function InstructorProfilePage() {
     {
       title: 'Más',
       links: [
-        ...(showAnalytics
-          ? [{ href: '/instructor/analytics', label: MOCK_V2V3_LABELS.analyticsTitle, icon: LineChart }]
-          : []),
-        ...(showPlatformSupport
-          ? [{ href: '/instructor/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy }]
-          : []),
+        { href: '/instructor/analytics', label: MOCK_V2V3_LABELS.analyticsTitle, icon: LineChart },
+        { href: '/instructor/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy },
       ].filter(Boolean) as QuickLinkGroup['links'],
     },
   ].filter((group) => group.links.length > 0);

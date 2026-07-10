@@ -3,8 +3,28 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { 
-  Home, Search, Calendar, User, BarChart3, BookOpen, DollarSign, Users, LogOut, UserCircle, Settings, ChevronDown, Sun, Moon, Bell, IdCard, Briefcase, MapPin, MessageSquare, UsersRound
+import {
+  Home,
+  Search,
+  Calendar,
+  User,
+  BarChart3,
+  BookOpen,
+  DollarSign,
+  Users,
+  LogOut,
+  UserCircle,
+  Settings,
+  ChevronDown,
+  Sun,
+  Moon,
+  Bell,
+  IdCard,
+  Briefcase,
+  MapPin,
+  MessageSquare,
+  UsersRound,
+  LineChart,
 } from 'lucide-react';
 
 import { Logo } from './Logo';
@@ -29,6 +49,7 @@ const INSTRUCTOR_NAV: NavItem[] = [
   { href: '/instructor/classes', label: TAB_LABELS.instructor.classes, icon: <BookOpen size={18} /> },
   { href: '/instructor/calendar', label: TAB_LABELS.instructor.calendar, icon: <Calendar size={18} /> },
   { href: '/instructor/jobs', label: TAB_LABELS.instructor.jobs, icon: <Briefcase size={18} /> },
+  { href: '/instructor/analytics', label: TAB_LABELS.instructor.analytics, icon: <LineChart size={18} /> },
   { href: '/instructor/earnings', label: TAB_LABELS.instructor.earnings, icon: <DollarSign size={18} /> },
 ];
 
@@ -37,6 +58,7 @@ const GYM_NAV_BASE: NavItem[] = [
   { href: '/gym/instructors', label: TAB_LABELS.gym.staff, icon: <Users size={18} /> },
   { href: '/gym/jobs', label: TAB_LABELS.gym.jobs, icon: <Briefcase size={18} /> },
   { href: '/gym/classes', label: TAB_LABELS.gym.classes, icon: <BookOpen size={18} /> },
+  { href: '/gym/analytics', label: TAB_LABELS.gym.analytics, icon: <LineChart size={18} /> },
   { href: '/gym/earnings', label: TAB_LABELS.gym.earnings, icon: <DollarSign size={18} /> },
 ];
 
@@ -46,26 +68,18 @@ const GYM_NAV_MEMBERS: NavItem = {
   icon: <IdCard size={18} />,
 };
 
-function buildAthleteNav(flags: {
-  courtBooking: boolean;
-  openGames: boolean;
-  chat: boolean;
-}): NavItem[] {
+function buildAthleteNav(flags: { chat: boolean }): NavItem[] {
   const items = [...ATHLETE_NAV];
-  if (flags.courtBooking) {
-    items.splice(3, 0, {
-      href: '/athlete/courts',
-      label: MOCK_V2V3_LABELS.courtsBook,
-      icon: <MapPin size={18} />,
-    });
-  }
-  if (flags.openGames) {
-    items.push({
-      href: '/athlete/open-games',
-      label: MOCK_V2V3_LABELS.openGamesTitle,
-      icon: <UsersRound size={18} />,
-    });
-  }
+  items.splice(3, 0, {
+    href: '/athlete/courts',
+    label: MOCK_V2V3_LABELS.courtsBook,
+    icon: <MapPin size={18} />,
+  });
+  items.push({
+    href: '/athlete/open-games',
+    label: MOCK_V2V3_LABELS.openGamesTitle,
+    icon: <UsersRound size={18} />,
+  });
   if (flags.chat) {
     items.push({
       href: '/athlete/messages',
@@ -111,13 +125,9 @@ export function RoleShell({ children }: { children: React.ReactNode }) {
   const { isDark, toggleDarkMode } = useAppTheme();
   const { unreadCount } = useNotifications();
   const showClubMembers = useFeature('clubMembers');
-  const showCourtBooking = useFeature('courtBooking');
-  const showOpenGames = useFeature('openGames');
   const showChat = useFeature('userInstructorChat');
   const gymNav = buildGymNav(showClubMembers);
   const athleteNav = buildAthleteNav({
-    courtBooking: showCourtBooking,
-    openGames: showOpenGames,
     chat: showChat,
   });
   const [dropdownOpen, setDropdownOpen] = useState(false);

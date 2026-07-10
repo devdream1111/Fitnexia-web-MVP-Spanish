@@ -1,17 +1,14 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import '@fontsource/plus-jakarta-sans/400.css';
+import '@fontsource/plus-jakarta-sans/500.css';
+import '@fontsource/plus-jakarta-sans/600.css';
+import '@fontsource/plus-jakarta-sans/700.css';
+import '@fontsource/plus-jakarta-sans/800.css';
 
 import { AppProviders } from '@/components/providers';
 import { PageBackground } from '@/components/layout/PageBackground';
 
 import './globals.css';
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin', 'latin-ext'],
-  variable: '--font-jakarta',
-  display: 'swap',
-  weight: ['400', '500', '600', '700', '800'],
-});
 
 export const metadata: Metadata = {
   title: 'Fitnexia',
@@ -26,8 +23,8 @@ export default function RootLayout({
   modal: React.ReactNode;
 }) {
   return (
-    <html lang="es-UY" className={plusJakartaSans.variable} suppressHydrationWarning>
-      <body className={`${plusJakartaSans.className} antialiased`}>
+    <html lang="es-UY" suppressHydrationWarning>
+      <body className="antialiased">
         <AppProviders>
           <PageBackground>{children}</PageBackground>
           {modal}

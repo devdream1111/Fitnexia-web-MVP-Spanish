@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { GYM_LABELS } from '@/constants/labels';
+import { GENERAL_LABELS, GYM_LABELS } from '@/constants/labels';
 import type { JobApplication, JobPosting, JobRoleType, JobStatus } from '@/types/api';
 import { disciplineLabel } from '@/utils/disciplines';
 import { jobRoleLabel, jobStatusLabel } from '@/utils/opening-hours';
@@ -525,41 +525,52 @@ export function JobsSearchBar({
 }: {
   value: string;
   onChange: (v: string) => void;
-  onSearch: () => void;
+  onSearch: (query: string) => void;
   placeholder?: string;
 }) {
   return (
-    <div className="relative">
-      <Search
-        className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]"
-        aria-hidden="true"
-      />
-      <input
-        type="search"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && onSearch()}
-        placeholder={placeholder ?? GYM_LABELS.jobs.searchPlaceholder}
-        className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] py-3.5 pl-12 pr-24 text-sm text-[var(--fn-text)] transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
-      />
-      {value ? (
-        <button
-          type="button"
-          onClick={() => onChange('')}
-          className="absolute right-[5.5rem] top-1/2 -translate-y-1/2 rounded-full p-1 text-[var(--fn-text-muted)] transition hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]"
-          aria-label="Limpiar búsqueda"
-        >
-          <X size={16} />
-        </button>
-      ) : null}
+    <form
+      className="flex flex-col gap-3 sm:flex-row sm:items-center"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSearch(value.trim());
+      }}
+    >
+      <div className="relative min-w-0 flex-1">
+        <Search
+          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]"
+          aria-hidden="true"
+        />
+        <input
+          type="text"
+          inputMode="search"
+          enterKeyHint="search"
+          role="searchbox"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder ?? GYM_LABELS.jobs.searchPlaceholder}
+          className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] py-3.5 pl-12 pr-12 text-sm text-[var(--fn-text)] transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
+        />
+        {value ? (
+          <button
+            type="button"
+            onClick={() => {
+              onChange('');
+              onSearch('');
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-[var(--fn-text-muted)] transition hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]"
+            aria-label="Limpiar búsqueda"
+          >
+            <X size={16} />
+          </button>
+        ) : null}
+      </div>
       <Button
-        title="Buscar"
+        type="submit"
+        title={GENERAL_LABELS.search}
         size="sm"
-        onClick={onSearch}
-        className="absolute right-2 top-1/2 -translate-y-1/2"
-      >
-        Buscar
-      </Button>
-    </div>
+        className="h-12 w-full shrink-0 px-6 sm:w-auto"
+      />
+    </form>
   );
 }

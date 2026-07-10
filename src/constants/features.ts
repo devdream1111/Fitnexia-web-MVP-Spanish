@@ -34,21 +34,20 @@ export const FEATURES = {
   digitalWallets: false,
   subscriptionPaymentModels: true,
   integratedPayments: true,
-  loyaltyCredits: false,
+  loyaltyCredits: true,
   reviewResponses: true,
   inAppNotificationCenter: true,
-  analyticsMetrics: false,
-  platformSupport: false,
+  platformSupport: true,
   savedPaymentMethods: false,
   geolocationMap: true,
 
-  // Courts & clubs V2/V3 (UI mock until backend)
-  courtManagement: false,
-  courtBooking: false,
-  courtRecurringShifts: false,
+  // Courts & clubs V2/V3
+  courtManagement: true,
+  courtBooking: true,
+  courtRecurringShifts: true,
   qrAccessControl: false,
-  openGames: false,
-  clubCollectionsPanel: false,
+  openGames: true,
+  clubCollectionsPanel: true,
   userInstructorChat: false,
 
   // Gym / instructor plan V1/V2 (UI mock until backend)

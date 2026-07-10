@@ -93,6 +93,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
           body: n.body,
           read: n.read,
           createdAt: n.createdAt,
+          data: n.data,
         })),
       );
     } catch {

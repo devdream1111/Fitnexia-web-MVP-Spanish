@@ -16,6 +16,7 @@ import type {
   ClubMembershipCharge,
   ClubMembershipPlan,
   ClubMembershipStatement,
+  ClubCollectionsPanel,
   ClubMembersSummary,
   ClubPlanCadence,
   AthleteClubMembership,
@@ -24,7 +25,22 @@ import type {
   MembershipPaymentResponse,
   CreateBookingRequest,
   CreateBookingResponse,
+  CreateCourtPricingRuleRequest,
+  CreateCourtRecurringShiftRequest,
+  CreateCourtRequest,
+  CreateCourtReservationRequest,
+  CreateCourtReservationResponse,
+  CreateOpenGameRequest,
+  Court,
+  CourtPricingRule,
+  CourtQuoteRequest,
+  CourtQuoteResponse,
+  CourtRecurringShift,
+  CourtReservation,
+  CourtScheduleDay,
+  CourtSettings,
   GymSaasTier,
+  OpenGame,
   GymSubscription,
   GymTierCatalog,
   HomeFeed,
@@ -37,10 +53,20 @@ import type {
   JobStatus,
   Money,
   PaginatedResponse,
+  UpdateCourtRequest,
   User,
   UserRole,
   VerificationRequestStatus,
   VerificationStatus,
+  ClassStreamJoinResponse,
+  ClassStreamStatusResponse,
+  CreditBalance,
+  CreateSupportTicketRequest,
+  InstitutionMetrics,
+  InstructorMetrics,
+  LoyaltyTransaction,
+  MetricsPeriod,
+  SupportTicket,
 } from '@/types/api';
 import { buildFallbackPaymentOptions } from '@/utils/booking-payments';
 import {
@@ -85,6 +111,8 @@ export interface RegisterBody {
 export interface BookingRecord extends Booking {
   checkoutUrl?: string;
   paymentId?: string;
+  /** Present when the booking was paid with loyalty credits (F-38) */
+  loyaltyRedemption?: boolean;
   /** Populated by some API responses — used for calendar without an extra class fetch */
   class?: ClassListItem;
 }
@@ -196,9 +224,12 @@ export interface AppConfig {
     subscriptionPaymentModels?: boolean;
     reviewResponses?: boolean;
     inAppNotificationCenter?: boolean;
-    analyticsMetrics?: boolean;
     courts?: boolean;
     clubMemberships?: boolean;
+    fixedCourtShifts?: boolean;
+    openGames?: boolean;
+    liveStreaming?: boolean;
+    recordedClasses?: boolean;
   };
   currency: string;
 }
@@ -997,6 +1028,11 @@ export function apiGetClubMembersSummary() {
   return apiRequest<ClubMembersSummary>('/institutions/me/members/summary');
 }
 
+/** F-45 — fee collections panel for the institution */
+export function apiGetClubCollectionsPanel() {
+  return apiRequest<ClubCollectionsPanel>('/institutions/me/members/collections');
+}
+
 export async function apiCreateClubMember(body: {
   email: string;
   firstName: string;
@@ -1184,6 +1220,253 @@ export const apiAcceptClubInvite = apiAcceptMembershipInvite;
 export const apiGetClubMembershipStatement = apiGetMembershipStatement;
 /** @deprecated Use apiPayMembershipDebt */
 export const apiPayClubMembershipBalance = apiPayMembershipDebt;
+
+// --- F-35 Metrics & analytics ---
+
+export function apiGetInstitutionMetrics(period: MetricsPeriod = 'week') {
+  return apiRequest<InstitutionMetrics>(`/institutions/me/metrics?period=${period}`);
+}
+
+export function apiGetInstructorMetrics(period: MetricsPeriod = 'week') {
+  return apiRequest<InstructorMetrics>(`/instructors/me/metrics?period=${period}`);
+}
+
+// --- F-47 / F-48 Courts & availability ---
+
+export function apiListMyCourts() {
+  return apiRequest<{ data: Court[] }>('/courts/me/courts');
+}
+
+export function apiCreateCourt(body: CreateCourtRequest) {
+  return apiRequest<Court>('/courts/me/courts', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiUpdateCourt(id: string, body: UpdateCourtRequest) {
+  return apiRequest<Court>(`/courts/me/courts/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiDeleteCourt(id: string) {
+  return apiRequest<void>(`/courts/me/courts/${id}`, { method: 'DELETE' });
+}
+
+export function apiGetCourtSettings() {
+  return apiRequest<CourtSettings>('/courts/me/settings');
+}
+
+export function apiUpdateCourtSettings(body: Partial<CourtSettings>) {
+  return apiRequest<CourtSettings>('/courts/me/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiGetMyCourtSchedule(params: { date: string; courtId?: string }) {
+  const search = new URLSearchParams({ date: params.date });
+  if (params.courtId) search.set('courtId', params.courtId);
+  return apiRequest<{ data: CourtScheduleDay[] }>(`/courts/me/schedule?${search.toString()}`);
+}
+
+export function apiListMyCourtReservations(params?: { date?: string; courtId?: string }) {
+  const search = new URLSearchParams();
+  if (params?.date) search.set('date', params.date);
+  if (params?.courtId) search.set('courtId', params.courtId);
+  const query = search.toString();
+  return apiRequest<{ data: CourtReservation[] }>(
+    `/courts/me/reservations${query ? `?${query}` : ''}`,
+  );
+}
+
+/** F-50 — gym pricing rules */
+export function apiListCourtPricingRules() {
+  return apiRequest<{ data: CourtPricingRule[] }>('/courts/me/pricing-rules');
+}
+
+export function apiCreateCourtPricingRule(body: CreateCourtPricingRuleRequest) {
+  return apiRequest<CourtPricingRule>('/courts/me/pricing-rules', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiDeleteCourtPricingRule(id: string) {
+  return apiRequest<void>(`/courts/me/pricing-rules/${id}`, { method: 'DELETE' });
+}
+
+/** Public court discovery (athlete booking) */
+export function apiListInstitutionCourts(institutionId: string) {
+  return apiRequest<{ data: Court[] }>(`/courts/institutions/${institutionId}/courts`, {
+    auth: false,
+  });
+}
+
+export function apiGetInstitutionCourtSettings(institutionId: string) {
+  return apiRequest<CourtSettings>(`/courts/institutions/${institutionId}/settings`, {
+    auth: false,
+  });
+}
+
+export function apiGetInstitutionCourtSchedule(
+  institutionId: string,
+  params: { date: string; courtId?: string },
+) {
+  const search = new URLSearchParams({ date: params.date });
+  if (params.courtId) search.set('courtId', params.courtId);
+  return apiRequest<{ data: CourtScheduleDay[] }>(
+    `/courts/institutions/${institutionId}/schedule?${search.toString()}`,
+    { auth: false },
+  );
+}
+
+/** F-49 / F-50 — quote + book */
+export function apiQuoteCourtReservation(body: CourtQuoteRequest) {
+  return apiRequest<CourtQuoteResponse>('/courts/quote', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiCreateCourtReservation(body: CreateCourtReservationRequest) {
+  return apiRequest<CreateCourtReservationResponse>('/courts/reservations', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiListAthleteCourtReservations() {
+  return apiRequest<{ data: CourtReservation[] }>('/courts/reservations/me');
+}
+
+export function apiGetCourtReservation(id: string) {
+  return apiRequest<CourtReservation>(`/courts/reservations/${id}`);
+}
+
+export function apiSyncCourtReservationPayment(id: string) {
+  return apiRequest<{ reservation: CourtReservation }>(
+    `/courts/reservations/${id}/sync-payment`,
+    { method: 'POST' },
+  );
+}
+
+/** F-52 — cancel court reservation */
+export function apiCancelCourtReservation(id: string) {
+  return apiRequest<CourtReservation>(`/courts/reservations/${id}/cancel`, {
+    method: 'POST',
+  });
+}
+
+/** F-51 — recurring fixed shifts */
+export function apiListMyCourtRecurringShifts() {
+  return apiRequest<{ data: CourtRecurringShift[] }>('/courts/recurring-shifts/me');
+}
+
+export function apiCreateCourtRecurringShift(body: CreateCourtRecurringShiftRequest) {
+  return apiRequest<CourtRecurringShift>('/courts/recurring-shifts', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiCancelCourtRecurringShift(id: string) {
+  return apiRequest<CourtRecurringShift>(`/courts/recurring-shifts/${id}/cancel`, {
+    method: 'POST',
+  });
+}
+
+/** F-53 — open games */
+export function apiListOpenGameSports() {
+  return apiRequest<{ data: string[] }>('/open-games/sports', { auth: false });
+}
+
+export function apiListOpenGames(params?: { sportType?: string; from?: string; to?: string }) {
+  const search = new URLSearchParams();
+  if (params?.sportType) search.set('sportType', params.sportType);
+  if (params?.from) search.set('from', params.from);
+  if (params?.to) search.set('to', params.to);
+  const query = search.toString();
+  return apiRequest<{ data: OpenGame[] }>(`/open-games${query ? `?${query}` : ''}`);
+}
+
+export function apiListMyOpenGames() {
+  return apiRequest<{ data: OpenGame[] }>('/open-games/me');
+}
+
+export function apiGetOpenGame(id: string) {
+  return apiRequest<OpenGame>(`/open-games/${id}`);
+}
+
+export function apiCreateOpenGame(body: CreateOpenGameRequest) {
+  return apiRequest<OpenGame>('/open-games', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiJoinOpenGame(id: string) {
+  return apiRequest<OpenGame>(`/open-games/${id}/join`, { method: 'POST' });
+}
+
+export function apiLeaveOpenGame(id: string) {
+  return apiRequest<OpenGame>(`/open-games/${id}/leave`, { method: 'POST' });
+}
+
+export function apiCancelOpenGame(id: string) {
+  return apiRequest<OpenGame>(`/open-games/${id}/cancel`, { method: 'POST' });
+}
+
+// --- F-38 Loyalty credits ---
+
+export function apiGetMyCredits() {
+  return apiRequest<CreditBalance>('/credits/me');
+}
+
+export function apiGetMyCreditTransactions(limit = 50) {
+  return apiRequest<{ data: LoyaltyTransaction[] }>(
+    `/credits/me/transactions?limit=${limit}`,
+  );
+}
+
+// --- F-37 Platform support (API.md §14) ---
+
+export function apiCreateSupportTicket(body: CreateSupportTicketRequest) {
+  return apiRequest<SupportTicket>('/support/tickets', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiGetMySupportTickets() {
+  return apiRequest<{ data: SupportTicket[] }>('/support/tickets/me');
+}
+
+// --- F-14 Live streaming ---
+
+export function apiGetClassStreamStatus(classId: string) {
+  return apiRequest<ClassStreamStatusResponse>(`/classes/${classId}/stream`);
+}
+
+export function apiJoinClassStream(classId: string) {
+  return apiRequest<ClassStreamJoinResponse>(`/classes/${classId}/stream/join`, {
+    method: 'POST',
+  });
+}
+
+export function apiLeaveClassStream(classId: string) {
+  return apiRequest<{ left: boolean }>(`/classes/${classId}/stream/leave`, {
+    method: 'POST',
+  });
+}
+
+export function apiEndClassStream(classId: string) {
+  return apiRequest<ClassStreamStatusResponse>(`/classes/${classId}/stream/end`, {
+    method: 'POST',
+  });
+}
 
 // --- Notifications preferences ---
 

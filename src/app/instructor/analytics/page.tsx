@@ -2,23 +2,12 @@
 
 import Link from 'next/link';
 
+import { AnalyticsMetricsPanel } from '@/components/analytics/analytics-metrics-panel';
 import { PageHeader } from '@/components/layout/page-header';
-import { AnalyticsMetricsPanel } from '@/components/mock-v2v3/analytics-metrics-panel';
 import { Button } from '@/components/ui/button';
-import { INSTRUCTOR_LABELS, MOCK_V2V3_LABELS, SCREEN_TITLES } from '@/constants/labels';
-import { useFeature } from '@/hooks/use-feature';
+import { INSTRUCTOR_LABELS, MOCK_V2V3_LABELS } from '@/constants/labels';
 
 export default function InstructorAnalyticsPage() {
-  const enabled = useFeature('analyticsMetrics');
-
-  if (!enabled) {
-    return (
-      <div className="mx-auto max-w-3xl">
-        <PageHeader title={SCREEN_TITLES.analytics} showBack backHref="/instructor/dashboard" />
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
@@ -31,7 +20,7 @@ export default function InstructorAnalyticsPage() {
           </Link>
         }
       />
-      <AnalyticsMetricsPanel />
+      <AnalyticsMetricsPanel scope="instructor" />
     </div>
   );
 }

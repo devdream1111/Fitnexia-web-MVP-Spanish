@@ -1,22 +1,26 @@
 'use client';
 
-import { CourtBookingFlow, CourtBookingsList } from '@/components/mock-v2v3/courts-ui';
-import { MockFeatureGate, MockPageShell } from '@/components/mock-v2v3/mock-feature-gate';
+import Link from 'next/link';
+
+import { AthleteCourtBookingFlow } from '@/components/courts/athlete-court-booking-flow';
+import { PageHeader } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
 import { MOCK_V2V3_LABELS } from '@/constants/labels';
-import { useAuth } from '@/contexts/auth-context';
-import { useFeature } from '@/hooks/use-feature';
 
 export default function AthleteCourtsPage() {
-  const enabled = useFeature('courtBooking');
-  const { user } = useAuth();
-  const userId = user?.id ?? 'me';
-  const institutionId = 'mock-club-1';
-
   return (
-    <MockFeatureGate enabled={enabled} title={MOCK_V2V3_LABELS.courtsBook} backHref="/athlete/search">
-      <MockPageShell title={MOCK_V2V3_LABELS.courtsBook} backHref="/athlete/search">
-        <CourtBookingFlow userId={userId} institutionId={institutionId} isMember />
-      </MockPageShell>
-    </MockFeatureGate>
+    <div className="mx-auto max-w-3xl space-y-6 pb-4">
+      <PageHeader
+        title={MOCK_V2V3_LABELS.courtsBook}
+        showBack
+        backHref="/athlete/search"
+        action={
+          <Link href="/athlete/court-bookings">
+            <Button title={MOCK_V2V3_LABELS.courtsMyBookings} variant="outline" size="sm" />
+          </Link>
+        }
+      />
+      <AthleteCourtBookingFlow />
+    </div>
   );
 }

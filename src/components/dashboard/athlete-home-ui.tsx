@@ -1,17 +1,35 @@
 'use client';
 
 import Link from 'next/link';
-import { CalendarClock, Dumbbell, MapPin, Sparkles, Video } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  CalendarClock,
+  Clock,
+  Dumbbell,
+  MapPin,
+  Search,
+  Sparkles,
+  Users,
+  Video,
+} from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { RegularClassBadge } from '@/components/regular-class-badge';
-import { BADGE_LABELS, CLASS_CARD_LABELS, modalityLocationLabel } from '@/constants/labels';
+import {
+  BADGE_LABELS,
+  BUTTON_LABELS,
+  CLASS_CARD_LABELS,
+  GENERAL_LABELS,
+  modalityLocationLabel,
+} from '@/constants/labels';
 import { formatClassDate, formatMoney } from '@/utils/format';
 import { classHostLabel } from '@/utils/class-instructor';
+import { hostIsVerified } from '@/utils/verification';
 import type { ClassListItem } from '@/types/api';
 
 export function AthleteHomeShell({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-col gap-10 pb-2">{children}</div>;
+  return <div className="flex flex-col gap-12 pb-6 md:gap-14">{children}</div>;
 }
 
 export function AthleteHomeHero({ eyebrow, title }: { eyebrow: string; title: string }) {
@@ -20,68 +38,98 @@ export function AthleteHomeHero({ eyebrow, title }: { eyebrow: string; title: st
   const punch = titleWords.slice(-2).join(' ');
 
   return (
-    <header className="relative -mx-1 overflow-hidden rounded-r-[2rem] border border-[var(--fn-border)] border-l-[6px] border-l-[var(--fn-primary)] bg-[var(--fn-surface)] p-8 shadow-[12px_12px_0_var(--fn-primary-muted)] md:mx-0 md:p-12">
+    <header className="relative overflow-hidden rounded-[1.75rem] border border-[color-mix(in_srgb,var(--fn-primary)_28%,var(--fn-border))] bg-gradient-to-br from-[var(--fn-primary)] via-[#1d4ed8] to-[#0f172a] px-6 py-8 text-white shadow-[0_24px_48px_-28px_rgba(37,99,235,0.65)] md:rounded-[2rem] md:px-10 md:py-11">
       <div
-        className="pointer-events-none absolute inset-0 opacity-35"
+        className="pointer-events-none absolute inset-0 opacity-40"
         style={{
           backgroundImage:
-            'linear-gradient(var(--fn-border) 1px, transparent 1px), linear-gradient(90deg, var(--fn-border) 1px, transparent 1px)',
-          backgroundSize: '2.5rem 2.5rem',
-          maskImage: 'linear-gradient(135deg, black 20%, transparent 70%)',
+            'radial-gradient(circle at 88% 12%, rgba(255,255,255,0.32), transparent 40%), radial-gradient(circle at 8% 92%, rgba(56,189,248,0.35), transparent 42%), radial-gradient(circle at 50% 50%, transparent 55%, rgba(15,23,42,0.35) 100%)',
         }}
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full border border-[var(--fn-border)] bg-[var(--fn-primary-muted)] opacity-55"
+        className="pointer-events-none absolute -right-10 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full border border-white/10 bg-white/5 blur-0"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute bottom-[-1.5rem] right-12 h-[4.5rem] w-[4.5rem] rounded-full border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]"
+        className="pointer-events-none absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-cyan-300/20 blur-2xl"
         aria-hidden="true"
       />
 
-      <div className="relative z-10">
-        <p className="m-0 text-[0.6875rem] font-extrabold uppercase tracking-[0.2em] text-[var(--fn-primary-text)]">
-          {eyebrow}
-        </p>
-        <h1 className="mt-3 leading-[0.95]">
-          {lead ? (
-            <>
-              <span className="block text-[clamp(2rem,5vw,3.25rem)] font-medium tracking-tight text-[var(--fn-text-secondary)]">
-                {lead}
+      <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-white/85 ring-1 ring-white/20 backdrop-blur-sm">
+            <Sparkles size={13} strokeWidth={2.5} />
+            {eyebrow}
+          </div>
+          <h1 className="mt-4 leading-[0.95] tracking-tight">
+            {lead ? (
+              <>
+                <span className="block text-[clamp(1.75rem,4.5vw,2.75rem)] font-medium text-white/75">
+                  {lead}
+                </span>
+                <span className="mt-[0.12em] block text-[clamp(2.35rem,6.5vw,4rem)] font-black text-white">
+                  {punch}
+                </span>
+              </>
+            ) : (
+              <span className="block text-[clamp(2.35rem,6.5vw,4rem)] font-black text-white">
+                {title}
               </span>
-              <span className="mt-[0.15em] block text-[clamp(2.5rem,7vw,4.5rem)] font-black tracking-tight text-[var(--fn-text)]">
-                {punch}
-              </span>
-            </>
-          ) : (
-            <span className="block text-[clamp(2.5rem,7vw,4.5rem)] font-black tracking-tight text-[var(--fn-text)]">
-              {title}
+            )}
+          </h1>
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/75 md:text-base">
+            {GENERAL_LABELS.athleteHomeHeroBody}
+          </p>
+        </div>
+
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:min-w-[15rem]">
+          <Link
+            href="/athlete/search"
+            className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3.5 text-sm font-bold text-[var(--fn-primary-text)] shadow-lg shadow-black/10 transition hover:bg-white/95 hover:shadow-xl"
+          >
+            <Search size={16} strokeWidth={2.5} />
+            {GENERAL_LABELS.athleteHomeSearchCta}
+            <ArrowRight
+              size={16}
+              strokeWidth={2.5}
+              className="transition group-hover:translate-x-0.5"
+            />
+          </Link>
+          <div className="flex items-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-xs font-semibold text-white/80 ring-1 ring-white/15 backdrop-blur-sm">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white">
+              <Dumbbell size={16} strokeWidth={2.25} />
             </span>
-          )}
-        </h1>
-      </div>
-
-      <div
-        className="absolute bottom-5 right-5 flex h-14 w-14 rotate-[-8deg] items-center justify-center rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]"
-        aria-hidden="true"
-      >
-        <Dumbbell size={28} strokeWidth={2.25} />
+            {GENERAL_LABELS.athleteHomeBrandChip}
+          </div>
+        </div>
       </div>
     </header>
   );
 }
 
-function ModalityIcon({ modality }: { modality: ClassListItem['modality'] }) {
-  return modality === 'online' ? <Video size={14} className="shrink-0" /> : <MapPin size={14} className="shrink-0" />;
+function ModalityIcon({
+  modality,
+  className,
+}: {
+  modality: ClassListItem['modality'];
+  className?: string;
+}) {
+  return modality === 'online' ? (
+    <Video size={14} className={className ?? 'shrink-0'} />
+  ) : (
+    <MapPin size={14} className={className ?? 'shrink-0'} />
+  );
 }
 
 function SectionHead({
   title,
   icon,
+  subtitle,
 }: {
   title: string;
   icon: 'nearby' | 'recommended' | 'recurring' | 'general';
+  subtitle?: string;
 }) {
   const Icon =
     icon === 'nearby'
@@ -93,62 +141,106 @@ function SectionHead({
           : Sparkles;
 
   return (
-    <div className="mb-5 flex items-center gap-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.625rem] bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
-        <Icon size={18} strokeWidth={2.25} />
+    <div className="mb-5 flex min-w-0 items-start gap-3.5">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--fn-primary-muted)] to-[color-mix(in_srgb,var(--fn-primary)_18%,transparent)] text-[var(--fn-primary)] ring-1 ring-[color-mix(in_srgb,var(--fn-primary)_22%,var(--fn-border))]">
+        <Icon size={19} strokeWidth={2.25} />
       </span>
-      <h2 className="m-0 shrink-0 text-lg font-extrabold tracking-tight text-[var(--fn-text)]">{title}</h2>
-      <span
-        className="h-0.5 flex-1 opacity-45"
-        style={{ background: 'linear-gradient(90deg, var(--fn-primary), transparent)' }}
-        aria-hidden="true"
-      />
+      <div className="min-w-0 pt-0.5">
+        <h2 className="m-0 text-xl font-extrabold tracking-tight text-[var(--fn-text)] md:text-2xl">
+          {title}
+        </h2>
+        {subtitle ? (
+          <p className="mt-1 m-0 text-sm text-[var(--fn-text-muted)]">{subtitle}</p>
+        ) : (
+          <span
+            className="mt-2 block h-0.5 w-16 rounded-full bg-[var(--fn-primary)] opacity-80"
+            aria-hidden="true"
+          />
+        )}
+      </div>
     </div>
   );
 }
 
 export function AthleteHomeRailCard({ item, index }: { item: ClassListItem; index: number }) {
   const full = item.spotsLeft === 0;
+  const verified = hostIsVerified(item);
+  const indexLabel = String(index + 1).padStart(2, '0');
 
   return (
     <Link
       href={`/class/${item.id}`}
-      className="group relative flex w-[min(17rem,78vw)] shrink-0 snap-start flex-col overflow-hidden rounded-[1.25rem] border border-[var(--fn-border)] bg-[var(--fn-surface)] transition hover:-translate-y-1 hover:border-[var(--fn-primary)] hover:shadow-[8px_8px_0_var(--fn-primary-muted)]"
+      style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
+      className="group relative flex w-[min(18.5rem,82vw)] shrink-0 snap-start flex-col overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition duration-300 animate-[fn-home-fade-up_0.45s_ease-out_both] hover:-translate-y-1.5 hover:border-[color-mix(in_srgb,var(--fn-primary)_35%,var(--fn-border))] hover:shadow-[0_18px_40px_-20px_color-mix(in_srgb,var(--fn-primary)_45%,transparent)]"
     >
-      <span className="absolute right-3 top-3 z-[2] text-[0.625rem] font-extrabold tracking-[0.12em] text-[var(--fn-text-muted)]">
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <div className="flex h-[6.5rem] items-center justify-center border-b border-[var(--fn-border)] bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
-        <Dumbbell size={28} strokeWidth={2} />
-      </div>
-      <div className="flex flex-1 flex-col gap-1.5 p-4 pb-[1.125rem]">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="m-0 text-base font-extrabold leading-tight text-[var(--fn-text)]">{item.title}</h3>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <RegularClassBadge item={item} size="sm" />
-            {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
-          </div>
+      <div className="relative overflow-hidden border-b border-[var(--fn-border)] bg-gradient-to-br from-[#0ea5e9] via-[#2563eb] to-[#1e3a8a] px-4 pb-4 pt-3.5 text-white">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-35"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 90% 10%, rgba(255,255,255,0.35), transparent 40%), radial-gradient(circle at 0% 100%, rgba(45,212,191,0.3), transparent 45%)',
+          }}
+          aria-hidden="true"
+        />
+        <div className="relative z-[1] flex items-start justify-between gap-2">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
+            <CalendarClock size={18} strokeWidth={2.25} />
+          </span>
+          <span className="rounded-full bg-white/10 px-2 py-1 text-[0.625rem] font-bold tracking-[0.14em] text-white/80 ring-1 ring-white/15">
+            {indexLabel}
+          </span>
         </div>
-        <p className="m-0 text-[0.8125rem] leading-snug text-[var(--fn-text-muted)]">
-          {item.discipline} · {formatClassDate(item.startAt)}
+        <p className="relative z-[1] mt-3 m-0 text-[0.625rem] font-bold uppercase tracking-[0.16em] text-white/70">
+          {item.discipline}
         </p>
-        <p className="m-0 text-[0.8125rem] font-semibold leading-snug text-[var(--fn-text-secondary)]">
+        <p className="relative z-[1] mt-1 m-0 line-clamp-2 text-base font-extrabold leading-snug text-white">
+          {item.title}
+        </p>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2.5 p-4 pb-5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <RegularClassBadge item={item} size="sm" />
+          {full ? <Badge label={BADGE_LABELS.full} variant="warning" size="sm" /> : null}
+          {verified ? <Badge label={BADGE_LABELS.verified} variant="success" size="sm" /> : null}
+        </div>
+
+        <p className="m-0 text-[0.8125rem] leading-snug text-[var(--fn-text-muted)]">
+          {formatClassDate(item.startAt)}
+        </p>
+        <p className="m-0 truncate text-[0.8125rem] font-semibold text-[var(--fn-text-secondary)]">
           {classHostLabel(item)}
         </p>
-        <div className="mt-auto flex flex-col gap-2 border-t border-dashed border-[var(--fn-border)] pt-3">
-          <span className="flex items-center gap-1.5 text-xs text-[var(--fn-text-muted)]">
-            <ModalityIcon modality={item.modality} />
-            <span className="truncate">{modalityLocationLabel(item.modality, item.location?.label)}</span>
-          </span>
-          <div className="flex items-baseline justify-between gap-2">
-            {item.spotsLeft != null && !full ? (
-              <span className="text-[0.6875rem] font-bold text-[var(--fn-primary-text)]">
-                {CLASS_CARD_LABELS.spotsLeft(item.spotsLeft)}
+
+        <div className="mt-auto space-y-3 border-t border-[var(--fn-border)] pt-3">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--fn-text-muted)]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--fn-surface-muted)] px-2 py-1 font-medium">
+              <Clock size={12} strokeWidth={2.5} />
+              {item.durationMinutes} min
+            </span>
+            <span className="inline-flex min-w-0 max-w-full items-center gap-1 truncate rounded-full bg-[var(--fn-surface-muted)] px-2 py-1 font-medium">
+              <ModalityIcon modality={item.modality} />
+              <span className="truncate">
+                {modalityLocationLabel(item.modality, item.location?.label)}
               </span>
-            ) : (
-              <span />
-            )}
-            <span className="text-xl font-black text-[var(--fn-primary)]">{formatMoney(item.price)}</span>
+            </span>
+          </div>
+          <div className="flex items-end justify-between gap-2">
+            <div>
+              {item.spotsLeft != null && !full ? (
+                <p className="m-0 mb-1 inline-flex items-center gap-1 text-[0.6875rem] font-bold text-[var(--fn-primary-text)]">
+                  <Users size={12} strokeWidth={2.5} />
+                  {CLASS_CARD_LABELS.spotsLeft(item.spotsLeft)}
+                </p>
+              ) : null}
+              <p className="m-0 text-xl font-black tracking-tight text-[var(--fn-primary)]">
+                {formatMoney(item.price)}
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-[var(--fn-primary-muted)] px-3 py-1.5 text-[0.6875rem] font-bold text-[var(--fn-primary-text)] transition group-hover:bg-[var(--fn-primary)] group-hover:text-white">
+              {BUTTON_LABELS.bookNow}
+              <ArrowUpRight size={13} strokeWidth={2.5} />
+            </span>
           </div>
         </div>
       </div>
@@ -159,68 +251,125 @@ export function AthleteHomeRailCard({ item, index }: { item: ClassListItem; inde
 export function AthleteHomeFeatureCard({
   item,
   index,
-  flip,
+  flip: _flip,
 }: {
   item: ClassListItem;
   index: number;
+  /** @deprecated Alternating layout removed; prop kept for call-site compatibility. */
   flip?: boolean;
 }) {
+  void _flip;
   const full = item.spotsLeft === 0;
+  const verified = hostIsVerified(item);
   const indexLabel = String(index + 1).padStart(2, '0');
 
   return (
     <Link
       href={`/class/${item.id}`}
-      className={`group relative grid overflow-hidden rounded-[1.25rem] border border-[var(--fn-border)] bg-[var(--fn-surface)] transition hover:translate-x-1 hover:shadow-[-6px_6px_0_var(--fn-primary-muted)] ${
-        flip ? 'grid-cols-[1fr_auto] md:grid-cols-[1fr_5.5rem]' : 'grid-cols-[auto_1fr] md:grid-cols-[5.5rem_1fr]'
-      }`}
+      style={{ animationDelay: `${Math.min(index, 9) * 40}ms` }}
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition duration-300 animate-[fn-home-fade-up_0.45s_ease-out_both] hover:-translate-y-1 hover:border-[color-mix(in_srgb,var(--fn-primary)_35%,var(--fn-border))] hover:shadow-[0_18px_40px_-20px_color-mix(in_srgb,var(--fn-primary)_45%,transparent)]"
     >
-      <span
-        className={`pointer-events-none absolute top-2.5 z-[2] text-4xl font-black leading-none tracking-tighter text-[var(--fn-primary-muted)] ${
-          flip ? 'right-[4.5rem]' : 'left-[4.5rem]'
-        }`}
-      >
-        {indexLabel}
-      </span>
-
-      <div
-        className={`flex w-[5.5rem] items-center justify-center bg-[var(--fn-surface-muted)] text-[var(--fn-primary)] ${
-          flip ? 'order-2 border-l border-[var(--fn-border)]' : 'border-r border-[var(--fn-border)]'
-        }`}
-      >
-        <Dumbbell size={32} strokeWidth={2} />
+      <div className="relative overflow-hidden border-b border-[var(--fn-border)] bg-gradient-to-br from-[var(--fn-primary)] via-[#1d4ed8] to-[#0f172a] px-5 pb-5 pt-4 text-white">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 85% 15%, rgba(255,255,255,0.35), transparent 42%), radial-gradient(circle at 10% 90%, rgba(56,189,248,0.35), transparent 45%)',
+          }}
+          aria-hidden="true"
+        />
+        <div className="relative z-[1] flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
+              {item.modality === 'online' ? (
+                <Video size={22} strokeWidth={2.25} />
+              ) : (
+                <Dumbbell size={22} strokeWidth={2.25} />
+              )}
+            </span>
+            <div className="min-w-0">
+              <p className="m-0 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-white/70">
+                {item.discipline}
+              </p>
+              <p className="mt-1 m-0 text-xs font-semibold text-white/85">
+                {formatClassDate(item.startAt)}
+              </p>
+            </div>
+          </div>
+          <span className="rounded-full bg-white/10 px-2.5 py-1 text-[0.625rem] font-bold tracking-[0.14em] text-white/75 ring-1 ring-white/15">
+            {indexLabel}
+          </span>
+        </div>
+        <div className="relative z-[1] mt-4 flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-1 text-[0.6875rem] font-semibold text-white/90 ring-1 ring-white/15">
+            <Clock size={12} strokeWidth={2.5} />
+            {item.durationMinutes} min
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-1 text-[0.6875rem] font-semibold text-white/90 ring-1 ring-white/15">
+            <ModalityIcon modality={item.modality} className="shrink-0 text-white/90" />
+            {modalityLocationLabel(item.modality, item.location?.label)}
+          </span>
+        </div>
       </div>
 
-      <div className={`relative flex min-w-0 flex-col gap-1.5 p-5 md:p-6 ${flip ? 'order-1' : ''}`}>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="m-0 pr-8 text-lg font-extrabold leading-tight text-[var(--fn-text)]">{item.title}</h3>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-            <RegularClassBadge item={item} size="sm" />
-            {full ? <Badge label={BADGE_LABELS.full} variant="warning" /> : null}
-          </div>
-        </div>
-        <p className="m-0 text-[0.8125rem] text-[var(--fn-text-muted)]">
-          {item.discipline} · {formatClassDate(item.startAt)}
-        </p>
-        <p className="m-0 text-[0.8125rem] font-semibold text-[var(--fn-text-secondary)]">
-          {classHostLabel(item)}
-        </p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--fn-border)] pt-3">
-          <span className="flex items-center gap-1.5 text-xs text-[var(--fn-text-muted)]">
-            <ModalityIcon modality={item.modality} />
-            <span className="truncate">{modalityLocationLabel(item.modality, item.location?.label)}</span>
+      <div className="flex flex-1 flex-col gap-3 p-5 md:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="m-0 text-lg font-extrabold leading-snug tracking-tight text-[var(--fn-text)] transition group-hover:text-[var(--fn-primary-text)] md:text-xl">
+            {item.title}
+          </h3>
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] text-[var(--fn-text-muted)] transition group-hover:border-[var(--fn-primary)]/30 group-hover:bg-[var(--fn-primary-muted)] group-hover:text-[var(--fn-primary)]">
+            <ArrowUpRight size={16} strokeWidth={2.25} />
           </span>
-          <div className="ml-auto flex items-baseline gap-3">
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="m-0 text-sm font-semibold text-[var(--fn-text-secondary)]">
+            {classHostLabel(item)}
+          </p>
+          {verified ? <Badge label={BADGE_LABELS.verified} variant="success" size="sm" /> : null}
+          <RegularClassBadge item={item} size="sm" />
+          {full ? <Badge label={BADGE_LABELS.full} variant="warning" size="sm" /> : null}
+        </div>
+
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-[var(--fn-border)] pt-4">
+          <div className="min-w-0 space-y-1.5">
             {item.spotsLeft != null && !full ? (
-              <span className="text-[0.6875rem] font-bold text-[var(--fn-primary-text)]">
+              <p className="m-0 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--fn-primary-text)]">
+                <Users size={13} strokeWidth={2.5} />
                 {CLASS_CARD_LABELS.spotsLeft(item.spotsLeft)}
-              </span>
+              </p>
+            ) : full ? (
+              <p className="m-0 text-xs font-bold text-[var(--fn-text-muted)]">{BADGE_LABELS.full}</p>
             ) : null}
-            <span className="text-[1.375rem] font-black text-[var(--fn-primary)]">{formatMoney(item.price)}</span>
+            <p className="m-0 text-[1.5rem] font-black tracking-tight text-[var(--fn-primary)]">
+              {formatMoney(item.price)}
+            </p>
           </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--fn-primary-muted)] px-3.5 py-2 text-xs font-bold text-[var(--fn-primary-text)] transition group-hover:bg-[var(--fn-primary)] group-hover:text-white">
+            {BUTTON_LABELS.bookNow}
+            <ArrowUpRight size={14} strokeWidth={2.5} />
+          </span>
         </div>
       </div>
     </Link>
+  );
+}
+
+function SectionEmpty({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-6 py-12 text-center">
+      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
+        <Dumbbell size={22} strokeWidth={2.25} />
+      </span>
+      <p className="m-0 max-w-sm text-sm text-[var(--fn-text-muted)]">{message}</p>
+      <Link
+        href="/athlete/search"
+        className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--fn-primary-text)] transition hover:opacity-80"
+      >
+        {GENERAL_LABELS.search}
+        <ArrowRight size={14} strokeWidth={2.5} />
+      </Link>
+    </div>
   );
 }
 
@@ -233,12 +382,38 @@ export function AthleteHomeSectionRail({
   icon: 'nearby' | 'recommended' | 'recurring' | 'general';
   children: React.ReactNode;
 }) {
+  const hasItems = Array.isArray(children)
+    ? children.length > 0
+    : Boolean(children);
+
   return (
     <section>
-      <SectionHead title={title} icon={icon} />
-      <div className="-mx-1 flex gap-4 overflow-x-auto px-1 pb-2 pt-2 [scrollbar-color:var(--fn-primary-muted)_transparent] [scrollbar-width:thin] snap-x snap-mandatory">
-        {children}
-      </div>
+      <SectionHead
+        title={title}
+        icon={icon}
+        subtitle={
+          icon === 'recurring'
+            ? GENERAL_LABELS.regularClassesSubtitle
+            : undefined
+        }
+      />
+      {hasItems ? (
+        <div className="relative">
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-6 bg-gradient-to-r from-[var(--fn-bg)] to-transparent md:w-8"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-8 bg-gradient-to-l from-[var(--fn-bg)] to-transparent md:w-12"
+            aria-hidden="true"
+          />
+          <div className="-mx-1 flex gap-4 overflow-x-auto px-1 pb-3 pt-1 [scrollbar-color:var(--fn-primary-muted)_transparent] [scrollbar-width:thin] snap-x snap-mandatory">
+            {children}
+          </div>
+        </div>
+      ) : (
+        <SectionEmpty message={GENERAL_LABELS.regularClassesEmpty} />
+      )}
     </section>
   );
 }
@@ -252,10 +427,26 @@ export function AthleteHomeSectionStack({
   icon?: 'nearby' | 'recommended' | 'recurring' | 'general';
   children: React.ReactNode;
 }) {
+  const hasItems = Array.isArray(children)
+    ? children.length > 0
+    : Boolean(children);
+
   return (
     <section>
-      <SectionHead title={title} icon={icon} />
-      <div className="flex flex-col gap-4">{children}</div>
+      <SectionHead
+        title={title}
+        icon={icon}
+        subtitle={
+          icon === 'general'
+            ? GENERAL_LABELS.generalClassesSubtitle
+            : undefined
+        }
+      />
+      {hasItems ? (
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">{children}</div>
+      ) : (
+        <SectionEmpty message={GENERAL_LABELS.generalClassesEmpty} />
+      )}
     </section>
   );
 }

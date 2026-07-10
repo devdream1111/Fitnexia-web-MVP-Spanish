@@ -34,18 +34,18 @@ function PaymentEntry({
   const amount = payment?.amount ?? booking.price;
 
   return (
-    <article className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 transition hover:shadow-md">
+    <article className="rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--fn-primary)_30%,var(--fn-border))] hover:shadow-[0_16px_36px_-22px_color-mix(in_srgb,var(--fn-primary)_40%,transparent)]">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
             <Receipt size={18} />
           </span>
           <div className="min-w-0">
-            <p className="font-bold text-[var(--fn-text)]">{clsTitle}</p>
+            <p className="font-extrabold tracking-tight text-[var(--fn-text)]">{clsTitle}</p>
             {clsDate ? (
               <p className="text-sm text-[var(--fn-text-muted)]">{clsDate}</p>
             ) : null}
-            <p className="mt-2 text-lg font-bold text-[var(--fn-primary)]">{formatMoney(amount)}</p>
+            <p className="mt-2 text-xl font-black text-[var(--fn-primary)]">{formatMoney(amount)}</p>
             {payment?.provider ? (
               <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
                 {payment.provider} · {new Date(payment.createdAt).toLocaleDateString('es-UY')}
@@ -53,7 +53,7 @@ function PaymentEntry({
             ) : null}
           </div>
         </div>
-        <span className="shrink-0 rounded-full bg-[var(--fn-surface-muted)] px-3 py-1 text-xs font-semibold uppercase text-[var(--fn-text-muted)]">
+        <span className="shrink-0 rounded-full bg-[var(--fn-surface-muted)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--fn-text-muted)]">
           {statusLabel}
         </span>
       </div>
@@ -77,11 +77,18 @@ export default function PaymentHistoryPage() {
   }, [bookings, user, getClassById]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader title={SCREEN_TITLES.paymentHistory} showBack />
+    <div className="mx-auto max-w-3xl space-y-6 pb-4">
+      <PageHeader
+        variant="premium"
+        title={SCREEN_TITLES.paymentHistory}
+        eyebrow={GENERAL_LABELS.athletePaymentsEyebrow}
+        subtitle={GENERAL_LABELS.athletePaymentsSubtitle}
+        showBack
+        backHref="/athlete/profile"
+      />
 
       {entries.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--fn-border)] px-6 py-14 text-center">
+        <div className="rounded-3xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 px-6 py-14 text-center">
           <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noPaymentHistoryYet}</p>
         </div>
       ) : (

@@ -2,10 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
-import { Search as SearchIcon, MapPin, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
+import { PageHeader } from '@/components/layout/page-header';
 import { AdvancedSearchPanel } from '@/components/search/advanced-search-panel';
+import { AthleteSearchBar } from '@/components/search/athlete-search-bar';
 import { SearchFilterDropdown } from '@/components/search/search-filter-dropdown';
 import { FilterChip } from '@/components/ui/filter-chip';
 import {
@@ -16,17 +18,13 @@ import {
   SCHEDULE_FILTERS,
   type ScheduleFilter,
 } from '@/constants/fitnexia';
-import { InstitutionClubCard } from '@/components/mock-v2v3/institution-club-card';
-import { MockDataBadge } from '@/components/mock-v2v3/mock-data-badge';
 import {
   ADVANCED_SEARCH_LABELS,
   MODALITY_LABELS,
   modalityBadgeLabel,
   GENERAL_LABELS,
   VERIFICATION_LABELS,
-  MOCK_V2V3_LABELS,
 } from '@/constants/labels';
-import { mockInstitutionsService } from '@/services/mock/institutions.mock';
 import { disciplineLabel, disciplineSelectOptions } from '@/utils/disciplines';
 import { useFeature } from '@/hooks/use-feature';
 import { useClasses } from '@/contexts/classes-context';
@@ -54,8 +52,6 @@ export default function SearchPage() {
   const { classes, searchClasses, loading } = useClasses();
   const geolocationEnabled = useFeature('geolocationMap');
   const advancedSearchEnabled = useFeature('advancedSearch');
-  const institutionSearchEnabled = useFeature('institutionSearch');
-  const [searchMode, setSearchMode] = useState<'classes' | 'clubs'>('classes');
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
   const [query, setQuery] = useState('');
   const [discipline, setDiscipline] = useState<string | null>(null);
@@ -109,11 +105,6 @@ export default function SearchPage() {
     searchClasses,
     geolocationEnabled,
   ]);
-
-  const clubResults = useMemo(() => {
-    if (!institutionSearchEnabled || searchMode !== 'clubs') return [];
-    return mockInstitutionsService.search(query || location);
-  }, [institutionSearchEnabled, searchMode, query, location]);
 
   const results = useMemo(() => {
     const filtered = filterClasses(classes, {
@@ -270,167 +261,131 @@ export default function SearchPage() {
     results.length === 0;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-extrabold">{GENERAL_LABELS.search}</h1>
+    <div className="space-y-6 pb-4 md:space-y-8">
+      <PageHeader
+        variant="premium"
+        title={GENERAL_LABELS.search}
+        eyebrow={GENERAL_LABELS.athleteSearchEyebrow}
+        subtitle={GENERAL_LABELS.athleteSearchSubtitle}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="relative">
-          <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]" />
-          <input
-            className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 pl-12 text-sm transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
-            placeholder={GENERAL_LABELS.classInstructorGym}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {query ? (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--fn-text-muted)] transition hover:text-[var(--fn-text)]"
-            >
-              <X size={16} />
-            </button>
+      <section className="space-y-4 animate-[fn-home-fade-up_0.45s_ease-out_both]">
+        <AthleteSearchBar
+          query={query}
+          location={location}
+          onQueryChange={setQuery}
+          onLocationChange={setLocation}
+        />
+
+        <div className="rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:p-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <SearchFilterDropdown
+              value={discipline || ''}
+              onChange={(val) => setDiscipline(val || null)}
+              options={disciplineOptions}
+              placeholder={GENERAL_LABELS.discipline}
+            />
+            <SearchFilterDropdown
+              value={modality || ''}
+              onChange={(val) => setModality((val as Modality) || null)}
+              options={modalityOptions}
+              placeholder={GENERAL_LABELS.modality}
+            />
+            <SearchFilterDropdown
+              value={schedule}
+              onChange={(val) => setSchedule(val as ScheduleFilter)}
+              options={scheduleOptions}
+              placeholder={GENERAL_LABELS.schedule}
+            />
+            <SearchFilterDropdown
+              value={priceRangeId}
+              onChange={setPriceRangeId}
+              options={priceOptions}
+              placeholder={GENERAL_LABELS.price}
+            />
+          </div>
+
+          {advancedSearchEnabled ? (
+            <div className="mt-4">
+              <AdvancedSearchPanel
+                filters={advancedFilters}
+                onChange={setAdvancedFilters}
+                expanded={advancedExpanded}
+                onToggleExpanded={() => setAdvancedExpanded((v) => !v)}
+              />
+            </div>
+          ) : null}
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <FilterChip
+              label={VERIFICATION_LABELS.searchVerifiedOnly}
+              active={verifiedOnly}
+              onPress={() => setVerifiedOnly((v) => !v)}
+            />
+          </div>
+
+          {activeFilters.length > 0 ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--fn-border)] pt-4">
+              {activeFilters.map((filter) => (
+                <span
+                  key={`${filter.type}-${filter.value}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--fn-primary)_18%,var(--fn-border))] bg-[var(--fn-primary-muted)]/35 px-3 py-1.5 text-sm font-medium text-[var(--fn-text)]"
+                >
+                  {filter.label}
+                  <button
+                    type="button"
+                    onClick={() => removeFilter(filter.type)}
+                    aria-label="Quitar filtro"
+                    className="rounded-full p-0.5 text-[var(--fn-text-muted)] transition hover:bg-[var(--fn-surface)] hover:text-[var(--fn-text)]"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm font-bold text-[var(--fn-primary-text)] transition hover:opacity-80"
+              >
+                {GENERAL_LABELS.clearFilters}
+              </button>
+            </div>
           ) : null}
         </div>
+      </section>
 
-        <div className="relative">
-          <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--fn-text-muted)]" />
-          <input
-            className="w-full rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-3 pl-12 text-sm transition focus:border-[var(--fn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--fn-primary-muted)]"
-            placeholder={GENERAL_LABELS.cityNeighborhoodVenue}
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {institutionSearchEnabled ? (
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setSearchMode('classes')}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-              searchMode === 'classes'
-                ? 'bg-[var(--fn-primary)] text-white'
-                : 'bg-[var(--fn-surface-muted)] text-[var(--fn-text-muted)]'
-            }`}
-          >
-            {MOCK_V2V3_LABELS.searchClassesTab}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSearchMode('clubs')}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-              searchMode === 'clubs'
-                ? 'bg-[var(--fn-primary)] text-white'
-                : 'bg-[var(--fn-surface-muted)] text-[var(--fn-text-muted)]'
-            }`}
-          >
-            {MOCK_V2V3_LABELS.searchClubsTab}
-          </button>
-          {searchMode === 'clubs' ? <MockDataBadge className="self-center" /> : null}
+      {geolocationEnabled ? (
+        <div className="overflow-hidden rounded-3xl border border-[var(--fn-border)] shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <ClassMap markers={visibleMapMarkers} classes={results} />
         </div>
       ) : null}
-
-      {(searchMode === 'classes' || !institutionSearchEnabled) ? (
-        <>
-      <div className="relative z-10 grid gap-4 md:grid-cols-4">
-        <SearchFilterDropdown
-          value={discipline || ''}
-          onChange={(val) => setDiscipline(val || null)}
-          options={disciplineOptions}
-          placeholder={GENERAL_LABELS.discipline}
-        />
-        <SearchFilterDropdown
-          value={modality || ''}
-          onChange={(val) => setModality((val as Modality) || null)}
-          options={modalityOptions}
-          placeholder={GENERAL_LABELS.modality}
-        />
-        <SearchFilterDropdown
-          value={schedule}
-          onChange={(val) => setSchedule(val as ScheduleFilter)}
-          options={scheduleOptions}
-          placeholder={GENERAL_LABELS.schedule}
-        />
-        <SearchFilterDropdown
-          value={priceRangeId}
-          onChange={setPriceRangeId}
-          options={priceOptions}
-          placeholder={GENERAL_LABELS.price}
-        />
-      </div>
-
-      {advancedSearchEnabled ? (
-        <AdvancedSearchPanel
-          filters={advancedFilters}
-          onChange={setAdvancedFilters}
-          expanded={advancedExpanded}
-          onToggleExpanded={() => setAdvancedExpanded((v) => !v)}
-        />
-      ) : null}
-
-      <div className="flex flex-wrap gap-2">
-        <FilterChip
-          label={VERIFICATION_LABELS.searchVerifiedOnly}
-          active={verifiedOnly}
-          onPress={() => setVerifiedOnly((v) => !v)}
-        />
-      </div>
-
-      {activeFilters.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-3">
-          {activeFilters.map((filter) => (
-            <span
-              key={`${filter.type}-${filter.value}`}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--fn-surface-muted)] px-3 py-1 text-sm"
-            >
-              {filter.label}
-              <button type="button" onClick={() => removeFilter(filter.type)} aria-label="Quitar filtro">
-                <X size={14} />
-              </button>
-            </span>
-          ))}
-          <button type="button" onClick={clearFilters} className="text-sm font-medium text-[var(--fn-primary)]">
-            {GENERAL_LABELS.clearFilters}
-          </button>
-        </div>
-      ) : null}
-
-      {geolocationEnabled ? <ClassMap markers={visibleMapMarkers} classes={results} /> : null}
 
       <div className="space-y-4">
-        <p className="text-sm font-semibold text-[var(--fn-text-muted)]">
-          {loading
-            ? GENERAL_LABELS.loading
-            : `${results.length} ${results.length === 1 ? GENERAL_LABELS.class : GENERAL_LABELS.classes}`}
-        </p>
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="m-0 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-[var(--fn-primary-text)]">
+              {GENERAL_LABELS.athleteSearchResults}
+            </p>
+            <p className="mt-1 m-0 text-sm font-semibold text-[var(--fn-text-muted)]">
+              {loading
+                ? GENERAL_LABELS.loading
+                : `${results.length} ${results.length === 1 ? GENERAL_LABELS.class : GENERAL_LABELS.classes}`}
+            </p>
+          </div>
+        </div>
 
         {showAdvancedEmptyHint ? (
-          <p className="rounded-xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-4 py-3 text-sm text-[var(--fn-text-muted)]">
+          <p className="rounded-2xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-4 py-3 text-sm text-[var(--fn-text-muted)]">
             {ADVANCED_SEARCH_LABELS.emptyHint}
           </p>
         ) : null}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {results.map((c) => (
             <ClassCard key={c.id} item={c} />
           ))}
         </div>
       </div>
-        </>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-sm font-semibold text-[var(--fn-text-muted)]">
-            {clubResults.length} {clubResults.length === 1 ? 'club' : 'clubes'}
-          </p>
-          <div className="grid gap-4 md:grid-cols-2">
-            {clubResults.map((club) => (
-              <InstitutionClubCard key={club.id} club={club} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

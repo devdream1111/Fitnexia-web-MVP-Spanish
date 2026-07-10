@@ -113,7 +113,7 @@ export default function InstructorJobsPage() {
           <JobsSearchBar
             value={query}
             onChange={setQuery}
-            onSearch={() => loadJobs(query.trim() || undefined)}
+            onSearch={(q) => loadJobs(q || undefined)}
           />
 
           {loading ? (

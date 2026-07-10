@@ -298,6 +298,7 @@ export function ClassDetailBookingPanel({
   keepBookingLabel,
   onConfirmCancel,
   onDismissCancel,
+  cancellationPolicyNote,
 }: {
   price: string;
   spotsLabel?: string;
@@ -323,6 +324,7 @@ export function ClassDetailBookingPanel({
   keepBookingLabel?: string;
   onConfirmCancel?: () => void;
   onDismissCancel?: () => void;
+  cancellationPolicyNote?: string;
 }) {
   const renderActions = () => {
     if (showCancelConfirm && existingBooking?.status === 'confirmed') {
@@ -398,6 +400,9 @@ export function ClassDetailBookingPanel({
             <Users size={18} className="mt-0.5 shrink-0 text-[var(--fn-primary)]" />
             <p className="text-sm font-medium text-[var(--fn-text-secondary)]">{spotsLabel}</p>
           </div>
+        ) : null}
+        {cancellationPolicyNote ? (
+          <p className="text-xs leading-relaxed text-[var(--fn-text-muted)]">{cancellationPolicyNote}</p>
         ) : null}
         {showActions ? <div className="pt-1">{renderActions()}</div> : null}
       </div>

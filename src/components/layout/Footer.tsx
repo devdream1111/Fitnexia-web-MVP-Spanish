@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Mail, Phone, MapPin, Heart, Star, User } from 'lucide-react';
 
 import { useAuth } from '@/contexts/auth-context';
-import { useFeature } from '@/hooks/use-feature';
 import { Logo } from './Logo';
 import type { UserRole } from '@/types/api';
 
@@ -65,31 +64,33 @@ function supportHref(role: UserRole): string {
   return '/athlete/profile/support';
 }
 
-function forYouLinksForRole(role: UserRole, showPlatformSupport: boolean): FooterLink[] {
+function forYouLinksForRole(role: UserRole): FooterLink[] {
   if (role === 'athlete') {
     return [
       { label: 'Encontrar clases', href: '/athlete/search' },
       { label: 'Mi perfil', href: '/athlete/profile' },
       { label: 'Historial de pagos', href: '/athlete/payment-history' },
-      ...(showPlatformSupport ? [{ label: 'Soporte', href: supportHref(role) }] : []),
+      { label: 'Soporte', href: supportHref(role) },
     ];
   }
   if (role === 'instructor') {
     return [
       { label: 'Panel', href: '/instructor/dashboard' },
       { label: 'Mis ganancias', href: '/instructor/earnings' },
+      { label: 'Analíticas', href: '/instructor/analytics' },
       { label: 'Mi perfil', href: '/instructor/profile' },
       { label: 'Crear clase', href: '/instructor/create-class' },
-      ...(showPlatformSupport ? [{ label: 'Soporte', href: supportHref(role) }] : []),
+      { label: 'Soporte', href: supportHref(role) },
     ];
   }
   if (role === 'institution') {
     return [
       { label: 'Panel', href: '/gym/dashboard' },
       { label: 'Ganancias', href: '/gym/earnings' },
+      { label: 'Analíticas', href: '/gym/analytics' },
       { label: 'Perfil del gimnasio', href: '/gym/profile' },
       { label: 'Crear clase', href: '/gym/create-class' },
-      ...(showPlatformSupport ? [{ label: 'Soporte', href: supportHref(role) }] : []),
+      { label: 'Soporte', href: supportHref(role) },
     ];
   }
   return LANDING_FOR_YOU_LINKS;
@@ -101,9 +102,8 @@ function footerLinkClassName() {
 
 export function Footer() {
   const { user } = useAuth();
-  const showPlatformSupport = useFeature('platformSupport');
   const quickLinks = user ? quickLinksForRole(user.role) : LANDING_QUICK_LINKS;
-  const forYouLinks = user ? forYouLinksForRole(user.role, showPlatformSupport) : LANDING_FOR_YOU_LINKS;
+  const forYouLinks = user ? forYouLinksForRole(user.role) : LANDING_FOR_YOU_LINKS;
 
   return (
     <footer

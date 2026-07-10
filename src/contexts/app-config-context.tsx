@@ -23,7 +23,6 @@ type ServerFeatures = Partial<{
   subscriptionPaymentModels: boolean;
   reviewResponses: boolean;
   inAppNotificationCenter: boolean;
-  analyticsMetrics: boolean;
   courts: boolean;
   clubMemberships: boolean;
   clubMembershipPlans: boolean;
@@ -32,6 +31,10 @@ type ServerFeatures = Partial<{
   clubRecurringBilling: boolean;
   clubMemberPortal: boolean;
   clubDelinquencyAlerts: boolean;
+  fixedCourtShifts: boolean;
+  openGames: boolean;
+  liveStreaming: boolean;
+  recordedClasses: boolean;
 }>;
 
 interface AppConfigContextValue {
@@ -50,9 +53,10 @@ const SERVER_FEATURE_MAP: Partial<Record<FeatureKey, keyof ServerFeatures>> = {
   waitlist: 'waitlist',
   reviewResponses: 'reviewResponses',
   inAppNotificationCenter: 'inAppNotificationCenter',
-  analyticsMetrics: 'analyticsMetrics',
   courtManagement: 'courts',
   courtBooking: 'courts',
+  courtRecurringShifts: 'fixedCourtShifts',
+  openGames: 'openGames',
   loyaltyCredits: 'loyaltyCredits',
   subscriptionPaymentModels: 'subscriptionPaymentModels',
   clubMembershipPlans: 'clubMembershipPlans',
@@ -61,6 +65,8 @@ const SERVER_FEATURE_MAP: Partial<Record<FeatureKey, keyof ServerFeatures>> = {
   clubRecurringBilling: 'clubRecurringBilling',
   clubMemberPortal: 'clubMemberPortal',
   clubDelinquencyAlerts: 'clubDelinquencyAlerts',
+  liveStreaming: 'liveStreaming',
+  recordedClasses: 'recordedClasses',
 };
 
 export function AppConfigProvider({ children }: { children: React.ReactNode }) {

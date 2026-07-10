@@ -1,19 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { formatClassDate, formatMoney, isClassOnCalendarDay, parseClassStartAt } from '@/utils/format';
 import { INSTRUCTOR_LABELS } from '@/constants/labels';
-import type { ClassListItem } from '@/types/api';
+import type { ClassListItem, Money } from '@/types/api';
 
 export type CalendarLabels = {
   today: string;
   month: string;
-  week: string;
+  week?: string;
   noEventsDay: string;
   moreEvents: (count: number) => string;
   weekdayShort: readonly string[];
-  weekdayFull: readonly string[];
+  weekdayFull?: readonly string[];
 };
 
 interface CalendarProps {
@@ -28,6 +28,7 @@ interface CalendarProps {
 
 const DEFAULT_LABELS: CalendarLabels = INSTRUCTOR_LABELS.calendar;
 const DEFAULT_LOCALE = 'es-ES';
+const MAX_VISIBLE_EVENTS = 3;
 
 function uniqueClassesById(items: ClassListItem[]): ClassListItem[] {
   const seen = new Set<string>();
@@ -38,6 +39,71 @@ function uniqueClassesById(items: ClassListItem[]): ClassListItem[] {
   });
 }
 
+function formatEventTime(iso: string, locale: string): string {
+  const d = parseClassStartAt(iso);
+  return d.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return a.toDateString() === b.toDateString();
+}
+
+function buildMonthGrid(year: number, month: number): Date[] {
+  const firstDay = new Date(year, month, 1);
+  const startOffset = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+
+  return Array.from({ length: totalCells }, (_, index) => {
+    const dayNumber = index - startOffset + 1;
+    return new Date(year, month, dayNumber);
+  });
+}
+
+export function CalendarEventChip({
+  item,
+  locale = DEFAULT_LOCALE,
+  compact,
+}: {
+  item: ClassListItem;
+  locale?: string;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={`fn-calendar-event-chip${compact ? ' fn-calendar-event-chip--compact' : ''}`}
+      title={`${formatEventTime(item.startAt, locale)} · ${item.title}`}
+    >
+      <span className="fn-calendar-event-chip__time">{formatEventTime(item.startAt, locale)}</span>
+      <span className="fn-calendar-event-chip__title">{item.title}</span>
+    </div>
+  );
+}
+
+export function CalendarEventCard({
+  item,
+  locale = DEFAULT_LOCALE,
+  price,
+  children,
+}: {
+  item: ClassListItem;
+  locale?: string;
+  price?: Money;
+  children?: ReactNode;
+}) {
+  return (
+    <article className="fn-calendar-event-card">
+      <div className="fn-calendar-event-card__accent" aria-hidden="true" />
+      <div className="fn-calendar-event-card__body">
+        <p className="fn-calendar-event-card__title">{item.title}</p>
+        <p className="fn-calendar-event-card__meta">{formatClassDate(item.startAt)}</p>
+        <p className="fn-calendar-event-card__price">{formatMoney(price ?? item.price)}</p>
+        {children ? <div className="fn-calendar-event-card__footer">{children}</div> : null}
+      </div>
+    </article>
+  );
+}
+
 export function Calendar({
   classes,
   onDateClick,
@@ -46,9 +112,9 @@ export function Calendar({
   labels = DEFAULT_LABELS,
   locale = DEFAULT_LOCALE,
 }: CalendarProps) {
-  const [view, setView] = useState<'month' | 'week'>('month');
   const [currentDate, setCurrentDate] = useState(() => focusDate ?? new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const today = useMemo(() => new Date(), []);
 
   useEffect(() => {
     if (!focusDate) return;
@@ -63,268 +129,150 @@ export function Calendar({
     });
   }, [focusDate]);
 
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const monthGrid = useMemo(() => buildMonthGrid(year, month), [year, month]);
+
   const getClassesForDate = (date: Date) => {
     return uniqueClassesById(
       classes.filter((c) => {
         if (!c?.startAt) return false;
         return isClassOnCalendarDay(c.startAt, date);
       }),
-    );
+    ).sort((a, b) => parseClassStartAt(a.startAt).getTime() - parseClassStartAt(b.startAt).getTime());
   };
 
   const handleDateClick = (date: Date) => {
+    if (date.getMonth() !== month || date.getFullYear() !== year) {
+      setCurrentDate(new Date(date.getFullYear(), date.getMonth(), 1));
+    }
     setSelectedDate(date);
     if (onDateClick) onDateClick(date);
   };
 
   const goToToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  const renderMonthView = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startPadding = firstDay.getDay();
-    const daysInMonth = lastDay.getDate();
-
-    const days = [];
-    for (let i = 0; i < startPadding; i++) {
-      days.push(<div key={`pad-${i}`} className="h-20 rounded-sm" />);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = new Date(year, month, i);
-      const dayClasses = getClassesForDate(date);
-      const isToday = new Date().toDateString() === date.toDateString();
-      const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
-
-      days.push(
-        <button
-          type="button"
-          key={i}
-          onClick={() => handleDateClick(date)}
-          className={`relative h-20 flex flex-col border border-transparent p-1 text-left transition-all hover:bg-[var(--fn-surface-muted)] ${
-            isSelected ? 'bg-[var(--fn-primary-muted)]' : ''
-          }`}
-        >
-          <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-all ${
-            isToday ? 'bg-[var(--fn-primary)] text-white' : isSelected ? 'font-bold text-[var(--fn-primary)]' : 'text-[var(--fn-text)]'
-          }`}>{i}</span>
-          <div className="mt-1 flex-1 overflow-hidden">
-            {dayClasses.slice(0, 2).map((c) => (
-              <div
-                key={c.id}
-                className="mb-0.5 truncate rounded-sm bg-[var(--fn-primary)] px-1 py-0.5 text-[9px] text-white"
-              >
-                {c.title}
-              </div>
-            ))}
-            {dayClasses.length > 2 && (
-              <div className="text-[9px] text-[var(--fn-text-muted)]">
-                {labels.moreEvents(dayClasses.length - 2)}
-              </div>
-            )}
-          </div>
-        </button>
-      );
-    }
-    return days;
-  };
-
-  const renderWeekView = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const day = currentDate.getDate();
-    const startOfWeek = new Date(year, month, day - currentDate.getDay());
-    const hours = Array.from({ length: 24 }, (_, i) => i);
-
-    return (
-      <div className="max-h-[720px] overflow-auto">
-        <div className="flex min-w-[900px]">
-          <div className="w-24 flex-shrink-0">
-            <div className="h-10"></div>
-            {hours.map((hour) => (
-              <div key={hour} className="h-12 border-b border-[var(--fn-border)] px-2 text-right text-[10px] text-[var(--fn-text-muted)]">
-                {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
-              </div>
-            ))}
-          </div>
-          {Array.from({ length: 7 }).map((_, idx) => {
-            const date = new Date(startOfWeek);
-            date.setDate(startOfWeek.getDate() + idx);
-            const isToday = new Date().toDateString() === date.toDateString();
-            const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
-            const dayClasses = getClassesForDate(date);
-
-            return (
-              <div key={idx} className="flex-1 border-l border-[var(--fn-border)]">
-                <button
-                  type="button"
-                  onClick={() => handleDateClick(date)}
-                  className={`flex h-10 w-full flex-col items-center justify-center border-b border-[var(--fn-border)] text-center transition-all hover:bg-[var(--fn-surface-muted)] ${
-                    isSelected ? 'bg-[var(--fn-primary-muted)]' : ''
-                  }`}
-                >
-                  <div className="text-[10px] text-[var(--fn-text-muted)]">
-                    {labels.weekdayFull[date.getDay()]}
-                  </div>
-                  <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
-                    isToday ? 'bg-[var(--fn-primary)] text-white' : isSelected ? 'font-bold text-[var(--fn-primary)]' : ''
-                  }`}>{date.getDate()}</div>
-                </button>
-                <div className="relative">
-                  {hours.map((hour) => (
-                    <div key={hour} className="h-12 border-b border-[var(--fn-border)]"></div>
-                  ))}
-                  {dayClasses.map((c) => {
-                    const start = parseClassStartAt(c.startAt);
-                    const hourOffset = start.getHours();
-                    const top = hourOffset * 48 + (start.getMinutes() * (48 / 60));
-                    const duration = c.durationMinutes ?? 60;
-                    const height = duration * (48 / 60);
-                    return (
-                      <button
-                        type="button"
-                        key={c.id}
-                        className="absolute left-1 right-1 z-10 overflow-hidden rounded-md border-l-4 border-[var(--fn-primary)] bg-[var(--fn-primary-muted)] px-1.5 py-0.5 text-left text-[10px] transition-all"
-                        style={{ top, height: Math.max(height, 36) }}
-                      >
-                        <div className="font-semibold text-[var(--fn-primary)]">{c.title}</div>
-                        <div className="text-[var(--fn-primary-text)]">{formatClassDate(c.startAt)}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
+    const now = new Date();
+    setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    setSelectedDate(now);
+    if (onDateClick) onDateClick(now);
   };
 
   const navigateMonth = (delta: number) => {
     setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
   };
 
-  const navigateWeek = (delta: number) => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setDate(newDate.getDate() + delta * 7);
-      return newDate;
-    });
-  };
-
   const selectedClasses = selectedDate ? getClassesForDate(selectedDate) : [];
+  const monthTitle = currentDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 
   return (
-    <div className="space-y-4">
-      {/* Google Calendar-style header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--fn-border)] pb-4">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={goToToday}
-            className="rounded-md border border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-2 text-sm font-medium text-[var(--fn-text)] transition-all hover:bg-[var(--fn-surface-muted)]"
-          >
+    <div className="fn-calendar">
+      <header className="fn-calendar-toolbar">
+        <div className="fn-calendar-toolbar__left">
+          <button type="button" onClick={goToToday} className="fn-calendar-btn fn-calendar-btn--today">
             {labels.today}
           </button>
-          <div className="flex items-center gap-1">
+          <div className="fn-calendar-nav">
             <button
               type="button"
-              onClick={() => (view === 'month' ? navigateMonth(-1) : navigateWeek(-1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--fn-text-muted)] transition-all hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]"
+              onClick={() => navigateMonth(-1)}
+              className="fn-calendar-nav__btn"
+              aria-label="Mes anterior"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={20} />
             </button>
             <button
               type="button"
-              onClick={() => (view === 'month' ? navigateMonth(1) : navigateWeek(1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--fn-text-muted)] transition-all hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]"
+              onClick={() => navigateMonth(1)}
+              className="fn-calendar-nav__btn"
+              aria-label="Mes siguiente"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={20} />
             </button>
           </div>
-          <h2 className="ml-0 min-w-0 text-base font-semibold sm:ml-2 sm:text-xl">
-            {view === 'month'
-              ? currentDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' })
-              : `${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay()).toLocaleDateString(locale, { month: 'short', day: 'numeric' })} - ${new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - currentDate.getDay() + 6).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}`}
-          </h2>
+          <h2 className="fn-calendar-toolbar__title">{monthTitle}</h2>
+        </div>
+        <span className="fn-calendar-view-badge">{labels.month}</span>
+      </header>
+
+      <div className={`fn-calendar-layout${showSidePanel ? ' fn-calendar-layout--with-panel' : ''}`}>
+        <div className="fn-calendar-grid-wrap">
+          <div className="fn-calendar-weekdays" role="row">
+            {labels.weekdayShort.map((d) => (
+              <div key={d} className="fn-calendar-weekday" role="columnheader">
+                {d}
+              </div>
+            ))}
+          </div>
+          <div className="fn-calendar-grid" role="grid">
+            {monthGrid.map((date) => {
+              const dayClasses = getClassesForDate(date);
+              const inCurrentMonth = date.getMonth() === month;
+              const isToday = isSameDay(date, today);
+              const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
+              const visibleEvents = dayClasses.slice(0, MAX_VISIBLE_EVENTS);
+              const hiddenCount = dayClasses.length - visibleEvents.length;
+
+              return (
+                <button
+                  type="button"
+                  key={date.toISOString()}
+                  role="gridcell"
+                  onClick={() => handleDateClick(date)}
+                  className={[
+                    'fn-calendar-day',
+                    !inCurrentMonth ? 'fn-calendar-day--outside' : '',
+                    isToday ? 'fn-calendar-day--today' : '',
+                    isSelected ? 'fn-calendar-day--selected' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <span className="fn-calendar-day__number">{date.getDate()}</span>
+                  <div className="fn-calendar-day__events">
+                    {visibleEvents.map((c) => (
+                      <CalendarEventChip key={c.id} item={c} locale={locale} compact />
+                    ))}
+                    {hiddenCount > 0 ? (
+                      <span className="fn-calendar-day__more">{labels.moreEvents(hiddenCount)}</span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg bg-[var(--fn-surface-muted)] p-1">
-          <button
-            type="button"
-            onClick={() => setView('month')}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-              view === 'month' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)]' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
-            }`}
-          >
-            <CalendarIcon size={16} />
-            {labels.month}
-          </button>
-          <button
-            type="button"
-            onClick={() => setView('week')}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
-              view === 'week' ? 'bg-[var(--fn-surface)] text-[var(--fn-text)]' : 'text-[var(--fn-text-muted)] hover:text-[var(--fn-text)]'
-            }`}
-          >
-            <Clock size={16} />
-            {labels.week}
-          </button>
-        </div>
-      </div>
-
-      <div className={`grid gap-6 ${showSidePanel ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
-        <div className={`${showSidePanel ? 'lg:col-span-2' : 'lg:col-span-1'} rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4`}>
-          {view === 'month' ? (
-            <div className="grid grid-cols-7 border-b border-[var(--fn-border)]">
-              {labels.weekdayShort.map((d) => (
-                <div key={d} className="pb-2 text-center text-sm font-medium text-[var(--fn-text-muted)]">{d}</div>
-              ))}
-            </div>
-          ) : null}
-          
-          {view === 'month' ? (
-            <div className="grid grid-cols-7 border-x border-b border-[var(--fn-border)]">
-              {renderMonthView()}
-            </div>
-          ) : (
-            renderWeekView()
-          )}
-        </div>
-
-        {showSidePanel && selectedDate && (
-          <div className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
-                {selectedDate.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+        {showSidePanel && selectedDate ? (
+          <aside className="fn-calendar-side-panel">
+            <div className="fn-calendar-side-panel__header">
+              <h3 className="fn-calendar-side-panel__title">
+                {selectedDate.toLocaleDateString(locale, {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
               </h3>
               <button
                 type="button"
                 onClick={() => setSelectedDate(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--fn-text-muted)] transition-all hover:bg-[var(--fn-surface-muted)] hover:text-[var(--fn-text)]"
+                className="fn-calendar-icon-btn"
+                aria-label="Cerrar"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
             {selectedClasses.length === 0 ? (
-              <p className="text-sm text-[var(--fn-text-muted)]">{labels.noEventsDay}</p>
+              <p className="fn-calendar-side-panel__empty">{labels.noEventsDay}</p>
             ) : (
-              <div className="space-y-3">
+              <div className="fn-calendar-side-panel__list">
                 {selectedClasses.map((c) => (
-                  <div key={c.id} className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-4">
-                    <p className="font-semibold text-[var(--fn-text)]">{c.title}</p>
-                    <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(c.startAt)}</p>
-                    <p className="text-sm text-[var(--fn-primary)] font-medium">{formatMoney(c.price)}</p>
-                  </div>
+                  <CalendarEventCard key={c.id} item={c} locale={locale} />
                 ))}
               </div>
             )}
-          </div>
-        )}
+          </aside>
+        ) : null}
       </div>
     </div>
   );

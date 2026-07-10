@@ -1,5 +1,5 @@
-import { RoleShell } from '@/components/layout/role-shell';
+import { GymLayoutShell } from '@/components/layout/gym-layout-shell';
 
 export default function GymLayout({ children }: { children: React.ReactNode }) {
-  return <RoleShell>{children}</RoleShell>;
+  return <GymLayoutShell>{children}</GymLayoutShell>;
 }

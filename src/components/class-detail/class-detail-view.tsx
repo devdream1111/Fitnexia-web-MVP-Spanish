@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Calendar,
@@ -41,9 +41,7 @@ import {
   classSpotsLabel,
   modalityBadgeLabel,
 } from '@/constants/labels';
-import { LiveStreamPanel } from '@/components/mock-v2v3/live-stream-panel';
-import { IS_MOCK_V2V3_ENABLED } from '@/config/mock-v2v3';
-import { getMockStreamSession } from '@/services/mock/streaming.mock';
+import { ClassLiveStreamPanel } from '@/components/live-stream/class-live-stream-panel';
 import { useFeature } from '@/hooks/use-feature';
 import {
   instructorGenderLabel,
@@ -51,17 +49,19 @@ import {
   levelLabel,
 } from '@/utils/advanced-search';
 import { findActiveUserBooking } from '@/utils/user-bookings';
-import { canCancelBooking, getRefundAmount } from '@/utils/booking';
+import { canCancelBooking, getRefundAmount, resolveCancellationPolicyHours } from '@/utils/booking';
 import type { Class, Instructor } from '@/types/api';
 
 export function ClassDetailView({
   classId,
   onClose,
   variant = 'page',
+  autoFocusLive = false,
 }: {
   classId: string;
   onClose?: () => void;
   variant?: 'page' | 'modal';
+  autoFocusLive?: boolean;
 }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -79,6 +79,7 @@ export function ClassDetailView({
   const [loading, setLoading] = useState(!cls);
   const [bookingActionLoading, setBookingActionLoading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const liveStreamRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user?.role === 'athlete') {
@@ -151,6 +152,16 @@ export function ClassDetailView({
     if (!cls || !user || user.role !== 'athlete') return undefined;
     return findActiveUserBooking(bookings, cls.id, user.id);
   }, [bookings, cls, user]);
+
+  const showLiveStream = Boolean(cls) && liveStreamingEnabled && cls?.modality === 'online';
+
+  useEffect(() => {
+    if (!autoFocusLive || !showLiveStream || !liveStreamRef.current) return;
+    const timer = window.setTimeout(() => {
+      liveStreamRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+    return () => window.clearTimeout(timer);
+  }, [autoFocusLive, showLiveStream, cls?.id]);
 
   if (loading && !cls) {
     return (
@@ -262,23 +273,21 @@ export function ClassDetailView({
     }
   };
 
-  const cancellationPolicyHours = 24;
+  const cancellationPolicyHours = resolveCancellationPolicyHours(cls);
   const cancelRefundMessage = activeBooking
     ? canCancelBooking(cls.startAt, cancellationPolicyHours)
       ? GENERAL_LABELS.fullRefund.replace(
           '{amount}',
           formatMoney(getRefundAmount(activeBooking, cls.startAt, cancellationPolicyHours)),
         )
-      : GENERAL_LABELS.partialRefund.replace(
-          '{amount}',
-          formatMoney(getRefundAmount(activeBooking, cls.startAt, cancellationPolicyHours)),
-        )
+      : GENERAL_LABELS.lateCancellationNoRefund(cancellationPolicyHours)
     : '';
 
-  const streamSession =
-    liveStreamingEnabled && IS_MOCK_V2V3_ENABLED && cls.modality === 'online'
-      ? getMockStreamSession(cls)
-      : null;
+  const liveStreamPanel = showLiveStream ? (
+    <div ref={liveStreamRef} id="class-live-stream">
+      <ClassLiveStreamPanel classId={cls.id} user={user} autoJoin={autoFocusLive} />
+    </div>
+  ) : null;
 
   const descriptionSection =
     cls.description?.trim() ? (
@@ -315,6 +324,7 @@ export function ClassDetailView({
       keepBookingLabel={GENERAL_LABELS.keepBooking}
       onConfirmCancel={() => void handleCancelBooking()}
       onDismissCancel={() => setShowCancelConfirm(false)}
+      cancellationPolicyNote={CLASS_DETAIL_LABELS.cancellationPolicy(cancellationPolicyHours)}
     />
   ) : null;
 
@@ -341,7 +351,7 @@ export function ClassDetailView({
           >
             <div className="min-w-0 space-y-4">
               {factGrid}
-              {streamSession ? <LiveStreamPanel session={streamSession} /> : null}
+              {liveStreamPanel}
               {descriptionSection}
               {showInstructorSection ? (
                 <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>
@@ -380,7 +390,7 @@ export function ClassDetailView({
         >
           <div className="min-w-0 space-y-8">
             {factGrid}
-            {streamSession ? <LiveStreamPanel session={streamSession} /> : null}
+            {liveStreamPanel}
             {descriptionSection}
             {showInstructorSection ? (
               <ClassDetailSection title={CLASS_DETAIL_LABELS.about}>

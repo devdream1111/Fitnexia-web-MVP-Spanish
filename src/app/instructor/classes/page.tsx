@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 import { ClassCard } from '@/components/class-card';
+import { LiveStreamJoinLink } from '@/components/live-stream/live-stream-join-link';
 import { Button } from '@/components/ui/button';
 import {
   DashboardClassGrid,
@@ -14,6 +15,7 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { getLinkedInstructorId } from '@/utils/instructor';
+import { isOnlineClass } from '@/utils/live-stream';
 import { INSTRUCTOR_LABELS } from '@/constants/labels';
 
 export default function InstructorClassesPage() {
@@ -53,7 +55,17 @@ export default function InstructorClassesPage() {
         ) : (
           <DashboardClassGrid>
             {mine.map((c) => (
-              <ClassCard key={c.id} item={c} showEdit editHref={`/instructor/edit-class/${c.id}`} />
+              <div key={c.id} className="flex flex-col gap-2">
+                <ClassCard item={c} showEdit editHref={`/instructor/edit-class/${c.id}`} />
+                {isOnlineClass(c.modality) ? (
+                  <LiveStreamJoinLink
+                    classId={c.id}
+                    startAt={c.startAt}
+                    durationMinutes={c.durationMinutes}
+                    className="self-start"
+                  />
+                ) : null}
+              </div>
             ))}
           </DashboardClassGrid>
         )}

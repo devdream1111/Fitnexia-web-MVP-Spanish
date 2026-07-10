@@ -93,6 +93,7 @@ export function buildCreateBookingRequest(
   classId: string,
   paymentModel: PaymentModel,
   billingPeriod?: BillingPeriod,
+  options?: { useCredits?: boolean },
 ): CreateBookingRequest {
   const body: CreateBookingRequest = { classId, paymentModel };
   if (paymentModel === 'per_period') {
@@ -100,6 +101,9 @@ export function buildCreateBookingRequest(
       throw new Error('billingPeriod is required for per_period bookings');
     }
     body.billingPeriod = billingPeriod;
+  }
+  if (options?.useCredits) {
+    body.useCredits = true;
   }
   return body;
 }

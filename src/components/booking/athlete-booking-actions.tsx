@@ -3,9 +3,12 @@
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
+import { LiveStreamJoinLink } from '@/components/live-stream/live-stream-join-link';
 import { formatMoney } from '@/utils/format';
-import { canCancelBooking, getRefundAmount } from '@/utils/booking';
+import { canCancelBooking, getRefundAmount, resolveCancellationPolicyHours } from '@/utils/booking';
+import { isOnlineClass } from '@/utils/live-stream';
 import { BUTTON_LABELS, GENERAL_LABELS } from '@/constants/labels';
+import { useFeature } from '@/hooks/use-feature';
 import type { ClassListItem } from '@/types/api';
 import type { BookingRecord } from '@/services/api';
 
@@ -38,10 +41,9 @@ export function AthleteBookingActions({
   showReviewLink = false,
   layout = 'row',
 }: Props) {
-  const policyHours = 24;
-  const canCancel =
-    ['confirmed', 'pending_payment'].includes(booking.status) &&
-    canCancelBooking(cls.startAt, policyHours);
+  const liveStreamingEnabled = useFeature('liveStreaming');
+  const policyHours = resolveCancellationPolicyHours(cls);
+  const refundEligible = canCancelBooking(cls.startAt, policyHours);
   const refundAmount = getRefundAmount(booking, cls.startAt, policyHours);
   const isUpcomingActive =
     ['confirmed', 'pending_payment'].includes(booking.status) && tab === 'upcoming';
@@ -51,10 +53,24 @@ export function AthleteBookingActions({
       ? 'flex flex-col gap-2 sm:flex-row sm:flex-wrap'
       : 'flex flex-col gap-2 sm:flex-row sm:justify-end';
 
+  const showLiveJoin =
+    liveStreamingEnabled &&
+    isOnlineClass(cls.modality) &&
+    booking.status === 'confirmed' &&
+    tab === 'upcoming';
+
   return (
     <>
       {isUpcomingActive ? (
         <div className={buttonStack}>
+          {showLiveJoin ? (
+            <LiveStreamJoinLink
+              classId={cls.id}
+              startAt={cls.startAt}
+              durationMinutes={cls.durationMinutes}
+              compact
+            />
+          ) : null}
           {booking.status === 'pending_payment' ? (
             <Button
               title={BUTTON_LABELS.completePayment}
@@ -77,9 +93,9 @@ export function AthleteBookingActions({
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/30">
           <p className="mb-2 font-bold">{GENERAL_LABELS.cancelBooking}</p>
           <p className="mb-4 text-sm">
-            {canCancel
+            {refundEligible
               ? GENERAL_LABELS.fullRefund.replace('{amount}', formatMoney(refundAmount))
-              : GENERAL_LABELS.partialRefund.replace('{amount}', formatMoney(refundAmount))}
+              : GENERAL_LABELS.lateCancellationNoRefund(policyHours)}
           </p>
           <div className="flex gap-3">
             <Button

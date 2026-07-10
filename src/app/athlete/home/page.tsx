@@ -54,7 +54,7 @@ export default function AthleteHomePage() {
 
       <AthleteHomeSectionStack title={GENERAL_LABELS.generalClasses} icon="general">
         {generalClasses.map((c, i) => (
-          <AthleteHomeFeatureCard key={`g-${c.id}`} item={c} index={i} flip={i % 2 === 1} />
+          <AthleteHomeFeatureCard key={`g-${c.id}`} item={c} index={i} />
         ))}
       </AthleteHomeSectionStack>
     </AthleteHomeShell>

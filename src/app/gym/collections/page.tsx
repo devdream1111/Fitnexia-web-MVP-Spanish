@@ -1,17 +1,26 @@
 'use client';
 
-import { CollectionsPanel } from '@/components/mock-v2v3/collections-panel';
-import { MockFeatureGate, MockPageShell } from '@/components/mock-v2v3/mock-feature-gate';
+import Link from 'next/link';
+
+import { CollectionsPanel } from '@/components/collections/collections-panel';
+import { PageHeader } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
 import { MOCK_V2V3_LABELS } from '@/constants/labels';
-import { useFeature } from '@/hooks/use-feature';
 
 export default function GymCollectionsPage() {
-  const enabled = useFeature('clubCollectionsPanel');
   return (
-    <MockFeatureGate enabled={enabled} title={MOCK_V2V3_LABELS.collectionsTitle} backHref="/gym/dashboard">
-      <MockPageShell title={MOCK_V2V3_LABELS.collectionsTitle} backHref="/gym/dashboard">
-        <CollectionsPanel />
-      </MockPageShell>
-    </MockFeatureGate>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <PageHeader
+        title={MOCK_V2V3_LABELS.collectionsTitle}
+        showBack
+        backHref="/gym/dashboard"
+        action={
+          <Link href="/gym/members">
+            <Button title="Socios" variant="outline" size="sm" />
+          </Link>
+        }
+      />
+      <CollectionsPanel />
+    </div>
   );
 }

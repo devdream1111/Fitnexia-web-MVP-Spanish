@@ -99,6 +99,7 @@ function buildCreateClassBody(input: NewClassInput, user: AuthUser | null): Crea
     durationMinutes: input.durationMinutes,
     price: input.price,
     capacity: input.capacity,
+    cancellationPolicyHours: input.cancellationPolicyHours,
     location: input.location,
     instructorId:
       user?.role === 'institution' && input.instructor?.id ? input.instructor.id : undefined,
@@ -122,6 +123,9 @@ function buildUpdateClassBody(
   if (updates.durationMinutes !== undefined) body.durationMinutes = updates.durationMinutes;
   if (updates.price !== undefined) body.price = updates.price;
   if (updates.capacity !== undefined) body.capacity = updates.capacity;
+  if (updates.cancellationPolicyHours !== undefined) {
+    body.cancellationPolicyHours = updates.cancellationPolicyHours;
+  }
   if (updates.location !== undefined) body.location = updates.location;
   if (editScope) body.editScope = toApiEditScope(editScope);
   return body;

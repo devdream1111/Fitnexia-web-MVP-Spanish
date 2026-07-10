@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 
 import { PublicClubProfile } from '@/components/club/public-club-profile';
+import { PublicProfileShell } from '@/components/layout/public-profile-shell';
 import { GENERAL_LABELS } from '@/constants/labels';
 import { apiGetInstitution } from '@/services/api';
 import type { Institution } from '@/types/api';
@@ -27,39 +26,23 @@ export default function PublicClubPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center bg-gradient-to-b from-[var(--fn-surface-muted)]/30 to-transparent">
-        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
-      </div>
+      <PublicProfileShell backHref="/">
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
+        </div>
+      </PublicProfileShell>
     );
   }
 
   if (!institution) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <p className="text-lg font-bold text-[var(--fn-text)]">{GENERAL_LABELS.notFound}</p>
-        <Link
-          href="/"
-          className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--fn-primary)]"
-        >
-          <ArrowLeft size={14} />
-          Volver al inicio
-        </Link>
-      </div>
+      <PublicProfileShell backHref="/">
+        <div className="mx-auto max-w-lg py-20 text-center">
+          <p className="text-lg font-bold text-[var(--fn-text)]">{GENERAL_LABELS.notFound}</p>
+        </div>
+      </PublicProfileShell>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--fn-surface-muted)]/30 to-transparent">
-      <div className="mx-auto max-w-4xl px-4 py-5 md:px-6">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--fn-text-muted)] transition hover:text-[var(--fn-primary)]"
-        >
-          <ArrowLeft size={14} />
-          Fitnexia
-        </Link>
-        <PublicClubProfile institution={institution} />
-      </div>
-    </div>
-  );
+  return <PublicClubProfile institution={institution} />;
 }

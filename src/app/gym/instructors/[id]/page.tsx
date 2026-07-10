@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { GymInstructorDetail } from '@/components/gym/gym-instructor-detail';
-import { PageHeader } from '@/components/layout/page-header';
+import { PublicProfileShell } from '@/components/layout/public-profile-shell';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { useReviews } from '@/contexts/reviews-context';
@@ -72,15 +72,22 @@ export default function GymInstructorDetailPage() {
   const staffReviews = instructor ? getStaffReviewsForInstructor(instructor.id) : [];
 
   if (fetchState === 'loading' || fetchState === 'idle') {
-    return <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>;
+    return (
+      <PublicProfileShell backHref="/gym/instructors">
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.loading}</p>
+        </div>
+      </PublicProfileShell>
+    );
   }
 
   if (!instructor || fetchState === 'error') {
     return (
-      <div className="space-y-4">
-        <PageHeader title={GYM_LABELS.instructors.rosterTitle} showBack />
-        <p className="text-[var(--fn-text-muted)]">{GYM_LABELS.instructors.detail.notFound}</p>
-      </div>
+      <PublicProfileShell backHref="/gym/instructors">
+        <div className="mx-auto max-w-lg py-20 text-center">
+          <p className="text-lg font-bold text-[var(--fn-text)]">{GYM_LABELS.instructors.detail.notFound}</p>
+        </div>
+      </PublicProfileShell>
     );
   }
 

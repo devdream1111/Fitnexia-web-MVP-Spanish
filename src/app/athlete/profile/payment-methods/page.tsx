@@ -24,9 +24,14 @@ export default function PaymentMethodsPage() {
 
   if (!enabled) {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
-        <PageHeader title={SCREEN_TITLES.paymentMethods} showBack />
-        <p className="text-sm text-[var(--fn-text-muted)]">
+      <div className="mx-auto max-w-2xl space-y-6 pb-4">
+        <PageHeader
+          variant="premium"
+          title={SCREEN_TITLES.paymentMethods}
+          showBack
+          backHref="/athlete/profile"
+        />
+        <p className="rounded-3xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 px-6 py-10 text-center text-sm text-[var(--fn-text-muted)]">
           Los métodos de pago guardados estarán disponibles próximamente.
         </p>
       </div>
@@ -61,8 +66,13 @@ export default function PaymentMethodsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <PageHeader title={SCREEN_TITLES.paymentMethods} showBack />
+    <div className="mx-auto max-w-2xl space-y-6 pb-4">
+      <PageHeader
+        variant="premium"
+        title={SCREEN_TITLES.paymentMethods}
+        showBack
+        backHref="/athlete/profile"
+      />
       <div className="flex flex-wrap items-center gap-2">
         <MockDataBadge />
         <p className="text-sm text-[var(--fn-text-muted)]">{MOCK_V2V3_LABELS.paymentMethodDemo}</p>
@@ -72,10 +82,10 @@ export default function PaymentMethodsPage() {
         {methods.map((method) => (
           <div
             key={method.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
           >
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
                 <CreditCard size={20} />
               </span>
               <div>
@@ -109,7 +119,7 @@ export default function PaymentMethodsPage() {
       </div>
 
       {showForm ? (
-        <section className="rounded-2xl border border-[var(--fn-border)] p-5">
+        <section className="rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <Input
             label="Últimos 4 dígitos"
             value={last4}
@@ -128,7 +138,7 @@ export default function PaymentMethodsPage() {
         </Button>
       )}
 
-      <section className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
+      <section className="flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
         <Shield size={18} className="mt-0.5 shrink-0 text-emerald-600" />
         <p className="text-[var(--fn-text-secondary)]">
           Datos simulados. Al integrar el backend, las tarjetas se tokenizarán vía Mercado Pago.

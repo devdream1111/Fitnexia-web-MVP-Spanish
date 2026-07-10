@@ -219,6 +219,7 @@ export interface Notification {
   body: string;
   read: boolean;
   createdAt: string;
+  data?: Record<string, unknown>;
 }
 
 export interface Institution {
@@ -282,6 +283,8 @@ export interface ClassListItem {
   language?: string;
   /** F-13 — recurrence metadata when part of a weekly series */
   recurrence?: ClassRecurrence;
+  /** F-17 — hours before class start for full refund on athlete cancel */
+  cancellationPolicyHours?: number;
   /** Backend field on class instances belonging to a series */
   seriesId?: string;
   recurrenceSeriesId?: string;
@@ -320,7 +323,6 @@ export interface Class extends ClassListItem {
   description?: string;
   level?: ClassLevel;
   language?: string;
-  cancellationPolicyHours?: number;
   recurrence?: ClassRecurrence;
 }
 
@@ -367,6 +369,7 @@ export interface CreateBookingResponse {
     preferenceId: string;
     checkoutUrl: string;
   };
+  loyaltyRedemption?: boolean;
 }
 
 export interface Review {
@@ -397,10 +400,40 @@ export interface StaffReview {
 export interface CreditBalance {
   balance: number;
   creditsUntilReward: number;
-  expiresAt: string;
-  lastBookingAt: string;
+  expiresAt?: string | null;
+  lastBookingAt?: string | null;
   freeClassEligible: boolean;
   maxFreeClassValue: Money;
+  creditsForReward?: number;
+}
+
+export type LoyaltyTransactionType = 'earn' | 'redeem' | 'expire' | 'adjust';
+
+export interface LoyaltyTransaction {
+  id: string;
+  type: LoyaltyTransactionType;
+  amount: number;
+  balanceAfter: number;
+  bookingId?: string;
+  note?: string;
+  createdAt: string;
+}
+
+/** F-37 — platform support tickets (API.md §14) */
+export type SupportTicketStatus = 'open' | 'in_progress' | 'resolved';
+
+export interface SupportTicket {
+  id: string;
+  subject: string;
+  message: string;
+  status: SupportTicketStatus;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateSupportTicketRequest {
+  subject: string;
+  message: string;
 }
 
 export interface Notification {
@@ -410,6 +443,7 @@ export interface Notification {
   body: string;
   read: boolean;
   createdAt: string;
+  data?: Record<string, unknown>;
 }
 
 export interface HomeFeed {
@@ -493,6 +527,266 @@ export interface ClubMembersSummary {
   collectionRate?: number;
 }
 
+/** F-45 — club collections panel (`GET /institutions/me/members/collections`) */
+export interface ClubCollectionsPanel {
+  summary: {
+    upToDate: number;
+    pending: number;
+    overdue: number;
+    total: number;
+  };
+  month: {
+    collected: Money;
+    expected: Money;
+    collectionRate: number;
+    paymentsCount: number;
+    pendingCount: number;
+    failedCount: number;
+  };
+  dailyCollections: { date: string; collectedCents: number }[];
+}
+
+/** F-47 — court / space management */
+export type CourtSportType =
+  | 'padel'
+  | 'tennis'
+  | 'football_5'
+  | 'football_7'
+  | 'football_11'
+  | 'rugby'
+  | 'other';
+
+export type CourtSurface = 'grass' | 'synthetic' | 'clay' | 'hard' | 'other';
+
+export type CourtLocationType = 'indoor' | 'outdoor';
+
+export type CourtWeekdayKey = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
+
+export interface CourtDayHours {
+  open?: string;
+  close?: string;
+  closed?: boolean;
+}
+
+export type CourtOperatingHours = Partial<Record<CourtWeekdayKey, CourtDayHours>>;
+
+export interface Court {
+  id: string;
+  institutionId: string;
+  name: string;
+  sportType: CourtSportType | string;
+  surface: CourtSurface | string;
+  locationType: CourtLocationType | string;
+  hasLighting: boolean;
+  operatingHours: CourtOperatingHours;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface CreateCourtRequest {
+  name: string;
+  sportType?: CourtSportType | string;
+  surface?: CourtSurface | string;
+  locationType?: CourtLocationType | string;
+  hasLighting?: boolean;
+  operatingHours?: CourtOperatingHours;
+}
+
+export interface UpdateCourtRequest {
+  name?: string;
+  sportType?: CourtSportType | string;
+  surface?: CourtSurface | string;
+  locationType?: CourtLocationType | string;
+  hasLighting?: boolean;
+  operatingHours?: CourtOperatingHours;
+  active?: boolean;
+}
+
+export interface CourtSettings {
+  cancellationPolicyHours: number;
+  defaultSlotMinutes: number;
+}
+
+/** F-48 — per-court availability schedule */
+export interface CourtScheduleSlot {
+  startAt: string;
+  endAt: string;
+  available: boolean;
+}
+
+export interface CourtScheduleDay {
+  court: Court;
+  date: string;
+  slotMinutes: number;
+  slots: CourtScheduleSlot[];
+}
+
+export type CourtReservationStatus =
+  | 'pending_payment'
+  | 'confirmed'
+  | 'cancelled'
+  | 'expired'
+  | 'completed';
+
+export interface CourtReservation {
+  id: string;
+  courtId: string;
+  institutionId: string;
+  courtName?: string;
+  institutionName?: string;
+  startAt: string;
+  endAt: string;
+  durationMinutes: number;
+  status: CourtReservationStatus | string;
+  price: Money;
+  isMemberRate?: boolean;
+  createdAt: string;
+  cancellationPolicyHours?: number;
+  canCancel?: boolean;
+  refundEligible?: boolean;
+}
+
+/** F-50 — peak / member pricing rules */
+export interface CourtPricingRule {
+  id: string;
+  institutionId: string;
+  courtId?: string;
+  label: string;
+  daysOfWeek: number[];
+  startTime: string;
+  endTime: string;
+  isPeak: boolean;
+  isWeekend: boolean;
+  memberPrice: Money;
+  nonMemberPrice: Money;
+  priority: number;
+  active: boolean;
+}
+
+export interface CreateCourtPricingRuleRequest {
+  courtId?: string | null;
+  label?: string;
+  daysOfWeek?: number[];
+  startTime?: string;
+  endTime?: string;
+  isPeak?: boolean;
+  isWeekend?: boolean;
+  memberPrice: Money;
+  nonMemberPrice: Money;
+  priority?: number;
+}
+
+/** F-49 / F-50 — quote for a court slot */
+export interface CourtQuoteRequest {
+  courtId: string;
+  startAt: string;
+  durationMinutes?: number;
+}
+
+export interface CourtQuoteResponse {
+  memberPrice: Money;
+  nonMemberPrice: Money;
+  appliedPrice: Money;
+  isMemberRate: boolean;
+  durationMinutes: number;
+  slotMinutes: number;
+  cancellationPolicyHours: number;
+}
+
+export interface CreateCourtReservationRequest {
+  courtId: string;
+  startAt: string;
+  durationMinutes: number;
+  recurringShiftId?: string;
+}
+
+export interface CreateCourtReservationResponse {
+  reservation: CourtReservation;
+  checkoutUrl?: string;
+  paymentRequired?: boolean;
+}
+
+/** F-51 — weekly fixed shifts */
+export interface CourtRecurringShift {
+  id: string;
+  courtId: string;
+  institutionId: string;
+  courtName?: string;
+  institutionName?: string;
+  weekday: number;
+  weekdayLabel: string;
+  startTime: string;
+  durationMinutes: number;
+  label: string;
+  groupLabel?: string;
+  active: boolean;
+  nextOccurrenceAt?: string | null;
+  lastGeneratedAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateCourtRecurringShiftRequest {
+  courtId: string;
+  weekday: number;
+  startTime: string;
+  durationMinutes: number;
+  label?: string;
+  groupLabel?: string;
+}
+
+/** F-53 — open games / find players */
+export type OpenGameSport = 'padel' | 'football_5' | 'football_7' | 'football_11';
+
+export type OpenGameStatus = 'open' | 'full' | 'cancelled' | 'completed';
+
+export interface OpenGameParticipant {
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUri?: string;
+  joinedAt: string;
+}
+
+export interface OpenGame {
+  id: string;
+  creatorUserId: string;
+  sportType: OpenGameSport | string;
+  title: string;
+  description?: string;
+  startAt: string;
+  durationMinutes: number;
+  locationLabel?: string;
+  latitude?: number;
+  longitude?: number;
+  institutionId?: string;
+  courtId?: string;
+  institutionName?: string;
+  capacity: number;
+  spotsLeft: number;
+  joinedCount: number;
+  level?: string;
+  status: OpenGameStatus | string;
+  isCreator?: boolean;
+  myStatus?: string | null;
+  participants: OpenGameParticipant[];
+  createdAt: string;
+}
+
+export interface CreateOpenGameRequest {
+  sportType: OpenGameSport | string;
+  title: string;
+  startAt: string;
+  capacity: number;
+  description?: string;
+  durationMinutes?: number;
+  locationLabel?: string;
+  latitude?: number;
+  longitude?: number;
+  institutionId?: string;
+  courtId?: string;
+  level?: string;
+}
+
 export interface ClubMembershipStatement {
   institutionId: string;
   institutionName: string;
@@ -534,6 +828,73 @@ export interface MembershipPaymentResponse {
   authorizationUrl?: string;
   paymentId?: string;
   preapprovalId?: string;
+}
+
+/** F-35 — metrics & analytics */
+export type MetricsPeriod = 'day' | 'week' | 'month';
+
+export interface MetricsDailyPoint {
+  date: string;
+  bookings: number;
+  revenueCents: number;
+}
+
+export interface MetricsTopClass {
+  title: string;
+  bookings: number;
+  revenueCents: number;
+  occupancyRate: number;
+}
+
+export interface MetricsTopInstructor {
+  name: string;
+  bookings: number;
+  revenueCents: number;
+}
+
+export interface InstructorMetrics {
+  period: MetricsPeriod;
+  bookings: number;
+  revenue: Money;
+  occupancyRate: number;
+  daily?: MetricsDailyPoint[];
+  topClasses: MetricsTopClass[];
+}
+
+export interface InstitutionMetrics extends InstructorMetrics {
+  retentionRate: number;
+  daily: MetricsDailyPoint[];
+  topInstructors: MetricsTopInstructor[];
+}
+
+/** F-14 — live class stream session status */
+export type ClassStreamSessionStatus = 'scheduled' | 'live' | 'ended' | 'cancelled';
+
+export type ClassStreamRole = 'host' | 'participant';
+
+export interface ClassStreamStatusResponse {
+  id: string;
+  classId: string;
+  roomName: string;
+  status: ClassStreamSessionStatus;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  hostUserId?: string;
+  livekitConfigured: boolean;
+  withinJoinWindow: boolean;
+  canJoin: boolean;
+  role: ClassStreamRole | null;
+  classTitle?: string;
+  classStartAt?: string;
+  classDurationMinutes?: number;
+}
+
+export interface ClassStreamJoinResponse extends ClassStreamStatusResponse {
+  token: string;
+  url: string;
+  canPublish: boolean;
+  identity: string;
+  displayName: string;
 }
 
 /** Default API base — override per environment */

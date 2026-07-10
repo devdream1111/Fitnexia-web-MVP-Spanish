@@ -1,5 +1,5 @@
-import { RoleShell } from '@/components/layout/role-shell';
+import { InstructorLayoutShell } from '@/components/layout/instructor-layout-shell';
 
 export default function InstructorLayout({ children }: { children: React.ReactNode }) {
-  return <RoleShell>{children}</RoleShell>;
+  return <InstructorLayoutShell>{children}</InstructorLayoutShell>;
 }

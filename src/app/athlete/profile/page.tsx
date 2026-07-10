@@ -18,17 +18,17 @@ import {
 } from 'lucide-react';
 
 import { DisplayCurrencySelector } from '@/components/mock-v2v3/display-currency-selector';
-import { MockDataBadge } from '@/components/mock-v2v3/mock-data-badge';
 import { PageHeader } from '@/components/layout/page-header';
 import { IS_MOCK_V2V3_ENABLED } from '@/config/mock-v2v3';
 import { useFeature } from '@/hooks/use-feature';
-import { getMockCreditBalance } from '@/services/mock/credits.mock';
+import { apiGetMyCredits } from '@/services/api';
 import { mockCurrencyService } from '@/services/mock/currency.mock';
 import { disciplineSelectOptions, filterValidDisciplines } from '@/utils/disciplines';
 import type { ImageUploadInput } from '@/utils/media';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select } from '@/components/ui/select';
+import type { CreditBalance } from '@/types/api';
 import {
   ProfileHero,
   ProfileStatCard,
@@ -82,13 +82,27 @@ export default function AthleteProfilePage() {
   const showRecordedLibrary = useFeature('recordedClasses');
   const showLoyaltyCredits = useFeature('loyaltyCredits');
   const showMultiCurrency = useFeature('multipleCurrencies');
-  const showPlatformSupport = useFeature('platformSupport');
-  const showCourtBooking = useFeature('courtBooking');
-  const showOpenGames = useFeature('openGames');
   const showChat = useFeature('userInstructorChat');
   const [displayCurrency, setDisplayCurrency] = useState(() => mockCurrencyService.getDisplayCurrency());
-  const creditBalance =
-    user && showLoyaltyCredits && IS_MOCK_V2V3_ENABLED ? getMockCreditBalance(user.id) : null;
+  const [creditBalance, setCreditBalance] = useState<CreditBalance | null>(null);
+
+  useEffect(() => {
+    if (!user || !showLoyaltyCredits) {
+      setCreditBalance(null);
+      return;
+    }
+    let cancelled = false;
+    apiGetMyCredits()
+      .then((balance) => {
+        if (!cancelled) setCreditBalance(balance);
+      })
+      .catch(() => {
+        if (!cancelled) setCreditBalance(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showLoyaltyCredits, user]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
@@ -181,15 +195,9 @@ export default function AthleteProfilePage() {
         ...(showClubMembership
           ? [{ href: '/athlete/club-membership', label: SCREEN_TITLES.clubMembership, icon: Building2 }]
           : []),
-        ...(showCourtBooking
-          ? [
-              { href: '/athlete/courts', label: MOCK_V2V3_LABELS.courtsBook, icon: MapPin },
-              { href: '/athlete/court-bookings', label: MOCK_V2V3_LABELS.courtsMyBookings, icon: Calendar },
-            ]
-          : []),
-        ...(showOpenGames
-          ? [{ href: '/athlete/open-games', label: MOCK_V2V3_LABELS.openGamesTitle, icon: UsersRound }]
-          : []),
+        { href: '/athlete/courts', label: MOCK_V2V3_LABELS.courtsBook, icon: MapPin },
+        { href: '/athlete/court-bookings', label: MOCK_V2V3_LABELS.courtsMyBookings, icon: Calendar },
+        { href: '/athlete/open-games', label: MOCK_V2V3_LABELS.openGamesTitle, icon: UsersRound },
         ...(showChat ? [{ href: '/athlete/messages', label: MOCK_V2V3_LABELS.chatTitle, icon: MessageSquare }] : []),
       ].filter(Boolean) as QuickLinkGroup['links'],
     },
@@ -199,16 +207,20 @@ export default function AthleteProfilePage() {
         ...(showPaymentMethods
           ? [{ href: '/athlete/profile/payment-methods', label: PROFILE_MENU_LABELS.paymentMethods, icon: CreditCard }]
           : []),
-        ...(showPlatformSupport
-          ? [{ href: '/athlete/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy }]
-          : []),
+        { href: '/athlete/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy },
       ].filter(Boolean) as QuickLinkGroup['links'],
     },
   ].filter((group) => group.links.length > 0);
 
   return (
-    <div className={PROFILE_PAGE_GAP}>
-      <PageHeader title={PROFILE_PAGE_LABELS.title} showBack />
+    <div className={`${PROFILE_PAGE_GAP} pb-4`}>
+      <PageHeader
+        variant="premium"
+        title={PROFILE_PAGE_LABELS.title}
+        eyebrow={GENERAL_LABELS.athleteProfileEyebrow}
+        subtitle={GENERAL_LABELS.athleteProfileSubtitle}
+        showBack
+      />
 
       <ProfileCardShell>
         <ProfileHero
@@ -301,11 +313,10 @@ export default function AthleteProfilePage() {
       </div>
 
       {creditBalance ? (
-        <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
+        <section className="rounded-3xl border border-[color-mix(in_srgb,var(--fn-primary)_22%,var(--fn-border))] bg-[color-mix(in_srgb,var(--fn-primary-muted)_40%,var(--fn-surface))] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="flex flex-wrap items-center gap-2">
-            <Sparkles size={18} className="text-amber-600" />
+            <Sparkles size={18} className="text-[var(--fn-primary)]" />
             <h3 className="text-sm font-bold text-[var(--fn-text)]">{MOCK_V2V3_LABELS.creditsBalance}</h3>
-            <MockDataBadge />
           </div>
           <p className="mt-1 text-xl font-extrabold text-[var(--fn-text)]">{creditBalance.balance}</p>
           <p className="mt-0.5 text-xs text-[var(--fn-text-muted)]">

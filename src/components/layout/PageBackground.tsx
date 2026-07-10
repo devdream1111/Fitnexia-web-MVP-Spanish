@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { PAGE_BACKGROUNDS } from '@/constants/backgrounds';
 import { useAppTheme } from '@/contexts/theme-context';
+import { isChromelessProfileRoute } from '@/utils/public-routes';
 import { Footer } from './Footer';
 
 export function PageBackground({ children }: { children: React.ReactNode }) {
@@ -12,9 +13,11 @@ export function PageBackground({ children }: { children: React.ReactNode }) {
   const isLegalRoute = pathname.startsWith('/legal');
   const isCheckoutRoute = pathname.startsWith('/book');
   const isLanding = pathname === '/';
+  const isChromelessProfile = isChromelessProfileRoute(pathname);
   const showPageBackground =
-    !isAuthRoute && !isLanding && !isLegalRoute && !isCheckoutRoute;
-  const showFooter = !isAuthRoute && !isLegalRoute && !isCheckoutRoute;
+    !isAuthRoute && !isLanding && !isLegalRoute && !isCheckoutRoute && !isChromelessProfile;
+  const showFooter =
+    !isAuthRoute && !isLegalRoute && !isCheckoutRoute && !isChromelessProfile;
 
   return (
     <div className="relative flex min-h-screen flex-col">

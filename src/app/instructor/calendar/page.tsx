@@ -5,12 +5,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 
 import { ClassCard } from '@/components/class-card';
-import { Calendar } from '@/components/calendar/Calendar';
+import { LiveStreamJoinLink } from '@/components/live-stream/live-stream-join-link';
+import { Calendar, CalendarEventCard } from '@/components/calendar/Calendar';
 import { useAuth } from '@/contexts/auth-context';
 import { useClasses } from '@/contexts/classes-context';
 import { filterClassesByScheduleTab } from '@/utils/calendar';
-import { formatClassDate, formatMoney, isClassOnCalendarDay } from '@/utils/format';
+import { isClassOnCalendarDay } from '@/utils/format';
 import { getLinkedInstructorId } from '@/utils/instructor';
+import { isOnlineClass } from '@/utils/live-stream';
 import { GENERAL_LABELS, INSTRUCTOR_LABELS } from '@/constants/labels';
 
 export default function InstructorCalendarPage() {
@@ -90,19 +92,21 @@ export default function InstructorCalendarPage() {
       </div>
 
       {showCalendar ? (
-        <Calendar
-          classes={filteredClasses}
-          focusDate={calendarFocusDate}
-          onDateClick={(date) => setSelectedDate(date)}
-          showSidePanel={false}
-        />
+        <div className="fn-calendar-shell">
+          <Calendar
+            classes={filteredClasses}
+            focusDate={calendarFocusDate}
+            onDateClick={(date) => setSelectedDate(date)}
+            showSidePanel={false}
+          />
+        </div>
       ) : null}
 
       {selectedDate ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="fn-layout-narrow w-full rounded-2xl bg-[var(--fn-surface)] p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[1px]">
+          <div className="fn-layout-narrow fn-calendar-shell w-full max-h-[85vh] overflow-y-auto shadow-xl">
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-[var(--fn-calendar-grid-border)] pb-3">
+              <h2 className="m-0 text-lg font-medium capitalize text-[var(--fn-text)]">
                 {selectedDate.toLocaleDateString('es-UY', {
                   weekday: 'long',
                   month: 'long',
@@ -113,29 +117,20 @@ export default function InstructorCalendarPage() {
               <button
                 type="button"
                 onClick={() => setSelectedDate(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--fn-surface-muted)] text-[var(--fn-text-muted)] transition-all hover:bg-[var(--fn-border)] hover:text-[var(--fn-text)]"
+                className="fn-calendar-icon-btn"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
             <div className="space-y-3">
               {getClassesForDate(selectedDate).length === 0 ? (
-                <p className="text-sm text-[var(--fn-text-muted)]">
+                <p className="fn-calendar-side-panel__empty">
                   {tab === 'upcoming'
                     ? 'No hay clases próximas este día.'
                     : 'No hay clases en el historial para este día.'}
                 </p>
               ) : (
-                getClassesForDate(selectedDate).map((c) => (
-                  <div
-                    key={c.id}
-                    className="rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)] p-3"
-                  >
-                    <p className="font-semibold text-[var(--fn-text)]">{c.title}</p>
-                    <p className="text-sm text-[var(--fn-text-muted)]">{formatClassDate(c.startAt)}</p>
-                    <p className="text-sm text-[var(--fn-primary)]">{formatMoney(c.price)}</p>
-                  </div>
-                ))
+                getClassesForDate(selectedDate).map((c) => <CalendarEventCard key={c.id} item={c} />)
               )}
             </div>
           </div>
@@ -145,9 +140,19 @@ export default function InstructorCalendarPage() {
       {sortedList.length === 0 ? (
         <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.noBookingsInTab}</p>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {sortedList.map((c) => (
-            <ClassCard key={c.id} item={c} showEdit editHref={`/instructor/edit-class/${c.id}`} />
+            <div key={c.id} className="flex flex-col gap-2">
+              <ClassCard item={c} showEdit editHref={`/instructor/edit-class/${c.id}`} />
+              {tab === 'upcoming' && isOnlineClass(c.modality) ? (
+                <LiveStreamJoinLink
+                  classId={c.id}
+                  startAt={c.startAt}
+                  durationMinutes={c.durationMinutes}
+                  className="self-start"
+                />
+              ) : null}
+            </div>
           ))}
         </div>
       )}

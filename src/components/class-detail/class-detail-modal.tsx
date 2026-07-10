@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
 
 import { ClassDetailView } from '@/components/class-detail/class-detail-view';
@@ -9,7 +9,9 @@ import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 export function ClassDetailModal({ classId }: { classId: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isClassRoute = pathname.startsWith('/class/');
+  const autoFocusLive = searchParams.get('live') === '1';
 
   const close = useCallback(() => {
     router.back();
@@ -49,7 +51,12 @@ export function ClassDetailModal({ classId }: { classId: string }) {
         className="relative z-10 flex max-h-[min(94vh,58rem)] w-full max-w-6xl flex-col overflow-hidden rounded-t-2xl border border-[var(--fn-border)] bg-[var(--fn-bg)] shadow-2xl sm:rounded-2xl"
       >
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
-          <ClassDetailView classId={classId} onClose={close} variant="modal" />
+          <ClassDetailView
+            classId={classId}
+            onClose={close}
+            variant="modal"
+            autoFocusLive={autoFocusLive}
+          />
         </div>
       </div>
     </div>

@@ -16,9 +16,11 @@ export function MockFeatureGate({
 }) {
   if (!enabled) {
     return (
-      <div>
-        <PageHeader title={title} showBack backHref={backHref} />
-        <p className="text-[var(--fn-text-muted)]">Disponible en una próxima versión.</p>
+      <div className="mx-auto max-w-5xl space-y-6 pb-4">
+        <PageHeader variant="premium" title={title} showBack backHref={backHref} />
+        <div className="rounded-3xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 px-6 py-12 text-center">
+          <p className="text-[var(--fn-text-muted)]">Disponible en una próxima versión.</p>
+        </div>
       </div>
     );
   }
@@ -35,8 +37,8 @@ export function MockPageShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title={title} showBack backHref={backHref} />
+    <div className="mx-auto max-w-5xl space-y-6 pb-4">
+      <PageHeader variant="premium" title={title} showBack backHref={backHref} />
       <MockDataBadge />
       {children}
     </div>

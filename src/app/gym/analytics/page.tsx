@@ -2,24 +2,12 @@
 
 import Link from 'next/link';
 
+import { AnalyticsMetricsPanel } from '@/components/analytics/analytics-metrics-panel';
 import { PageHeader } from '@/components/layout/page-header';
-import { AnalyticsMetricsPanel } from '@/components/mock-v2v3/analytics-metrics-panel';
 import { Button } from '@/components/ui/button';
-import { GYM_LABELS, MOCK_V2V3_LABELS, SCREEN_TITLES } from '@/constants/labels';
-import { useFeature } from '@/hooks/use-feature';
+import { MOCK_V2V3_LABELS } from '@/constants/labels';
 
 export default function GymAnalyticsPage() {
-  const enabled = useFeature('analyticsMetrics');
-
-  if (!enabled) {
-    return (
-      <div className="mx-auto max-w-3xl">
-        <PageHeader title={SCREEN_TITLES.analytics} showBack backHref="/gym/dashboard" />
-        <p className="text-[var(--fn-text-muted)]">{GYM_LABELS.dashboard.controlPanel}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
@@ -32,7 +20,7 @@ export default function GymAnalyticsPage() {
           </Link>
         }
       />
-      <AnalyticsMetricsPanel />
+      <AnalyticsMetricsPanel scope="institution" />
     </div>
   );
 }

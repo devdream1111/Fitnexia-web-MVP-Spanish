@@ -133,7 +133,13 @@ function RegisterPageContent() {
         ) : null}
       </AuthFormIntro>
 
-      <div className="fn-auth-form-fields">
+      <form
+        className="fn-auth-form-fields"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit();
+        }}
+      >
         <div className="fn-auth-register-photo-row">
           <ProfilePictureUpload
             currentAvatar={avatarUri}
@@ -205,14 +211,14 @@ function RegisterPageContent() {
         ) : null}
 
         <Button
+          type="submit"
           title={BUTTON_LABELS.createAccount}
           loading={loading}
           disabled={!acceptTerms}
           className="w-full"
           size="md"
-          onClick={submit}
         />
-      </div>
+      </form>
 
       <div className="fn-auth-register-footer">
         <AuthFooterLink

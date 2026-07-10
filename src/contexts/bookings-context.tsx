@@ -68,6 +68,7 @@ export function BookingsProvider({ children }: { children: React.ReactNode }) {
     const record: BookingRecord = {
       ...result.booking,
       checkoutUrl: result.payment?.checkoutUrl,
+      loyaltyRedemption: result.loyaltyRedemption,
     };
     setBookings((prev) => [record, ...prev]);
     return record;

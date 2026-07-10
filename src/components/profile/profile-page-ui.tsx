@@ -17,7 +17,7 @@ export function toggleVisible(visible: boolean, className = '') {
   return visible ? className : [className, 'hidden'].filter(Boolean).join(' ');
 }
 
-export const PROFILE_PAGE_GAP = 'space-y-5';
+export const PROFILE_PAGE_GAP = 'space-y-6';
 
 export type ProfileAccent = 'default' | 'success' | 'warning' | 'danger';
 
@@ -33,7 +33,7 @@ export type QuickLinkGroup = {
   links: QuickLink[];
 };
 
-const PROFILE_HERO_GRADIENT = 'from-[var(--fn-primary)] via-[#1d4ed8] to-[#312e81]';
+const PROFILE_HERO_GRADIENT = 'from-[var(--fn-primary)] via-[#1d4ed8] to-[#0f172a]';
 
 export const PROFILE_GRADIENTS = {
   athlete: PROFILE_HERO_GRADIENT,
@@ -77,13 +77,14 @@ export function ProfileHero({
   return (
     <>
       {saving ? <FullScreenLoader message={PROFILE_PAGE_LABELS.savingProfile} /> : null}
-    <div className={`relative bg-gradient-to-br ${gradientClass} px-4 py-5 sm:px-6`}>
-      <div className="absolute inset-0 opacity-15" aria-hidden="true">
-        <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/30 blur-2xl" />
+    <div className={`relative bg-gradient-to-br ${gradientClass} px-5 py-6 sm:px-7 sm:py-7`}>
+      <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
+        <div className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/25 blur-2xl" />
+        <div className="absolute bottom-0 left-1/4 h-28 w-28 rounded-full bg-cyan-300/20 blur-2xl" />
       </div>
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="rounded-full ring-2 ring-white/25">
+          <div className="rounded-full ring-4 ring-white/25 shadow-xl">
             <ProfilePictureUpload
               currentAvatar={avatarUri}
               onUpload={onAvatarUpload}
@@ -95,15 +96,15 @@ export function ProfileHero({
           </div>
           <div className="min-w-0">
             {badgeLabel ? <Badge label={badgeLabel} variant={badgeVariant} size="sm" /> : null}
-            <h2 className={`truncate text-xl font-bold text-white sm:text-2xl ${badgeLabel ? 'mt-1.5' : ''}`}>
+            <h2 className={`truncate text-2xl font-extrabold tracking-tight text-white sm:text-3xl ${badgeLabel ? 'mt-1.5' : ''}`}>
               {name}
             </h2>
-            <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-white/80">
-              <Mail size={12} className="shrink-0" />
+            <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-white/80">
+              <Mail size={13} className="shrink-0" />
               {email}
             </p>
-            <p className="mt-1 flex items-center gap-1.5 text-[11px] text-white/65">
-              <Calendar size={11} />
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-white/65">
+              <Calendar size={12} />
               {PROFILE_PAGE_LABELS.memberSince} {memberSince}
             </p>
           </div>
@@ -113,7 +114,7 @@ export function ProfileHero({
             <Button
               variant="secondary"
               size="sm"
-              className="!h-8 !bg-white/15 !px-3 !text-xs !text-white hover:!bg-white/25"
+              className="!h-9 !bg-white/15 !px-3.5 !text-xs !text-white ring-1 ring-white/20 hover:!bg-white/25"
               onClick={onEdit}
               disabled={saving}
             >
@@ -122,11 +123,11 @@ export function ProfileHero({
             </Button>
           </div>
           <div className={toggleVisible(isEditing, 'flex gap-2')}>
-            <Button variant="outline" size="sm" className="!h-8 !text-xs" onClick={onCancel} disabled={saving}>
+            <Button variant="outline" size="sm" className="!h-9 !text-xs" onClick={onCancel} disabled={saving}>
               <X size={14} aria-hidden />
               <span>{PROFILE_PAGE_LABELS.cancelEdit}</span>
             </Button>
-            <Button size="sm" className="!h-8 !text-xs" onClick={onSave} disabled={saving}>
+            <Button size="sm" className="!h-9 !text-xs" onClick={onSave} disabled={saving}>
               {BUTTON_LABELS.saveChanges}
             </Button>
           </div>
@@ -158,13 +159,13 @@ export function ProfileStatCard({
           : 'bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]';
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-3 py-2.5">
-      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${accentClass}`}>
+    <div className="flex items-center gap-3 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] px-3.5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${accentClass}`}>
         <Icon size={16} />
       </div>
       <div className="min-w-0">
-        <p className="text-lg font-bold leading-none tabular-nums text-[var(--fn-text)]">{value}</p>
-        <p className="mt-0.5 truncate text-[11px] text-[var(--fn-text-muted)]">{label}</p>
+        <p className="text-lg font-extrabold leading-none tabular-nums text-[var(--fn-text)]">{value}</p>
+        <p className="mt-1 truncate text-[11px] font-medium text-[var(--fn-text-muted)]">{label}</p>
       </div>
     </div>
   );
@@ -174,12 +175,12 @@ function QuickLinkTile({ link }: { link: QuickLink }) {
   return (
     <Link
       href={link.href}
-      className="group flex min-h-[3.25rem] items-center gap-2.5 rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 px-3 py-2 transition hover:border-[var(--fn-primary)]/40 hover:bg-[var(--fn-primary-muted)]/25"
+      className="group flex min-h-[3.5rem] items-center gap-3 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-3.5 py-2.5 transition hover:-translate-y-0.5 hover:border-[var(--fn-primary)]/40 hover:bg-[var(--fn-primary-muted)]/25 hover:shadow-sm"
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--fn-surface)] text-[var(--fn-primary)] shadow-sm">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--fn-surface)] text-[var(--fn-primary)] shadow-sm ring-1 ring-[var(--fn-border)]">
         <link.icon size={16} />
       </span>
-      <span className="min-w-0 flex-1 text-xs font-semibold leading-tight text-[var(--fn-text)]">
+      <span className="min-w-0 flex-1 text-sm font-semibold leading-tight text-[var(--fn-text)]">
         {link.label}
       </span>
       {link.count != null && link.count > 0 ? (
@@ -207,8 +208,8 @@ export function ProfileQuickLinks({
   if (resolvedGroups.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4">
-      <h3 className="mb-3 text-sm font-bold text-[var(--fn-text)]">
+    <div className="rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <h3 className="mb-4 text-base font-extrabold tracking-tight text-[var(--fn-text)]">
         {title ?? PROFILE_PAGE_LABELS.quickLinks}
       </h3>
       <div className="space-y-4">
@@ -241,26 +242,26 @@ export function ProfileNotificationsHub({
   unreadCount?: number;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)]">
+    <div className="relative overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <div
         className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[var(--fn-primary)]/10 blur-2xl"
         aria-hidden
       />
-      <div className="relative p-4">
+      <div className="relative p-5">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--fn-primary-muted)] text-[var(--fn-primary)]">
             <Bell size={20} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-bold text-[var(--fn-text)]">
+              <h3 className="text-base font-extrabold tracking-tight text-[var(--fn-text)]">
                 {PROFILE_PAGE_LABELS.notificationsTitle}
               </h3>
               {unreadCount > 0 ? (
                 <Badge label={NOTIFICATIONS_LABELS.unreadCount(unreadCount)} variant="warning" size="sm" />
               ) : null}
             </div>
-            <p className="mt-1 text-xs leading-relaxed text-[var(--fn-text-muted)]">
+            <p className="mt-1 text-sm leading-relaxed text-[var(--fn-text-muted)]">
               {NOTIFICATIONS_LABELS.hubSubtitle}
             </p>
           </div>
@@ -269,9 +270,9 @@ export function ProfileNotificationsHub({
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <Link
             href={inboxHref}
-            className="group flex items-center justify-between gap-2 rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-3 py-2.5 transition hover:border-[var(--fn-primary)]/35 hover:bg-[var(--fn-primary-muted)]/20"
+            className="group flex items-center justify-between gap-2 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-3.5 py-3 transition hover:border-[var(--fn-primary)]/35 hover:bg-[var(--fn-primary-muted)]/20"
           >
-            <span className="text-xs font-semibold text-[var(--fn-text)]">
+            <span className="text-sm font-semibold text-[var(--fn-text)]">
               {NOTIFICATIONS_LABELS.openInbox}
             </span>
             <ChevronRight
@@ -281,9 +282,9 @@ export function ProfileNotificationsHub({
           </Link>
           <Link
             href={preferencesHref}
-            className="group flex items-center justify-between gap-2 rounded-lg border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-3 py-2.5 transition hover:border-[var(--fn-primary)]/35 hover:bg-[var(--fn-primary-muted)]/20"
+            className="group flex items-center justify-between gap-2 rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/40 px-3.5 py-3 transition hover:border-[var(--fn-primary)]/35 hover:bg-[var(--fn-primary-muted)]/20"
           >
-            <span className="text-xs font-semibold text-[var(--fn-text)]">
+            <span className="text-sm font-semibold text-[var(--fn-text)]">
               {NOTIFICATIONS_LABELS.managePreferences}
             </span>
             <ChevronRight
@@ -311,13 +312,13 @@ export function ProfileSettingsCard({
   icon: LucideIcon;
 }) {
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 sm:flex-row sm:items-center sm:gap-4">
+    <div className="flex flex-col justify-between rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:gap-4">
       <div className="min-w-0">
-        <h3 className="flex items-center gap-2 text-sm font-bold">
+        <h3 className="flex items-center gap-2 text-base font-extrabold tracking-tight">
           <Icon size={16} className="text-[var(--fn-primary)]" />
           {title}
         </h3>
-        <p className="mt-1 text-xs text-[var(--fn-text-muted)]">{subtitle}</p>
+        <p className="mt-1 text-sm text-[var(--fn-text-muted)]">{subtitle}</p>
       </div>
       <Link href={href} className="mt-3 shrink-0 sm:mt-0">
         <Button variant="outline" size="sm" className="w-full sm:w-auto">
@@ -341,11 +342,11 @@ export function ProfileEditFields({
     <div
       className={toggleVisible(
         visible,
-        'rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 sm:p-5',
+        'rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-6',
       )}
       aria-hidden={!visible}
     >
-      <h3 className="mb-4 text-sm font-bold">{title ?? PROFILE_PAGE_LABELS.editProfile}</h3>
+      <h3 className="mb-4 text-base font-extrabold tracking-tight">{title ?? PROFILE_PAGE_LABELS.editProfile}</h3>
       {children}
     </div>
   );
@@ -361,8 +362,8 @@ export function ProfileDetailsCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 ${className}`}>
-      {title ? <h3 className="mb-3 text-sm font-bold text-[var(--fn-text)]">{title}</h3> : null}
+    <div className={`rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${className}`}>
+      {title ? <h3 className="mb-3 text-base font-extrabold tracking-tight text-[var(--fn-text)]">{title}</h3> : null}
       {children}
     </div>
   );
@@ -387,10 +388,10 @@ export function ProfileDetailRow({
 
 export function ProfilePasswordPanel() {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h3 className="text-sm font-bold">{PROFILE_PAGE_LABELS.accountSecurity}</h3>
-        <p className="mt-1 max-w-xl text-xs text-[var(--fn-text-muted)]">
+        <h3 className="text-base font-extrabold tracking-tight">{PROFILE_PAGE_LABELS.accountSecurity}</h3>
+        <p className="mt-1 max-w-xl text-sm text-[var(--fn-text-muted)]">
           {PROFILE_PAGE_LABELS.passwordChangeViaEmail}
         </p>
       </div>
@@ -403,7 +404,7 @@ export function ProfilePasswordPanel() {
 
 export function ProfileStatsGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid gap-2 border-t border-[var(--fn-border)] bg-[var(--fn-surface)] p-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-3 border-t border-[var(--fn-border)] bg-[var(--fn-surface)] p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {children}
     </div>
   );
@@ -411,7 +412,7 @@ export function ProfileStatsGrid({ children }: { children: React.ReactNode }) {
 
 export function ProfileCardShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+    <div className="overflow-hidden rounded-[1.75rem] border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-[0_12px_32px_-24px_color-mix(in_srgb,var(--fn-primary)_45%,transparent)]">
       {children}
     </div>
   );

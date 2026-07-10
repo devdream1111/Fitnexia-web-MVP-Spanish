@@ -1,12 +1,7 @@
 'use client';
 
-import {
-  PlatformSupportPage,
-  PlatformSupportPlaceholderPage,
-} from '@/components/mock-v2v3/platform-support-page';
-import { useFeature } from '@/hooks/use-feature';
+import { PlatformSupportPage } from '@/components/support/platform-support-page';
 
 export default function SupportPage() {
-  const enabled = useFeature('platformSupport');
-  return enabled ? <PlatformSupportPage /> : <PlatformSupportPlaceholderPage />;
+  return <PlatformSupportPage backHref="/athlete/profile" />;
 }

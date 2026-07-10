@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fontsource/plus-jakarta-sans": "^5.2.8",
     "@types/leaflet": "^1.9.21",
     "leaflet": "^1.9.4",
+    "livekit-client": "^2.20.1",
     "lucide-react": "^1.17.0",
     "next": "^16.2.7",
     "react": "19.1.0",

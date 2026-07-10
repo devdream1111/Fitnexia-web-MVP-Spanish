@@ -77,7 +77,13 @@ function LoginPageContent() {
         ) : null}
       </AuthFormIntro>
 
-      <div className="fn-auth-form-fields">
+      <form
+        className="fn-auth-form-fields"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleLogin();
+        }}
+      >
         <Input
           label={AUTH_LABELS.email}
           value={email}
@@ -101,13 +107,13 @@ function LoginPageContent() {
           </Link>
         </div>
         <Button
+          type="submit"
           title={BUTTON_LABELS.signIn}
           loading={loading}
           className="w-full"
           size="md"
-          onClick={handleLogin}
         />
-      </div>
+      </form>
 
       <div className="mt-6">
         <AuthFooterLink

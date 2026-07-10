@@ -41,24 +41,29 @@ export function AdvancedSearchPanel({
   ];
 
   return (
-    <section className="rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)]">
+    <section className="overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)]">
       <button
         type="button"
         onClick={onToggleExpanded}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-[var(--fn-surface-muted)]/60 md:px-5"
+        className={`group flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition duration-200 hover:bg-[color-mix(in_srgb,var(--fn-primary-muted)_35%,var(--fn-surface))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fn-primary-muted)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--fn-surface)] md:px-5 ${
+          expanded ? 'rounded-t-2xl' : 'rounded-2xl'
+        }`}
         aria-expanded={expanded}
       >
-        <span className="flex items-center gap-2 text-sm font-semibold text-[var(--fn-text)]">
-          <SlidersHorizontal size={18} className="text-[var(--fn-primary)]" />
+        <span className="flex items-center gap-2 text-sm font-semibold text-[var(--fn-text)] transition group-hover:text-[var(--fn-text)]">
+          <SlidersHorizontal
+            size={18}
+            className="text-[var(--fn-primary)] transition group-hover:scale-105"
+          />
           {ADVANCED_SEARCH_LABELS.sectionTitle}
         </span>
-        <span className="text-xs font-medium text-[var(--fn-primary)]">
+        <span className="text-xs font-medium text-[var(--fn-primary-text)] transition group-hover:text-[var(--fn-primary-hover)] group-hover:underline">
           {expanded ? ADVANCED_SEARCH_LABELS.toggleHide : ADVANCED_SEARCH_LABELS.toggleShow}
         </span>
       </button>
 
       {expanded ? (
-        <div className="grid gap-4 border-t border-[var(--fn-border)] px-4 py-4 md:grid-cols-3 md:px-5">
+        <div className="grid gap-4 border-t border-[var(--fn-border)] bg-[var(--fn-surface)] px-4 py-4 md:grid-cols-3 md:px-5">
           <SearchFilterDropdown
             value={filters.level}
             onChange={(val) => onChange({ ...filters, level: val as AdvancedLevelFilter })}

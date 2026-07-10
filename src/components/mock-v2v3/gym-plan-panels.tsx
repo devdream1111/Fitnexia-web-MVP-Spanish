@@ -5,8 +5,9 @@ import { Check, Circle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AnalyticsMetricsPanel } from '@/components/mock-v2v3/analytics-metrics-panel';
+import { AnalyticsMetricsView } from '@/components/analytics/analytics-metrics-view';
 import { ALERT_LABELS, MOCK_V2V3_LABELS } from '@/constants/labels';
+import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 import { mockAttendanceService } from '@/services/mock/attendance.mock';
 import { mockStaffSchedulesService } from '@/services/mock/staff-schedules.mock';
 import { mockActivitiesService } from '@/services/mock/activities.mock';
@@ -20,7 +21,6 @@ import { mockInstructorProService } from '@/services/mock/instructor-pro.mock';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { formatMoneyFromCents } from '@/utils/format';
 import { formatAttendanceRate } from '@/utils/gym-metrics';
-import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
 
 export function GymBasicReportsPanel() {
   const data = mockGymReportsService.getBasic();
@@ -31,7 +31,25 @@ export function GymBasicReportsPanel() {
         <MiniStat label="Crecimiento" value={`${Math.round(data.growthPct * 100)}%`} />
         <MiniStat label="Ocupación" value={formatAttendanceRate(data.attendanceRate)} />
       </div>
-      <AnalyticsMetricsPanel snapshot={data} />
+      <AnalyticsMetricsView
+        data={{
+          bookings: data.bookings,
+          revenueCents: data.revenueCents,
+          currency: DEFAULT_CURRENCY,
+          occupancyRate: data.attendanceRate,
+          daily: data.daily.map((d) => ({
+            label: d.label,
+            bookings: d.bookings,
+            revenueCents: d.revenueCents,
+          })),
+          topClasses: data.topClasses.map((c) => ({
+            title: c.title,
+            occupancyRate: c.attendancePct,
+            bookings: c.bookings,
+            revenueCents: 0,
+          })),
+        }}
+      />
     </div>
   );
 }

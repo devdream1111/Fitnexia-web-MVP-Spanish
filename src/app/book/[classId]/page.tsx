@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import { CheckoutPageUI } from '@/components/booking/checkout-page-ui';
 import { DigitalWalletsPanel } from '@/components/mock-v2v3/digital-wallets-panel';
-import { LoyaltyCreditsPanel } from '@/components/mock-v2v3/loyalty-credits-panel';
+import { LoyaltyCreditsPanel } from '@/components/loyalty/loyalty-credits-panel';
 import { PageHeader } from '@/components/layout/page-header';
 import { IS_MOCK_V2V3_ENABLED } from '@/config/mock-v2v3';
 import { useClasses } from '@/contexts/classes-context';
@@ -13,9 +13,13 @@ import { useBookings } from '@/contexts/bookings-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import { useFeature } from '@/hooks/use-feature';
-import { applyMockCredits, getMockCreditBalance } from '@/services/mock/credits.mock';
 import { ApiClientError } from '@/services/api-client';
-import { apiGetClassBookingPaymentOptions, apiGetPaymentsConfig, apiJoinClassWaitlist } from '@/services/api';
+import {
+  apiGetClassBookingPaymentOptions,
+  apiGetMyCredits,
+  apiGetPaymentsConfig,
+  apiJoinClassWaitlist,
+} from '@/services/api';
 import {
   buildCreateBookingRequest,
   findPaymentOption,
@@ -27,7 +31,13 @@ import {
   SCREEN_TITLES,
   GENERAL_LABELS,
 } from '@/constants/labels';
-import type { BillingPeriod, ClassBookingPaymentOptions, ClassListItem, PaymentModel } from '@/types/api';
+import type {
+  BillingPeriod,
+  ClassBookingPaymentOptions,
+  ClassListItem,
+  CreditBalance,
+  PaymentModel,
+} from '@/types/api';
 
 export default function BookPage() {
   return (
@@ -60,7 +70,7 @@ function BookContent() {
   const [paymentsEnabled, setPaymentsEnabled] = useState(false);
   const [error, setError] = useState('');
   const [applyCredits, setApplyCredits] = useState(false);
-  const creditBalance = user && loyaltyEnabled && IS_MOCK_V2V3_ENABLED ? getMockCreditBalance(user.id) : null;
+  const [creditBalance, setCreditBalance] = useState<CreditBalance | null>(null);
   const isWaitlist = searchParams.get('waitlist') === '1' && waitlistEnabled;
 
   useEffect(() => {
@@ -74,6 +84,24 @@ function BookContent() {
       .then((cfg) => setPaymentsEnabled(cfg.enabled))
       .catch(() => setPaymentsEnabled(false));
   }, []);
+
+  useEffect(() => {
+    if (!user || user.role !== 'athlete' || !loyaltyEnabled) {
+      setCreditBalance(null);
+      return;
+    }
+    let cancelled = false;
+    apiGetMyCredits()
+      .then((balance) => {
+        if (!cancelled) setCreditBalance(balance);
+      })
+      .catch(() => {
+        if (!cancelled) setCreditBalance(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loyaltyEnabled, user]);
 
   useEffect(() => {
     if (!classId) return;
@@ -111,13 +139,23 @@ function BookContent() {
     return findPaymentOption(paymentOptions, paymentModel, billingPeriod);
   }, [paymentOptions, paymentModel, billingPeriod]);
 
-  const checkoutTotal = selectedOption?.coveredBySubscription
-    ? cls?.price
-    : selectedOption?.price ?? cls?.price;
+  const usingCredits =
+    loyaltyEnabled &&
+    applyCredits &&
+    Boolean(creditBalance?.freeClassEligible) &&
+    paymentModel === 'per_class' &&
+    !isWaitlist;
+
+  const checkoutTotal = usingCredits
+    ? { amount: 0, currency: cls?.price.currency ?? 'UYU' }
+    : selectedOption?.coveredBySubscription
+      ? cls?.price
+      : (selectedOption?.price ?? cls?.price);
 
   const handleSelectPayment = (model: PaymentModel, period?: BillingPeriod) => {
     setPaymentModel(model);
     setBillingPeriod(model === 'per_period' ? period : undefined);
+    if (model !== 'per_class') setApplyCredits(false);
     setError('');
   };
 
@@ -155,10 +193,6 @@ function BookContent() {
       return;
     }
 
-    if (loyaltyEnabled && applyCredits && user?.id) {
-      applyMockCredits(user.id, 30);
-    }
-
     if (subscriptionModelsEnabled && paymentModel === 'per_period' && !billingPeriod) {
       setError('Elegí un período de pago (semanal, mensual o trimestral).');
       return;
@@ -167,11 +201,25 @@ function BookContent() {
     setLoading(true);
     setError('');
     try {
+      const redeemCredits = usingCredits;
       const body = subscriptionModelsEnabled
-        ? buildCreateBookingRequest(cls.id, paymentModel, billingPeriod)
-        : buildCreateBookingRequest(cls.id, 'per_class');
+        ? buildCreateBookingRequest(cls.id, paymentModel, billingPeriod, {
+            useCredits: redeemCredits,
+          })
+        : buildCreateBookingRequest(cls.id, 'per_class', undefined, {
+            useCredits: redeemCredits,
+          });
 
       const result = await createBooking(body);
+      if (result.loyaltyRedemption || redeemCredits) {
+        showNotice({
+          title: ALERT_LABELS.savedTitle,
+          message: MOCK_V2V3_LABELS.creditsApplied,
+          variant: 'success',
+        });
+        router.push('/athlete/bookings');
+        return;
+      }
       if (result.checkoutUrl && paymentsEnabled && !selectedOption?.coveredBySubscription) {
         window.location.href = result.checkoutUrl;
         return;
@@ -186,38 +234,41 @@ function BookContent() {
 
   const confirmLabel = isWaitlist
     ? BUTTON_LABELS.joinWaitlistShort
-    : selectedOption?.coveredBySubscription
+    : usingCredits
       ? BUTTON_LABELS.confirmBooking
-      : paymentsEnabled
-        ? BUTTON_LABELS.payAndConfirm
-        : BUTTON_LABELS.confirmBooking;
+      : selectedOption?.coveredBySubscription
+        ? BUTTON_LABELS.confirmBooking
+        : paymentsEnabled
+          ? BUTTON_LABELS.payAndConfirm
+          : BUTTON_LABELS.confirmBooking;
 
   const pageTitle = isWaitlist ? BUTTON_LABELS.joinWaitlistShort : BUTTON_LABELS.confirmBooking;
 
-  const checkoutExtras =
-    !isWaitlist && IS_MOCK_V2V3_ENABLED ? (
-      <>
-        {loyaltyEnabled && creditBalance ? (
-          <LoyaltyCreditsPanel
-            balance={creditBalance}
-            applyCredits={applyCredits}
-            onApplyCreditsChange={setApplyCredits}
-          />
-        ) : null}
-        {walletsEnabled && !selectedOption?.coveredBySubscription ? (
-          <DigitalWalletsPanel
-            disabled={loading}
-            onSelect={() => {
-              showNotice({
-                title: MOCK_V2V3_LABELS.digitalWallets,
-                message: MOCK_V2V3_LABELS.walletDemoNote,
-                variant: 'info',
-              });
-            }}
-          />
-        ) : null}
-      </>
-    ) : null;
+  const checkoutExtras = !isWaitlist ? (
+    <>
+      {loyaltyEnabled && creditBalance && paymentModel === 'per_class' ? (
+        <LoyaltyCreditsPanel
+          balance={creditBalance}
+          applyCredits={applyCredits}
+          onApplyCreditsChange={setApplyCredits}
+          classPrice={cls.price}
+          disabled={Boolean(selectedOption?.coveredBySubscription)}
+        />
+      ) : null}
+      {walletsEnabled && IS_MOCK_V2V3_ENABLED && !selectedOption?.coveredBySubscription && !usingCredits ? (
+        <DigitalWalletsPanel
+          disabled={loading}
+          onSelect={() => {
+            showNotice({
+              title: MOCK_V2V3_LABELS.digitalWallets,
+              message: MOCK_V2V3_LABELS.walletDemoNote,
+              variant: 'info',
+            });
+          }}
+        />
+      ) : null}
+    </>
+  ) : null;
 
   return (
     <CheckoutPageUI
@@ -232,7 +283,7 @@ function BookContent() {
       onSelectPayment={handleSelectPayment}
       selectedOptionCovered={selectedOption?.coveredBySubscription}
       checkoutTotal={checkoutTotal}
-      paymentsEnabled={paymentsEnabled}
+      paymentsEnabled={paymentsEnabled && !usingCredits}
       error={error}
       loading={loading}
       confirmLabel={confirmLabel}

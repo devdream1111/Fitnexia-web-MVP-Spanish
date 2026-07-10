@@ -1,8 +1,18 @@
-import type { MockAnalyticsSnapshot } from '@/services/mock/seed';
-
 import { readMockJson } from '@/services/mock/storage';
 
-export interface MockAdvancedReports extends MockAnalyticsSnapshot {
+/** Local shape for mock gym-plan reports only (not F-35 production analytics). */
+type MockGymReportSnapshot = {
+  bookings: number;
+  revenueCents: number;
+  attendanceRate: number;
+  bookingsChangePct: number;
+  revenueChangePct: number;
+  attendanceChangePct: number;
+  daily: { label: string; bookings: number; revenueCents: number; attendancePct: number }[];
+  topClasses: { title: string; attendancePct: number; bookings: number }[];
+};
+
+export interface MockAdvancedReports extends MockGymReportSnapshot {
   memberSegments: { label: string; count: number; pct: number }[];
   retentionRate: number;
   revenueProjectionCents: number;
@@ -10,7 +20,7 @@ export interface MockAdvancedReports extends MockAnalyticsSnapshot {
   growthPct: number;
 }
 
-function seedBasic(): MockAnalyticsSnapshot & { inactiveMembers: number; growthPct: number } {
+function seedBasic(): MockGymReportSnapshot & { inactiveMembers: number; growthPct: number } {
   return {
     bookings: 84,
     revenueCents: 6_240_000,
@@ -51,7 +61,7 @@ function seedAdvanced(): MockAdvancedReports {
 }
 
 export const mockGymReportsService = {
-  getBasic(): MockAnalyticsSnapshot & { inactiveMembers: number; growthPct: number } {
+  getBasic(): MockGymReportSnapshot & { inactiveMembers: number; growthPct: number } {
     return readMockJson('gym_reports_basic', seedBasic);
   },
   getAdvanced(): MockAdvancedReports {

@@ -24,24 +24,29 @@ export default function RecordedLibraryPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <PageHeader title={SCREEN_TITLES.recordedLibrary} showBack />
+    <div className="mx-auto max-w-4xl space-y-6 pb-4">
+      <PageHeader
+        variant="premium"
+        title={SCREEN_TITLES.recordedLibrary}
+        showBack
+        backHref="/athlete/profile"
+      />
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-sm text-[var(--fn-text-muted)]">{MOCK_V2V3_LABELS.recordedLibraryHint}</p>
         <MockDataBadge />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         {items.map((item) => (
           <article
             key={item.id}
-            className="overflow-hidden rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm"
+            className="overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:-translate-y-1 hover:border-[color-mix(in_srgb,var(--fn-primary)_30%,var(--fn-border))] hover:shadow-[0_16px_36px_-22px_color-mix(in_srgb,var(--fn-primary)_40%,transparent)]"
           >
-            <div className="flex h-32 items-center justify-center bg-gradient-to-br from-violet-600 to-indigo-800">
+            <div className="flex h-36 items-center justify-center bg-gradient-to-br from-[var(--fn-primary)] via-[#1d4ed8] to-[#0f172a]">
               <Video size={40} className="text-white/90" />
             </div>
             <div className="space-y-3 p-5">
-              <h3 className="font-bold text-[var(--fn-text)]">{item.title}</h3>
+              <h3 className="font-extrabold tracking-tight text-[var(--fn-text)]">{item.title}</h3>
               <p className="text-sm text-[var(--fn-text-muted)]">
                 {item.instructorName} · {item.durationMinutes} min
               </p>

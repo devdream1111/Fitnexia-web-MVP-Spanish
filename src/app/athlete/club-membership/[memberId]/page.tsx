@@ -111,10 +111,17 @@ function AthleteClubStatementContent() {
 
   if (!statement) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 p-6">
-        <PageHeader title={SCREEN_TITLES.clubMembershipStatement} showBack />
+      <div className="mx-auto max-w-3xl space-y-4 pb-4">
+        <PageHeader
+          variant="premium"
+          title={SCREEN_TITLES.clubMembershipStatement}
+          showBack
+          backHref="/athlete/club-membership"
+        />
         {loadError ? <ClubAlertBanner>{loadError}</ClubAlertBanner> : null}
-        <p className="text-[var(--fn-text-muted)]">{GENERAL_LABELS.notFound}</p>
+        <p className="rounded-3xl border border-dashed border-[var(--fn-border)] bg-[var(--fn-surface-muted)]/30 px-6 py-10 text-center text-[var(--fn-text-muted)]">
+          {GENERAL_LABELS.notFound}
+        </p>
         <Button title={GENERAL_LABELS.back} onClick={() => router.push('/athlete/club-membership')} />
       </div>
     );
@@ -126,10 +133,15 @@ function AthleteClubStatementContent() {
     statement.feeStatus === 'pending';
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader title={statement.institutionName} showBack />
+    <div className="mx-auto max-w-3xl space-y-6 pb-4">
+      <PageHeader
+        variant="premium"
+        title={statement.institutionName}
+        showBack
+        backHref="/athlete/club-membership"
+      />
 
-      <article className="relative overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-sm">
+      <article className="relative overflow-hidden rounded-3xl border border-[var(--fn-border)] bg-[var(--fn-surface)] shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--fn-primary)]/10 via-transparent to-transparent" />
         <div className="relative space-y-4 p-6 md:p-8">
           <div className="flex flex-wrap items-center gap-2">

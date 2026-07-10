@@ -19,6 +19,7 @@ import {
 } from '@/components/class-form/class-form-ui';
 import { ClassLocationField } from '@/components/class-form/class-location-field';
 import { ClassMetadataFields } from '@/components/class-form/class-metadata-fields';
+import { ClassCancellationPolicyField } from '@/components/class-form/class-cancellation-policy-field';
 import { ClassCancelPanel } from '@/components/class-form/class-cancel-panel';
 import { RecurrenceSeriesPanel } from '@/components/class-form/recurrence-series-panel';
 import {
@@ -47,6 +48,7 @@ import { apiGetClass, apiGetClassSeries, apiGetClassSeriesInstances } from '@/se
 import { classStartAtFromForm, splitClassStartForForm } from '@/utils/schedule';
 import { buildLocationPayload, labelFromClassLocation } from '@/utils/class-location';
 import { formatRecurrenceWeekdays, isClassInPast } from '@/utils/class-recurrence';
+import { DEFAULT_CANCELLATION_POLICY_HOURS } from '@/utils/booking';
 import { formatSeriesTime, getSeriesIdFromClass, isRecurringClass, normalizeClassRecurrence } from '@/utils/class-series';
 import type { Class, ClassFormat, ClassLevel, ClassSeries, Modality } from '@/types/api';
 
@@ -89,6 +91,9 @@ export function EditClassForm({
   const [duration, setDuration] = useState('60');
   const [price, setPrice] = useState('25');
   const [capacity, setCapacity] = useState('12');
+  const [cancellationPolicyHours, setCancellationPolicyHours] = useState(
+    String(DEFAULT_CANCELLATION_POLICY_HOURS),
+  );
   const [level, setLevel] = useState<ClassLevel | ''>('');
   const [language, setLanguage] = useState('');
   const [locationLabel, setLocationLabel] = useState('');
@@ -117,6 +122,9 @@ export function EditClassForm({
       setDuration(String(loaded.durationMinutes));
       setPrice(String((loaded.price.amount / 100).toFixed(2)));
       setCapacity(String(loaded.capacity ?? 12));
+      setCancellationPolicyHours(
+        String(loaded.cancellationPolicyHours ?? DEFAULT_CANCELLATION_POLICY_HOURS),
+      );
       setLevel(loaded.level ?? '');
       setLanguage(loaded.language ?? '');
       setLocationLabel(labelFromClassLocation(loaded.location));
@@ -206,6 +214,7 @@ export function EditClassForm({
         currency: cls?.price.currency || DEFAULT_CURRENCY,
       },
       capacity: cap,
+      cancellationPolicyHours: Math.max(0, parseInt(cancellationPolicyHours, 10) || DEFAULT_CANCELLATION_POLICY_HOURS),
       location: buildLocationPayload(modality, locationLabel, cls?.location),
       ...(!isPastClass ? { startAt: classStartAtFromForm(startDate, startTime) } : {}),
     };
@@ -508,6 +517,10 @@ export function EditClassForm({
                   disabled={isPrivate}
                 />
               </div>
+              <ClassCancellationPolicyField
+                value={cancellationPolicyHours}
+                onChange={setCancellationPolicyHours}
+              />
               <p className="text-sm text-[var(--fn-text-muted)]">
                 {modality === 'online' ? MODALITY_LABELS.online : MODALITY_LABELS.inPerson}
                 {isPrivate ? ' · Capacidad fija de 1 para clases privadas.' : ''}

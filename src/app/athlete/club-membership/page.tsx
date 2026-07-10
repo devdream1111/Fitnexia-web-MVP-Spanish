@@ -36,7 +36,7 @@ export default function AthleteClubMembershipPage() {
   }, [user?.role]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 pb-4">
       <ClubAthleteHero />
 
       {loadError ? <ClubAlertBanner>{loadError}</ClubAlertBanner> : null}

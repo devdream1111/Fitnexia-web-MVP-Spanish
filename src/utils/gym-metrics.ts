@@ -18,8 +18,8 @@ export function formatGymChange(pct: number): string {
   return `${sign}${Math.round(pct * 100)}% vs last week`;
 }
 
-export function formatRevenueCompact(cents: number, currency = DEFAULT_CURRENCY): string {
-  if (currency === DEFAULT_CURRENCY || !currency) {
+export function formatRevenueCompact(cents: number, currency: string = DEFAULT_CURRENCY): string {
+  if (!currency || currency.toUpperCase() === DEFAULT_CURRENCY) {
     return formatCompactUyu(cents);
   }
   return formatMoneyFromCents(cents, currency);
