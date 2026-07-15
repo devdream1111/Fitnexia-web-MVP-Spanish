@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { BookOpen, CalendarCheck, DollarSign } from 'lucide-react';
 
-import { MOCK_V2V3_LABELS } from '@/constants/labels';
-
 import { ClassCard } from '@/components/class-card';
 import { LiveStreamJoinLink } from '@/components/live-stream/live-stream-join-link';
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
@@ -75,13 +73,6 @@ export default function InstructorDashboardPage() {
         title={INSTRUCTOR_LABELS.dashboard.todayOverview}
       >
         <div className="flex flex-wrap gap-2">
-          <Link href="/instructor/analytics">
-            <Button
-              title={MOCK_V2V3_LABELS.analyticsTitle}
-              variant="outline"
-              className="shadow-lg shadow-black/10"
-            />
-          </Link>
           <Link href="/instructor/create-class">
             <Button title={INSTRUCTOR_LABELS.dashboard.newClass} className="shadow-lg shadow-black/20" />
           </Link>

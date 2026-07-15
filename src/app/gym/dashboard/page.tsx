@@ -60,9 +60,6 @@ export default function GymDashboardPage() {
         title={GYM_LABELS.dashboard.controlPanel}
       >
         <div className="flex flex-wrap gap-2">
-          <Link href="/gym/analytics">
-            <Button title={MOCK_V2V3_LABELS.analyticsTitle} variant="outline" className="shadow-lg shadow-black/10" />
-          </Link>
           <Link href="/gym/collections">
             <Button title={MOCK_V2V3_LABELS.collectionsTitle} variant="outline" className="shadow-lg shadow-black/10" />
           </Link>

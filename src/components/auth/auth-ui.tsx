@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { Logo } from '@/components/layout/Logo';
+import { AuthAppPromo } from '@/components/mobile-app';
 import { Button } from '@/components/ui/button';
 import { PAGE_BACKGROUNDS } from '@/constants/backgrounds';
 import { GENERAL_LABELS, AUTH_LABELS } from '@/constants/labels';
@@ -134,16 +135,19 @@ function AuthBrandPanel({ variant }: { variant: 'login' | 'register' }) {
             ))}
           </ul>
         </div>
-        <div className="mt-6 grid grid-cols-3 gap-2">
-          {BRAND_STATS.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-white/15 bg-white/10 px-2 py-3 backdrop-blur-sm"
-            >
-              <p className="text-lg font-extrabold text-white">{stat.value}</p>
-              <p className="mt-0.5 text-[10px] text-white/70">{stat.label}</p>
-            </div>
-          ))}
+        <div className="mt-6 space-y-4">
+          <div className="grid grid-cols-3 gap-2">
+            {BRAND_STATS.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-xl border border-white/15 bg-white/10 px-2 py-3 backdrop-blur-sm"
+              >
+                <p className="text-lg font-extrabold text-white">{stat.value}</p>
+                <p className="mt-0.5 text-[10px] text-white/70">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+          <AuthAppPromo />
         </div>
       </div>
     </aside>

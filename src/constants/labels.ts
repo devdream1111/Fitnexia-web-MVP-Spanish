@@ -344,6 +344,15 @@ export const GENERAL_LABELS = {
   searchClassesCoachesGyms: 'Buscar clases, entrenadores, gimnasios...',
   nearby: 'Cerca',
   recommendedForYou: 'Recomendado para ti',
+  nearbyPopularHome: 'Cercanas y populares',
+  athleteHomeViewByType: 'Por tipo',
+  athleteHomeViewByFeed: 'Por feed',
+  athleteHomeViewLabel: 'Vista del inicio',
+  athleteHomeViewHint: 'Elegí cómo explorar las clases de tu feed',
+  athleteHomeViewByTypeDesc: 'Regulares y puntuales',
+  athleteHomeViewByFeedDesc: 'Recomendadas y cercanas',
+  athleteHomeFeedEyebrow: 'Modo feed',
+  athleteHomeClassCount: (n: number) => `${n} ${n === 1 ? 'clase' : 'clases'}`,
   /** Athlete home — recurring vs one-off (F-13) */
   generalClasses: 'Clases generales',
   regularClassesHome: 'Clases regulares',
@@ -357,6 +366,12 @@ export const GENERAL_LABELS = {
     'Todavía no hay clases regulares disponibles. Explorá el buscador para encontrar una.',
   generalClassesEmpty:
     'Todavía no hay clases generales en tu feed. Probá otra búsqueda o volvé más tarde.',
+  recommendedClassesSubtitle: 'Seleccionadas según tu actividad y preferencias',
+  nearbyPopularSubtitle: 'Clases con buena demanda cerca de vos',
+  recommendedClassesEmpty:
+    'Todavía no hay recomendaciones en tu feed. Explorá el buscador para descubrir clases.',
+  nearbyPopularEmpty:
+    'Todavía no hay clases cercanas o populares. Probá otra búsqueda o volvé más tarde.',
   athleteSearchEyebrow: 'Descubrí',
   athleteSearchSubtitle:
     'Filtrá por disciplina, modalidad, horario y precio para encontrar tu próxima clase.',
@@ -1310,4 +1325,34 @@ export const CLUB_LABELS = {
     chargeHistory: 'Historial de cuotas',
     noCharges: 'Sin movimientos.',
   },
+} as const;
+
+export const MOBILE_APP_LABELS = {
+  title: 'Descarga la app',
+  subtitle: 'Reservá y entrená desde tu celular.',
+  heroCta: 'Descargar la app',
+  heroHint: 'Disponible en iOS y Android',
+  openStores: 'Ver tiendas',
+  ios: 'App Store',
+  android: 'Google Play',
+  androidApk: 'Descargar APK',
+  iosMicro: 'Download on the',
+  androidMicro: 'Get it on',
+  androidApkMicro: 'Android',
+  iosAria: 'Descargar Fitnexia en la App Store',
+  androidAria: 'Descargar Fitnexia en Google Play',
+  androidApkAria: 'Descargar Fitnexia APK para Android',
+  comingSoon: 'Próximamente',
+  comingSoonAria: 'Disponible próximamente',
+  modalTitle: 'Llevá Fitnexia en el bolsillo',
+  modalSubtitle: 'Descargá la app para reservar clases, recibir recordatorios y entrenar donde estés.',
+  modalClose: 'Cerrar',
+  bannerTitle: 'Fitnexia App',
+  bannerSubtitle: 'Reservas, recordatorios y tu progreso en el celular.',
+  bannerCta: 'Abrir',
+  bannerDismiss: 'Cerrar aviso de la app',
+  authPromoTitle: '¿Preferís la app?',
+  authPromoBody: 'Más rápida en el celular — disponible en App Store y Android.',
+  authPromoCta: 'Descargar app',
+  navDownload: 'App',
 } as const;

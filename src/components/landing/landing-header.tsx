@@ -5,8 +5,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Menu, Moon, Sun, X } from 'lucide-react';
 
 import { Logo } from '@/components/layout/Logo';
+import { GetTheAppModal } from '@/components/mobile-app';
 import { Button } from '@/components/ui/button';
-import { BUTTON_LABELS, LANDING_LABELS } from '@/constants/labels';
+import { BUTTON_LABELS, LANDING_LABELS, MOBILE_APP_LABELS } from '@/constants/labels';
 import { useAppTheme } from '@/contexts/theme-context';
 import { handleHashLinkClick } from '@/utils/smooth-scroll';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
@@ -22,6 +23,7 @@ export function LandingHeader() {
   const { isDark, toggleDarkMode } = useAppTheme();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [appModalOpen, setAppModalOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 48);
@@ -93,6 +95,13 @@ export function LandingHeader() {
             aria-label="Cambiar tema"
           >
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button
+            type="button"
+            className="fn-landing-nav-link"
+            onClick={() => setAppModalOpen(true)}
+          >
+            {MOBILE_APP_LABELS.navDownload}
           </button>
           <Link href="/auth/login">
             <Button
@@ -167,10 +176,21 @@ export function LandingHeader() {
               <Link href="/auth/register" className="block w-full" onClick={closeMenu}>
                 <Button title={LANDING_LABELS.nav.start} size="md" className="w-full" />
               </Link>
+              <button
+                type="button"
+                className="fn-landing-mobile-app-btn"
+                onClick={() => {
+                  closeMenu();
+                  setAppModalOpen(true);
+                }}
+              >
+                {MOBILE_APP_LABELS.heroCta}
+              </button>
             </div>
           </div>
         </>
       ) : null}
+      <GetTheAppModal open={appModalOpen} onClose={() => setAppModalOpen(false)} />
     </header>
   );
 }

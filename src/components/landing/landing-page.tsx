@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowRight, Building2, Dumbbell, Sparkles, UserRound } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { SmartAppBanner } from '@/components/mobile-app';
 import { BUTTON_LABELS, LANDING_LABELS } from '@/constants/labels';
 import { LandingBenefits } from './landing-benefits';
 import { HeroSplash } from './hero-splash';
@@ -18,6 +19,7 @@ const ROLE_CONFIG = [
 export function LandingPage() {
   return (
     <div className="fn-landing fn-uy-landing">
+      <SmartAppBanner />
       <LandingHeader />
       <HeroSplash />
 

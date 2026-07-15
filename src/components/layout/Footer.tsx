@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Mail, Phone, MapPin, Heart, Star, User } from 'lucide-react';
 
 import { useAuth } from '@/contexts/auth-context';
+import { GetTheAppBlock } from '@/components/mobile-app';
 import { Logo } from './Logo';
 import type { UserRole } from '@/types/api';
 
@@ -77,7 +78,6 @@ function forYouLinksForRole(role: UserRole): FooterLink[] {
     return [
       { label: 'Panel', href: '/instructor/dashboard' },
       { label: 'Mis ganancias', href: '/instructor/earnings' },
-      { label: 'Analíticas', href: '/instructor/analytics' },
       { label: 'Mi perfil', href: '/instructor/profile' },
       { label: 'Crear clase', href: '/instructor/create-class' },
       { label: 'Soporte', href: supportHref(role) },
@@ -87,7 +87,6 @@ function forYouLinksForRole(role: UserRole): FooterLink[] {
     return [
       { label: 'Panel', href: '/gym/dashboard' },
       { label: 'Ganancias', href: '/gym/earnings' },
-      { label: 'Analíticas', href: '/gym/analytics' },
       { label: 'Perfil del gimnasio', href: '/gym/profile' },
       { label: 'Crear clase', href: '/gym/create-class' },
       { label: 'Soporte', href: supportHref(role) },
@@ -194,7 +193,9 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[#334155] pt-8 md:flex-row">
+        <GetTheAppBlock />
+
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-[#334155] pt-8 md:flex-row">
           <p className="text-sm text-[#94A3B8]">© 2026 Fitnexia. Todos los derechos reservados.</p>
           <div className="flex items-center gap-6">
             <Link href="/legal/privacy" className={footerLinkClassName()}>

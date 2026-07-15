@@ -203,7 +203,6 @@ export default function GymProfilePage() {
     {
       title: 'Más',
       links: [
-        { href: '/gym/analytics', label: MOCK_V2V3_LABELS.analyticsTitle, icon: LineChart },
         { href: '/gym/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy },
         ...(showBranding
           ? [{ href: '/gym/profile/branding', label: MOCK_V2V3_LABELS.brandingTitle, icon: Palette }]

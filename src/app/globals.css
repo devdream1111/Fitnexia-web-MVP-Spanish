@@ -946,6 +946,76 @@ html:has(.fn-landing) {
   background: #fff;
 }
 
+.fn-hero-app-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  animation: fn-hero-fade-up 0.7s ease-out 0.12s both;
+}
+
+.fn-hero-app-cta__primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 35%);
+  background: var(--fn-primary);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  box-shadow: 0 12px 32px rgb(26 115 232 / 40%);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fn-hero-app-cta__primary:hover {
+  background: var(--fn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgb(26 115 232 / 48%);
+}
+
+.fn-hero-app-cta__primary:active {
+  transform: translateY(0);
+}
+
+.fn-hero-app-cta__hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 65%);
+}
+
+.fn-hero-app-cta__badges {
+  margin-top: 0.25rem;
+}
+
+.fn-landing-mobile-app-btn {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--fn-primary) 35%, var(--fn-border));
+  background: var(--fn-primary-muted);
+  color: var(--fn-primary-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fn-landing-mobile-app-btn:hover {
+  border-color: var(--fn-primary);
+  background: color-mix(in srgb, var(--fn-primary-muted) 70%, var(--fn-surface));
+}
+
 /* Landing — fitnexia.uy-inspired sections (hero unchanged above) */
 .fn-uy-landing {
   --fn-uy-radius: 1.25rem;
@@ -1559,6 +1629,120 @@ html:has(.fn-landing) {
 
 @media (prefers-reduced-motion: reduce) {
   .fn-athlete-search-bar {
+    animation: none;
+  }
+}
+
+/* Athlete home — discover toolbar & feed layout */
+.fn-athlete-home-discover {
+  animation: fn-home-fade-up 0.45s ease-out both;
+}
+
+.fn-athlete-home-toolbar {
+  border-radius: 1.25rem;
+  border: 1px solid var(--fn-border);
+  background: var(--fn-surface);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.fn-athlete-home-toolbar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.fn-athlete-home-toolbar-head {
+  min-width: 0;
+}
+
+.fn-athlete-home-mode-grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr;
+  gap: 0.625rem;
+}
+
+.fn-athlete-home-mode-option {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--fn-border);
+  background: color-mix(in srgb, var(--fn-surface-muted) 45%, var(--fn-surface));
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .fn-athlete-home-mode-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .fn-athlete-home-toolbar-inner {
+    padding: 1.25rem 1.5rem;
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fn-athlete-home-toolbar-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    align-items: center;
+    column-gap: 1.5rem;
+    row-gap: 0;
+  }
+
+  .fn-athlete-home-mode-grid {
+    align-self: stretch;
+  }
+}
+
+.fn-athlete-home-mode-option:hover:not([aria-selected='true']) {
+  border-color: color-mix(in srgb, var(--fn-primary) 28%, var(--fn-border));
+  background: color-mix(in srgb, var(--fn-primary-muted) 35%, var(--fn-surface));
+}
+
+.fn-athlete-home-mode-option[aria-selected='true'] {
+  border-color: color-mix(in srgb, var(--fn-primary) 45%, var(--fn-border));
+  background: color-mix(in srgb, var(--fn-primary-muted) 55%, var(--fn-surface));
+  box-shadow: 0 10px 28px -18px color-mix(in srgb, var(--fn-primary) 55%, transparent);
+}
+
+.fn-athlete-home-mode-option:focus-visible {
+  outline: 2px solid var(--fn-primary);
+  outline-offset: 2px;
+}
+
+.fn-athlete-home-mode-content {
+  animation: fn-home-fade-up 0.35s ease-out both;
+}
+
+.fn-athlete-home-feed-panel {
+  border-radius: 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--fn-primary) 18%, var(--fn-border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--fn-primary-muted) 42%, var(--fn-surface)) 0%,
+    var(--fn-surface) 12rem
+  );
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.fn-athlete-home-section-feed .fn-athlete-home-section-head {
+  border-bottom: 1px solid color-mix(in srgb, var(--fn-primary) 12%, var(--fn-border));
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fn-athlete-home-discover,
+  .fn-athlete-home-mode-content {
     animation: none;
   }
 }
@@ -2614,5 +2798,406 @@ html:has(.fn-legal-page) {
   .fn-fullscreen-loader-ring::before {
     animation-duration: 1.25s;
   }
+
+  .fn-hero-app-cta,
+  .fn-app-download-modal__panel,
+  .fn-smart-app-banner,
+  .fn-app-store-badge--emphasized {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* —— Mobile app download: badges, modal, smart banner, auth promo —— */
+
+.fn-app-store-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.fn-app-store-badges--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@media (min-width: 640px) {
+  .fn-app-store-badges--stack {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.fn-app-store-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.65rem;
+  border-width: 1px;
+  border-style: solid;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+button.fn-app-store-badge {
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.fn-app-store-badge:hover {
+  transform: translateY(-1px);
+}
+
+.fn-app-store-badge--emphasized {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fn-primary) 55%, transparent);
+  animation: fn-app-badge-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes fn-app-badge-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--fn-primary) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fn-primary) 70%, transparent);
+  }
+}
+
+.fn-app-download-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 640px) {
+  .fn-app-download-modal {
+    align-items: center;
+  }
+}
+
+.fn-app-download-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgb(15 23 42 / 55%);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  animation: fn-app-modal-fade 0.22s ease-out;
+}
+
+.fn-app-download-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 24rem);
+  border-radius: 1.25rem 1.25rem 1rem 1rem;
+  border: 1px solid var(--fn-border);
+  background: var(--fn-surface);
+  padding: 1.75rem 1.5rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 28px 64px rgb(15 23 42 / 28%);
+  animation: fn-app-modal-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 640px) {
+  .fn-app-download-modal__panel {
+    border-radius: 1.25rem;
+  }
+}
+
+.fn-app-download-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: none;
+  background: var(--fn-surface-muted);
+  color: var(--fn-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fn-app-download-modal__close:hover {
+  background: var(--fn-border);
+  color: var(--fn-text);
+}
+
+.fn-app-download-modal__icon {
+  display: inline-flex;
+  height: 3.25rem;
+  width: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
+  border-radius: 1rem;
+  background: var(--fn-primary-muted);
+  color: var(--fn-primary);
+}
+
+.fn-app-download-modal__title {
+  margin-top: 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--fn-text);
+}
+
+.fn-app-download-modal__subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--fn-text-muted);
+}
+
+.fn-app-download-modal__badges {
+  margin-top: 1.25rem;
+}
+
+@keyframes fn-app-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fn-app-modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fn-smart-app-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  padding: 0.75rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+  animation: fn-app-modal-rise 0.35s ease-out;
+}
+
+.fn-smart-app-banner__inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: 32rem;
+  margin-inline: auto;
+  padding: 0.65rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--fn-primary) 30%, var(--fn-border));
+  background: color-mix(in srgb, var(--fn-surface) 92%, var(--fn-primary-muted));
+  box-shadow: 0 16px 40px rgb(15 23 42 / 22%);
+  backdrop-filter: blur(12px);
+}
+
+.fn-smart-app-banner__icon {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--fn-primary);
+  color: #fff;
+}
+
+.fn-smart-app-banner__copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.fn-smart-app-banner__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--fn-text);
+  line-height: 1.2;
+}
+
+.fn-smart-app-banner__subtitle {
+  margin-top: 0.125rem;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--fn-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fn-smart-app-banner__cta {
+  flex-shrink: 0;
+  min-height: 2rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  border: none;
+  background: var(--fn-primary);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.fn-smart-app-banner__cta:hover {
+  background: var(--fn-primary-hover);
+}
+
+.fn-smart-app-banner__dismiss {
+  flex-shrink: 0;
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--fn-text-muted);
+  cursor: pointer;
+}
+
+.fn-smart-app-banner__dismiss:hover {
+  background: var(--fn-surface-muted);
+  color: var(--fn-text);
+}
+
+@media (min-width: 768px) {
+  .fn-smart-app-banner {
+    display: none;
+  }
+}
+
+.fn-footer-app {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid #334155;
+  background: linear-gradient(120deg, #0f172a 0%, #162033 55%, #152a45 100%);
+}
+
+@media (min-width: 768px) {
+  .fn-footer-app {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem 2rem;
+    padding: 1.5rem 1.75rem;
+  }
+}
+
+.fn-footer-app__copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.fn-footer-app__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.3;
+}
+
+.fn-footer-app__subtitle {
+  margin-top: 0.35rem;
+  max-width: 28rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+
+.fn-footer-app__badges,
+.fn-footer-app .fn-app-store-badges {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+}
+
+@media (min-width: 768px) {
+  .fn-footer-app__badges,
+  .fn-footer-app .fn-app-store-badges {
+    justify-content: flex-end;
+  }
+}
+
+.fn-auth-app-promo--brand {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding-top: 0.25rem;
+  text-align: left;
+}
+
+.fn-auth-app-promo--brand .fn-auth-app-promo__copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.fn-auth-app-promo--brand .fn-auth-app-promo__title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.25;
+}
+
+.fn-auth-app-promo--brand .fn-auth-app-promo__body {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 72%);
+}
+
+.fn-auth-app-promo--brand .fn-auth-app-promo__badges,
+.fn-auth-app-promo--brand .fn-app-store-badges {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+}
+
+.fn-auth-app-promo--brand .fn-app-store-badge {
+  min-height: 2.35rem;
+  padding: 0.3rem 0.55rem;
+  gap: 0.45rem;
+}
+
+.fn-auth-app-promo--brand .fn-app-store-badge svg {
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+.fn-auth-app-promo--brand .fn-app-store-badge span span:last-child {
+  font-size: 0.75rem;
 }
 

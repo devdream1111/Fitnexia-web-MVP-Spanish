@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { Logo } from '@/components/layout/Logo';
+import { HeroAppCta } from '@/components/mobile-app';
 import { ONBOARDING_LABELS } from '@/constants/labels';
 
 const SLIDE_INTERVAL_MS = 5500;
@@ -66,6 +67,8 @@ export function HeroSplash() {
           <h1 className="fn-hero-splash-slogan-title">{slide.title}</h1>
           <p className="fn-hero-splash-slogan-body">{slide.body}</p>
         </div>
+
+        <HeroAppCta />
 
         <div className="fn-hero-splash-dots" role="tablist" aria-label="Diapositivas">
           {HERO_SLIDES.map((item, i) => (

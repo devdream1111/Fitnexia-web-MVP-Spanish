@@ -11,7 +11,6 @@ import {
   CircleCheck,
   Clock,
   LifeBuoy,
-  LineChart,
   Star,
   Wallet,
 } from 'lucide-react';
@@ -58,7 +57,6 @@ import {
   PROFILE_PAGE_LABELS,
   ROLE_TITLES,
   TAB_LABELS,
-  MOCK_V2V3_LABELS,
   ADVANCED_SEARCH_LABELS,
 } from '@/constants/labels';
 import { INSTRUCTOR_GENDERS } from '@/constants/fitnexia';
@@ -240,7 +238,6 @@ export default function InstructorProfilePage() {
     {
       title: 'Más',
       links: [
-        { href: '/instructor/analytics', label: MOCK_V2V3_LABELS.analyticsTitle, icon: LineChart },
         { href: '/instructor/profile/support', label: PROFILE_MENU_LABELS.helpSupport, icon: LifeBuoy },
       ].filter(Boolean) as QuickLinkGroup['links'],
     },
