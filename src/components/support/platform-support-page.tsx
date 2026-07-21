@@ -18,7 +18,7 @@ import { ApiClientError } from '@/services/api-client';
 import { useNoticeModal } from '@/contexts/notice-modal-context';
 import type { SupportTicket, SupportTicketStatus } from '@/types/api';
 
-const SUPPORT_EMAIL = 'soporte@fitnexia.fit';
+const SUPPORT_EMAIL = 'info@fitnexia.fit';
 
 function statusLabel(status: SupportTicketStatus | string): string {
   const map = MOCK_V2V3_LABELS.supportStatus as Record<string, string>;
