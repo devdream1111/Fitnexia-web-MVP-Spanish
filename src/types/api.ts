@@ -59,16 +59,34 @@ export interface GymEntitlements {
   integrations: boolean;
 }
 
+/** Platform SaaS billing lifecycle (gym tiers + instructor plans). */
+export type SaasBillingStatus =
+  | 'not_required'
+  | 'inactive'
+  | 'pending'
+  | 'active'
+  | 'past_due'
+  | 'cancelled';
+
 export interface GymSubscription {
   tier: GymSaasTier;
   tierName: string;
   monthlyFeeCents: number;
+  commissionPercent?: number;
   memberCount: number;
   memberLimit: number | null;
   membersRemaining: number | null;
   atLimit: boolean;
   entitlements: GymEntitlements;
-  billingStatus: 'manual' | string;
+  billingStatus: SaasBillingStatus | 'manual' | string;
+  /** Mercado Pago preapproval init point while billing is pending. */
+  authorizationUrl?: string;
+  /** Tier awaiting payment authorization (set while billingStatus is pending). */
+  pendingTier?: GymSaasTier;
+  lastBilledAt?: string;
+  nextBillingAt?: string;
+  /** Present on PATCH /institutions/me/subscription when a paid tier needs checkout. */
+  checkoutUrl?: string | null;
 }
 
 export interface GymTierCatalog {

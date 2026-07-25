@@ -40,6 +40,8 @@ import type {
   CourtScheduleDay,
   CourtSettings,
   GymSaasTier,
+  InstructorPlan,
+  SaasBillingStatus,
   OpenGame,
   GymSubscription,
   GymTierCatalog,
@@ -193,6 +195,14 @@ export interface StaffReviewEligibility {
   } | null;
 }
 
+export interface MarketplacePublicConfig {
+  enabled: boolean;
+  configured: boolean;
+  requireSellerConnect?: boolean;
+  gymPayeePolicy?: string;
+  passRevenuePolicy?: string;
+}
+
 export interface PayoutSummary {
   gross: number;
   platformFee: number;
@@ -200,6 +210,27 @@ export interface PayoutSummary {
   currency: string;
   commissionRate: number;
   plan: string;
+  automaticPayouts?: boolean;
+  marketplace?: MarketplacePublicConfig;
+}
+
+export interface MpSellerConnection {
+  sellerType: 'instructor' | 'institution';
+  status: 'connected' | 'revoked' | 'disconnected' | string;
+  connected: boolean;
+  collectorId?: string;
+  connectedAt?: string;
+}
+
+export interface MpConnectStatus {
+  marketplace: MarketplacePublicConfig;
+  connection: MpSellerConnection;
+  oauth: {
+    enabled: boolean;
+    configured: boolean;
+    redirectUri: string;
+    platformTokenConfigured: boolean;
+  };
 }
 
 export interface PayoutRecord {
@@ -789,6 +820,22 @@ export function apiGetPayoutSummary(period: 'day' | 'week' | 'month' = 'month') 
   return apiRequest<PayoutSummary>(`/payouts/me/summary?period=${period}`);
 }
 
+// Mercado Pago seller connect (marketplace payouts)
+
+export function apiGetMpConnectStatus() {
+  return apiRequest<MpConnectStatus>('/payouts/mp/status');
+}
+
+export function apiGetMpConnectUrl() {
+  return apiRequest<{ url: string; state: string }>('/payouts/mp/connect');
+}
+
+export function apiDisconnectMp() {
+  return apiRequest<{ connection: MpSellerConnection }>('/payouts/mp/disconnect', {
+    method: 'DELETE',
+  });
+}
+
 export function apiListPayouts(params: { page?: number; limit?: number } = {}) {
   const qs = new URLSearchParams();
   if (params.page) qs.set('page', String(params.page));
@@ -812,6 +859,29 @@ export interface PlanOption {
 
 export function apiGetPlans() {
   return apiRequest<{ data: PlanOption[] }>('/config/plans', { auth: false });
+}
+
+// --- Platform SaaS billing (instructor plans) ---
+
+export interface InstructorPlanBilling {
+  /** Currently active plan (unchanged until payment is authorized). */
+  plan: InstructorPlan;
+  /** Plan awaiting Mercado Pago authorization. */
+  pendingPlan?: InstructorPlan;
+  billingStatus: SaasBillingStatus | string;
+  monthlyFeeCents: number;
+  authorizationUrl?: string;
+  preapprovalId?: string;
+  lastBilledAt?: string;
+  nextBillingAt?: string;
+  checkoutUrl?: string | null;
+}
+
+export function apiSubscribeInstructorPlan(plan: InstructorPlan) {
+  return apiRequest<InstructorPlanBilling>('/instructors/me/plan', {
+    method: 'POST',
+    body: JSON.stringify({ plan }),
+  });
 }
 
 // --- Gym SaaS subscription ---

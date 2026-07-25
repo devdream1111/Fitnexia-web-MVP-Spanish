@@ -39,6 +39,24 @@ const TIER_VISUAL: Record<
   },
 };
 
+function billingStatusLabel(subscription: GymSubscription): string {
+  switch (subscription.billingStatus) {
+    case 'active':
+      return GYM_LABELS.saas.billingActive;
+    case 'pending':
+      return GYM_LABELS.saas.billingPending;
+    case 'past_due':
+      return GYM_LABELS.saas.billingPastDue;
+    case 'not_required':
+      return GYM_LABELS.saas.billingNotRequired;
+    case 'inactive':
+    case 'cancelled':
+      return GYM_LABELS.saas.billingInactive;
+    default:
+      return GYM_LABELS.saas.billingManual;
+  }
+}
+
 function tierFeatures(tier: GymTierCatalog): string[] {
   const features: string[] = [];
   const limit =
@@ -89,8 +107,18 @@ export function GymSubscriptionBanner({ subscription }: { subscription: GymSubsc
                 ? 'Gratis'
                 : `${formatMoneyFromCents(subscription.monthlyFeeCents, DEFAULT_CURRENCY)}/mes`}
               {' · '}
-              {GYM_LABELS.saas.billingManual}
+              {billingStatusLabel(subscription)}
             </p>
+            {subscription.nextBillingAt && subscription.billingStatus === 'active' ? (
+              <p className="mt-1 text-xs text-[var(--fn-text-muted)]">
+                {GYM_LABELS.saas.nextBilling}:{' '}
+                {new Date(subscription.nextBillingAt).toLocaleDateString('es-AR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="min-w-[200px] rounded-2xl border border-[var(--fn-border)] bg-[var(--fn-surface)]/80 p-5 backdrop-blur-sm">

@@ -3,21 +3,31 @@
 import { Check } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DEFAULT_CURRENCY } from '@/constants/fitnexia';
+import { INSTRUCTOR_PLAN_LABELS } from '@/constants/labels';
 import { formatMoneyFromCents } from '@/utils/format';
 import type { PlanOption } from '@/services/api';
 
 export function PlanCards({
   plans,
   currentPlanId,
+  pendingPlanId,
+  onSelectPlan,
+  busyPlanId,
 }: {
   plans: PlanOption[];
   currentPlanId?: string;
+  /** Plan awaiting Mercado Pago authorization. */
+  pendingPlanId?: string;
+  onSelectPlan?: (planId: string) => void;
+  busyPlanId?: string | null;
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {plans.map((plan) => {
         const isCurrent = plan.id === currentPlanId;
+        const isPending = !isCurrent && plan.id === pendingPlanId;
         return (
           <article
             key={plan.id}
@@ -31,6 +41,10 @@ export function PlanCards({
             {isCurrent ? (
               <div className="mb-3">
                 <Badge label="Plan actual" variant="success" size="sm" />
+              </div>
+            ) : isPending ? (
+              <div className="mb-3">
+                <Badge label={INSTRUCTOR_PLAN_LABELS.pendingBadge} variant="warning" size="sm" />
               </div>
             ) : null}
             <h3 className="text-xl font-extrabold text-[var(--fn-text)]">{plan.name}</h3>
@@ -52,6 +66,16 @@ export function PlanCards({
                 Gestión de clases y reservas
               </li>
             </ul>
+            {onSelectPlan && !isCurrent ? (
+              <Button
+                title={INSTRUCTOR_PLAN_LABELS.choosePlan}
+                variant="outline"
+                size="sm"
+                className="mt-5 w-full"
+                loading={busyPlanId === plan.id}
+                onClick={() => onSelectPlan(plan.id)}
+              />
+            ) : null}
           </article>
         );
       })}

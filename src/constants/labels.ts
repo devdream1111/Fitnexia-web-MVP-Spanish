@@ -162,12 +162,46 @@ export const PAYOUT_ACCOUNT_LABELS = {
     'Conectá tu cuenta de Mercado Pago para recibir el neto de tus clases automáticamente cuando el marketplace esté activo.',
   provider: 'Mercado Pago',
   statusLabel: 'Estado',
+  statusConnected: 'Conectada',
   statusDisconnected: 'No conectada',
+  statusRevoked: 'Desvinculada',
+  collectorLabel: 'Cuenta MP',
+  connectedAtLabel: 'Conectada el',
+  connectedBenefit:
+    'Los pagos de tus clases se acreditan directo en tu cuenta de Mercado Pago, con la comisión Fitnexia descontada automáticamente.',
   marketplacePending: 'Marketplace en configuración — tu cliente debe entregar credenciales MP.',
   connect: 'Conectar Mercado Pago',
+  reconnect: 'Volver a conectar',
+  disconnect: 'Desvincular cuenta',
+  refresh: 'Actualizar estado',
+  waitingAuth:
+    'Completá la autorización en la pestaña de Mercado Pago. Verificamos la conexión automáticamente…',
+  connectedNoticeTitle: 'Cuenta conectada',
+  connectedNoticeMessage:
+    'Tu cuenta de Mercado Pago quedó vinculada. Vas a recibir el neto de tus cobros automáticamente.',
+  disconnectedNoticeTitle: 'Cuenta desvinculada',
+  disconnectedNoticeMessage:
+    'Tu cuenta de Mercado Pago fue desvinculada. Podés volver a conectarla cuando quieras.',
   connectNoticeTitle: 'Marketplace en configuración',
   connectNoticeMessage:
     'El marketplace aún está en configuración. Tu cliente debe entregar las credenciales de Mercado Pago para habilitar la conexión de cuentas de cobro.',
+  loadError: 'No se pudo cargar el estado de la cuenta de cobros.',
+  connectError: 'No se pudo iniciar la conexión con Mercado Pago.',
+  disconnectError: 'No se pudo desvincular la cuenta.',
+} as const;
+
+export const INSTRUCTOR_PLAN_LABELS = {
+  choosePlan: 'Cambiar a este plan',
+  pendingBadge: 'Pago pendiente',
+  completePayment: 'Completar pago en Mercado Pago',
+  checkoutOpenedTitle: 'Autorización en Mercado Pago',
+  checkoutOpenedBody:
+    'Abrimos Mercado Pago en una pestaña nueva. Cuando completes la autorización, tu plan se activa automáticamente.',
+  waitingActivation: 'Esperando confirmación del pago…',
+  activationTimeout:
+    'Todavía no recibimos la confirmación del pago. Si ya pagaste, actualizá esta página en unos minutos.',
+  subscribeSuccess: 'Plan actualizado correctamente.',
+  subscribeError: 'No se pudo iniciar la suscripción.',
 } as const;
 
 export const PROFILE_MENU_LABELS = {
@@ -1165,6 +1199,23 @@ export const GYM_LABELS = {
     remaining: (n: number) => `${n} cupos disponibles`,
     selectPlan: 'Seleccionar plan',
     tierUpdated: 'Plan actualizado correctamente.',
+    billingActive: 'Débito automático activo',
+    billingPending: 'Pago pendiente de autorización',
+    billingPastDue: 'Pago atrasado',
+    billingNotRequired: 'Sin costo mensual',
+    billingInactive: 'Facturación inactiva',
+    nextBilling: 'Próximo cobro',
+    pendingTierTitle: 'Cambio de plan pendiente',
+    pendingTierBody: (tierName: string) =>
+      `Autorizá el débito automático en Mercado Pago para activar el plan ${tierName}.`,
+    completePayment: 'Completar pago en Mercado Pago',
+    refreshBilling: 'Ya pagué, actualizar estado',
+    checkoutOpenedTitle: 'Autorización en Mercado Pago',
+    checkoutOpenedBody:
+      'Abrimos Mercado Pago en una pestaña nueva. Cuando completes la autorización, el plan se activa automáticamente.',
+    tierActivated: 'Plan activado correctamente.',
+    activationTimeout:
+      'Todavía no recibimos la confirmación del pago. Si ya pagaste, actualizá esta página en unos minutos.',
     memberLimitReached: (limit: number) =>
       `Alcanzaste el límite de ${limit} socios activos de tu plan. Actualizá tu plan Fitnexia o dá de baja socios para agregar más.`,
     limitBlocked: 'No podés agregar más socios hasta liberar cupo o cambiar de plan.',
@@ -1305,6 +1356,14 @@ export const CLUB_LABELS = {
     subscriptionPastDue: 'Pago atrasado',
     charges: 'Historial de cargos',
     noCharges: 'Sin cargos registrados.',
+    paymentOpenedTitle: 'Pago en Mercado Pago',
+    paymentOpenedBody:
+      'Abrimos Mercado Pago en una pestaña nueva. Cuando completes el pago, tu estado de cuenta se actualiza automáticamente.',
+    waitingPayment: 'Esperando confirmación del pago…',
+    paymentApproved: 'Pago acreditado. ¡Gracias!',
+    paymentTimeout:
+      'Todavía no recibimos la confirmación. Si ya pagaste, actualizá el estado de cuenta en unos minutos.',
+    payError: 'No se pudo iniciar el pago.',
   },
   join: {
     title: 'Unite al club',

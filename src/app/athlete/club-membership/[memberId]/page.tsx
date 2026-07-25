@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Receipt } from 'lucide-react';
+import { Loader2, Receipt } from 'lucide-react';
 
 import {
   ClubAlertBanner,
@@ -15,6 +15,7 @@ import { useNoticeModal } from '@/contexts/notice-modal-context';
 import {
   apiAuthorizeMembership,
   apiGetMembershipStatement,
+  apiPayMembershipDebt,
   apiSyncMembershipPayment,
 } from '@/services/api';
 import { ApiClientError } from '@/services/api-client';
@@ -22,6 +23,7 @@ import type { ClubMembershipStatement } from '@/types/api';
 import { ALERT_LABELS, CLUB_LABELS, GENERAL_LABELS, SCREEN_TITLES } from '@/constants/labels';
 import { clubPlanCadenceLabel } from '@/utils/club-members';
 import { formatClassDate, formatMoney } from '@/utils/format';
+import { pollUntil, type PollHandle } from '@/utils/payment-polling';
 
 export default function AthleteClubStatementPage() {
   return (
@@ -39,7 +41,9 @@ function AthleteClubStatementContent() {
   const [statement, setStatement] = useState<ClubMembershipStatement | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'authorize' | null>(null);
+  const [busy, setBusy] = useState<'authorize' | 'payDebt' | null>(null);
+  const [waitingPayment, setWaitingPayment] = useState(false);
+  const pollRef = useRef<PollHandle | null>(null);
 
   const load = useCallback(async () => {
     if (!memberId) return;
@@ -60,6 +64,9 @@ function AthleteClubStatementContent() {
 
   useEffect(() => {
     load();
+    return () => {
+      pollRef.current?.cancel();
+    };
   }, [load]);
 
   useEffect(() => {
@@ -80,6 +87,68 @@ function AthleteClubStatementContent() {
       return true;
     }
     return false;
+  };
+
+  // Mercado Pago's checkout-return redirects to the mobile deep link, so on
+  // web we confirm the debt payment by syncing + re-reading the statement.
+  const startDebtPolling = (paymentId?: string) => {
+    setWaitingPayment(true);
+    pollRef.current?.cancel();
+    pollRef.current = pollUntil(
+      async () => {
+        if (paymentId && memberId) {
+          await apiSyncMembershipPayment(memberId, paymentId).catch(() => undefined);
+        }
+        const data = await apiGetMembershipStatement(memberId);
+        setStatement(data);
+        return !data.balanceDue || data.balanceDue.amount <= 0;
+      },
+      {
+        onSuccess: () => {
+          setWaitingPayment(false);
+          showNotice({
+            title: ALERT_LABELS.savedTitle,
+            message: CLUB_LABELS.billing.paymentApproved,
+            variant: 'success',
+          });
+        },
+        onTimeout: () => {
+          setWaitingPayment(false);
+          showNotice({
+            title: CLUB_LABELS.billing.paymentOpenedTitle,
+            message: CLUB_LABELS.billing.paymentTimeout,
+            variant: 'info',
+          });
+        },
+      },
+    );
+  };
+
+  const handlePayDebt = async () => {
+    if (!memberId) return;
+    setBusy('payDebt');
+    try {
+      const res = await apiPayMembershipDebt(memberId);
+      if (res.checkoutUrl) {
+        window.open(res.checkoutUrl, '_blank', 'noopener');
+        showNotice({
+          title: CLUB_LABELS.billing.paymentOpenedTitle,
+          message: CLUB_LABELS.billing.paymentOpenedBody,
+          variant: 'info',
+        });
+        startDebtPolling(res.paymentId);
+        return;
+      }
+      await load();
+    } catch (error) {
+      showNotice({
+        title: ALERT_LABELS.missingInfoTitle,
+        message: error instanceof ApiClientError ? error.message : CLUB_LABELS.billing.payError,
+        variant: 'error',
+      });
+    } finally {
+      setBusy(null);
+    }
   };
 
   const handleAuthorize = async () => {
@@ -164,14 +233,30 @@ function AthleteClubStatementContent() {
             </p>
           ) : null}
           <div className="flex flex-wrap gap-2 pt-1">
+            {statement.balanceDue && statement.balanceDue.amount > 0 ? (
+              <Button
+                title={CLUB_LABELS.athlete.payNow}
+                onClick={handlePayDebt}
+                loading={busy === 'payDebt'}
+              />
+            ) : null}
             {needsAuthorize ? (
               <Button
                 title={CLUB_LABELS.billing.authorize}
+                variant={
+                  statement.balanceDue && statement.balanceDue.amount > 0 ? 'outline' : 'primary'
+                }
                 onClick={handleAuthorize}
                 loading={busy === 'authorize'}
               />
             ) : null}
           </div>
+          {waitingPayment ? (
+            <p className="flex items-center gap-2 text-sm font-medium text-[var(--fn-primary)]">
+              <Loader2 size={16} className="animate-spin" />
+              {CLUB_LABELS.billing.waitingPayment}
+            </p>
+          ) : null}
           {needsAuthorize ? (
             <p className="text-xs leading-relaxed text-[var(--fn-text-muted)]">
               {CLUB_LABELS.billing.subscribeHint}
